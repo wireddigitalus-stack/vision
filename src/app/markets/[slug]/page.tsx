@@ -44,6 +44,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: geo.metaTitle,
       description: geo.metaDescription,
       url: `https://teamvisionllc.com/markets/${geo.slug}`,
+      images: [
+        {
+          url: `https://teamvisionllc.com/api/og?title=${encodeURIComponent(`Commercial Real Estate ${geo.city}, ${geo.state}`)}&subtitle=${encodeURIComponent(`${geo.countyName} · Vision LLC serves ${geo.region}`)}&tag=${encodeURIComponent(geo.city)}&type=geo`,
+          width: 1200,
+          height: 630,
+          alt: `Commercial Real Estate ${geo.city}, ${geo.state} | Vision LLC`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: geo.metaTitle,
+      description: geo.metaDescription,
+      images: [
+        `https://teamvisionllc.com/api/og?title=${encodeURIComponent(`Commercial Real Estate ${geo.city}, ${geo.state}`)}&subtitle=${encodeURIComponent(`${geo.countyName} · Vision LLC serves ${geo.region}`)}&tag=${encodeURIComponent(geo.city)}&type=geo`,
+      ],
     },
     other: {
       "geo.region": `US-${geo.state}`,
@@ -52,6 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "ICBM": `${geo.lat}, ${geo.lng}`,
     },
   };
+
 }
 
 export default async function GeoPage({ params }: Props) {

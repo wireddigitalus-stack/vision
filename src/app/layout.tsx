@@ -58,13 +58,25 @@ export const metadata: Metadata = {
     title: "Vision LLC | Tri-Cities Commercial Real Estate Leader",
     description:
       "The largest private commercial property owner in Downtown Bristol, TN/VA. Serving the entire Tri-Cities region.",
+    images: [
+      {
+        url: "https://teamvisionllc.com/api/og?title=Vision+LLC&subtitle=Commercial+Real+Estate+%C2%B7+Bristol%2C+TN+%E2%80%94+Tri-Cities+CRE+Leader&tag=Tri-Cities+CRE+Leader&type=default",
+        width: 1200,
+        height: 630,
+        alt: "Vision LLC — Commercial Real Estate Bristol TN",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Vision LLC | Commercial Real Estate Leader in the Tri-Cities",
     description:
       "Award-winning commercial real estate, development & executive consulting across Bristol, Kingsport, Johnson City & the Tri-Cities.",
+    images: [
+      "https://teamvisionllc.com/api/og?title=Vision+LLC&subtitle=Commercial+Real+Estate+%C2%B7+Bristol%2C+TN+%E2%80%94+Tri-Cities+CRE+Leader&tag=Tri-Cities+CRE+Leader&type=default",
+    ],
   },
+
   robots: {
     index: true,
     follow: true,

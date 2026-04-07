@@ -34,13 +34,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: post.publishedAt,
       authors: [post.author],
       tags: post.tags,
+      images: [
+        {
+          url: `https://teamvisionllc.com/api/og?title=${encodeURIComponent(post.title)}&subtitle=${encodeURIComponent(`${post.category} · By ${post.author}`)}&tag=${encodeURIComponent("Vision LLC Blog")}&type=blog`,
+          width: 1200,
+          height: 630,
+          alt: post.metaTitle,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: post.metaTitle,
       description: post.metaDescription,
+      images: [
+        `https://teamvisionllc.com/api/og?title=${encodeURIComponent(post.title)}&subtitle=${encodeURIComponent(`${post.category} · By ${post.author}`)}&tag=${encodeURIComponent("Vision LLC Blog")}&type=blog`,
+      ],
     },
   };
+
 }
 
 function renderContent(content: string) {

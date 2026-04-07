@@ -21,6 +21,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const property = PROPERTIES.find((p) => p.id === id);
   if (!property) return { title: "Property Not Found | Vision LLC" };
   const desc = property.description.substring(0, 160);
+  const ogTitle = encodeURIComponent(property.name);
+  const ogSubtitle = encodeURIComponent(`${property.type} · ${property.city} · ${property.sqft} sqft`);
+  const ogTag = encodeURIComponent("Available Now");
+  const ogUrl = `https://teamvisionllc.com/api/og?title=${ogTitle}&subtitle=${ogSubtitle}&tag=${ogTag}&type=property`;
   return {
     title: `${property.name} | Commercial Real Estate Bristol TN | Vision LLC`,
     description: desc,
@@ -32,6 +36,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: desc,
       url: `https://teamvisionllc.com/properties/${id}`,
       type: "website",
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: property.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${property.name} | Vision LLC`,
+      description: desc,
+      images: [ogUrl],
     },
   };
 }

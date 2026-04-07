@@ -193,10 +193,15 @@ export default function LeaseBotWidget() {
     setStage("scoring");
     setScoring(true);
 
+    // 15s timeout so it can never hang forever
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
     try {
       const res = await fetch("/api/lease-bot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           name: finalLead.name || "Anonymous",
           email: "",
@@ -208,13 +213,19 @@ export default function LeaseBotWidget() {
           additionalInfo: "",
         }),
       });
+      clearTimeout(timeout);
 
       const data = await res.json();
       if (data.lead) {
         setResult(data.lead);
         setStage("result");
+      } else {
+        // API returned but no lead (error response) — fall into catch
+        throw new Error(data.error || "No result returned");
       }
     } catch {
+      clearTimeout(timeout);
+      // Always show a graceful fallback — never leave user stuck
       setResult({
         score: 72,
         scoreLabel: "Hot Lead",

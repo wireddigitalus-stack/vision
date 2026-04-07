@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const GEMINI_API_KEY =
-  process.env.GEMINI_API_KEY || "AIzaSyDYTtPYWA623cnugup_lw_WbbN_Y1iAxDw";
+  process.env.GEMINI_API_KEY || "AIzaSyA9UMB9Z7PeGWURP6wDUacctKpSzoOa9cQ";
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 

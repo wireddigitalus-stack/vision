@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Metadata } from "next";
 import {
@@ -89,7 +90,23 @@ export default function ExecutiveAdvisementPage() {
       <main>
         {/* Hero */}
         <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 bg-[#0D1117] relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(250,204,21,0.07)_0%,transparent_55%)]" />
+          {/* Ghosted boardroom image */}
+          <div className="absolute inset-0 pointer-events-none">
+            <Image
+              src="/property-images/cowork-conference-room.jpg"
+              alt=""
+              fill
+              className="object-cover object-center"
+              style={{ opacity: 0.08 }}
+              priority
+              aria-hidden="true"
+            />
+            {/* Left-to-right fade so text stays readable */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0D1117] via-[#0D1117]/60 to-[#0D1117]/20" />
+            {/* Top + bottom vignette */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0D1117]/80 via-transparent to-[#0D1117]" />
+          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(250,204,21,0.1)_0%,transparent_55%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(74,222,128,0.04)_0%,transparent_55%)]" />
           <div className="max-w-7xl mx-auto relative">
             <div className="max-w-3xl">

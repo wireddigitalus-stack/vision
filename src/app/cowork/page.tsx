@@ -66,6 +66,20 @@ export default function CoWorkPage() {
       <main>
         {/* Hero */}
         <section className="pt-32 pb-0 px-4 sm:px-6 lg:px-8 bg-[#0D1117] relative overflow-hidden">
+          {/* Ghosted cowork interior image */}
+          <div className="absolute inset-0 pointer-events-none">
+            <Image
+              src="/property-images/cowork-shared-office.jpg"
+              alt=""
+              fill
+              className="object-cover object-center"
+              style={{ opacity: 0.06 }}
+              priority
+              aria-hidden="true"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0D1117] via-[#0D1117]/70 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0D1117] via-transparent to-[#0D1117]/50" />
+          </div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(250,204,21,0.06)_0%,transparent_60%)]" />
           <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-12 items-center pb-16">
             <div>

@@ -105,6 +105,15 @@ export default async function SpaceTypePage({ params }: Props) {
     ],
   };
 
+  // Choose contextual hero image per space type
+  const heroImage: Record<string, string> = {
+    "office-space-tri-cities-tn": "/property-images/commercial-city-centre-exterior.jpg",
+    "coworking-space-bristol-tn": "/property-images/cowork-shared-office.jpg",
+    "retail-space-bristol-tn": "/property-images/commercial-centerpoint-mall.jpg",
+    "industrial-space-tri-cities-tn": "/property-images/commercial-vision-office.jpg",
+  };
+  const bgImage = heroImage[slug] ?? "/property-images/commercial-city-centre-exterior.jpg";
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
@@ -115,13 +124,27 @@ export default async function SpaceTypePage({ params }: Props) {
       <main>
         {/* ── Hero ────────────────────────────────────────────────────────── */}
         <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+          {/* Ghosted property image */}
+          <div className="absolute inset-0 pointer-events-none">
+            <Image
+              src={bgImage}
+              alt=""
+              fill
+              className="object-cover object-center"
+              style={{ opacity: 0.07 }}
+              priority
+              aria-hidden="true"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0D1117] via-[#0D1117]/75 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0D1117] via-transparent to-[#0D1117]/50" />
+          </div>
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               background: `radial-gradient(ellipse 60% 40% at 20% 30%, ${accent}12 0%, transparent 70%)`,
             }}
           />
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto relative">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-xs text-gray-600 mb-8">
               <Link href="/" className="hover:text-white transition-colors">Home</Link>

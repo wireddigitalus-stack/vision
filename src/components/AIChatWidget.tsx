@@ -564,7 +564,7 @@ export default function LeaseBotWidget() {
                 </div>
 
                 <p className="text-[10px] text-gray-600 text-center pb-2">
-                  Ask VISION · Vision LLC · Powered by Gemini
+                  Ask VISION · Powered by Gemini
                 </p>
               </div>
             )}
@@ -632,7 +632,7 @@ export default function LeaseBotWidget() {
             {/* Live dot + label */}
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#FACC15] animate-pulse" />
-              <span className="text-[10px] font-bold text-[#FACC15] uppercase tracking-wider">Ask VISION · Vision LLC</span>
+              <span className="text-[10px] font-bold text-[#FACC15] uppercase tracking-wider">Ask VISION</span>
             </div>
             {/* Headline */}
             <p className="text-white text-xs font-semibold leading-snug mb-1.5">

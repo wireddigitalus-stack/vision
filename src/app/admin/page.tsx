@@ -10,6 +10,9 @@ import {
   TrendingUp,
   Users,
   Filter,
+  AlertCircle,
+  DollarSign,
+  Calendar,
 } from "lucide-react";
 
 interface MatchedProperty {
@@ -59,7 +62,12 @@ function timeAgo(ts: string) {
   return new Date(ts).toLocaleDateString();
 }
 
-// Demo seed leads so the dashboard always looks populated
+function isUrgent(lead: Lead) {
+  const hrs = (Date.now() - new Date(lead.timestamp).getTime()) / 36e5;
+  return lead.scoreLabel === "Hot Lead" && hrs < 24;
+}
+
+// Demo seed leads
 const DEMO_LEADS: Lead[] = [
   {
     id: "demo_1",
@@ -185,7 +193,6 @@ export default function AdminPage() {
       const res = await fetch("/api/lease-bot");
       const data = await res.json();
       if (data.leads && data.leads.length > 0) {
-        // Merge real leads with demo leads
         const realIds = new Set(data.leads.map((l: Lead) => l.id));
         const uniqueDemo = DEMO_LEADS.filter((d) => !realIds.has(d.id));
         setLeads([...data.leads, ...uniqueDemo]);
@@ -200,21 +207,33 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchLeads();
-    const interval = setInterval(fetchLeads, 30000); // Auto-refresh every 30s
+    const interval = setInterval(fetchLeads, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const filtered =
     filter === "All" ? leads : leads.filter((l) => l.scoreLabel === filter);
 
-  const hotCount = leads.filter((l) => l.scoreLabel === "Hot Lead").length;
+  const hotLeads = leads.filter((l) => l.scoreLabel === "Hot Lead");
   const warmCount = leads.filter((l) => l.scoreLabel === "Warm Lead").length;
+  const urgentLeads = leads.filter(isUrgent);
   const avgScore = Math.round(leads.reduce((a, l) => a + l.score, 0) / leads.length);
+
+  // Pipeline calculations
+  const hotMonthlyPipeline = hotLeads.reduce((a, l) => a + l.budget, 0);
+  const totalMonthlyPipeline = leads.reduce((a, l) => a + l.budget, 0);
+  const annualProjection = hotMonthlyPipeline * 12;
+
+  // Sorted call list: hot leads with phones first, sorted by score
+  const callList = [...leads]
+    .filter((l) => l.phone)
+    .sort((a, b) => b.score - a.score);
 
   return (
     <div className="min-h-screen bg-[#080C14] text-white">
-      <div className="max-w-6xl mx-auto px-6 pt-20 pb-10">
-        {/* Page Title */}
+      <div className="max-w-6xl mx-auto px-6 pt-20 pb-16">
+
+        {/* Page Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.25)]">
@@ -239,11 +258,89 @@ export default function AdminPage() {
             </button>
           </div>
         </div>
+
+        {/* ── FEATURE 1: Pipeline Value Banner ── */}
+        <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-gradient-to-r from-[rgba(74,222,128,0.07)] to-[rgba(74,222,128,0.02)] p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(74,222,128,0.12)] flex items-center justify-center">
+                <DollarSign size={20} className="text-[#4ADE80]" />
+              </div>
+              <span className="text-sm font-bold text-[#4ADE80] uppercase tracking-widest">
+                Active Pipeline
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-8">
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">Hot Lead Monthly Value</p>
+                <p className="text-3xl font-black text-white tabular-nums">
+                  ${hotMonthlyPipeline.toLocaleString()}
+                  <span className="text-base text-gray-500 font-normal">/mo</span>
+                </p>
+              </div>
+              <div className="w-px bg-[rgba(255,255,255,0.06)] hidden sm:block" />
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">Projected Annual Revenue</p>
+                <p className="text-3xl font-black text-[#4ADE80] tabular-nums">
+                  ${annualProjection.toLocaleString()}
+                  <span className="text-base text-[#4ADE80]/60 font-normal">/yr</span>
+                </p>
+              </div>
+              <div className="w-px bg-[rgba(255,255,255,0.06)] hidden sm:block" />
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">Total Pipeline (All Leads)</p>
+                <p className="text-3xl font-black text-gray-300 tabular-nums">
+                  ${totalMonthlyPipeline.toLocaleString()}
+                  <span className="text-base text-gray-600 font-normal">/mo</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── FEATURE 2: Urgent Attention Strip ── */}
+        {urgentLeads.length > 0 && (
+          <div className="rounded-2xl border border-[rgba(250,204,21,0.25)] bg-[rgba(250,204,21,0.04)] p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <AlertCircle size={18} className="text-[#FACC15]" />
+              </div>
+              <div className="flex-1">
+                <p className="text-[#FACC15] font-bold text-sm mb-2">
+                  ⚡ {urgentLeads.length} lead{urgentLeads.length > 1 ? "s" : ""} need contact TODAY
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {urgentLeads.map((lead) => (
+                    <div
+                      key={lead.id}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(250,204,21,0.08)] border border-[rgba(250,204,21,0.2)]"
+                    >
+                      <span className="text-sm font-semibold text-white">{lead.name}</span>
+                      <span className="text-xs text-[#FACC15]">
+                        ${lead.budget.toLocaleString()}/mo
+                      </span>
+                      <span className="text-xs text-gray-500">· {timeAgo(lead.timestamp)}</span>
+                      {lead.phone && (
+                        <a
+                          href={`tel:${lead.phone}`}
+                          className="flex items-center gap-1 text-xs text-[#4ADE80] font-bold hover:underline"
+                        >
+                          <Phone size={10} /> Call
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
             { label: "Total Leads", value: leads.length, icon: Users, color: "#60A5FA" },
-            { label: "Hot Leads 🔥", value: hotCount, icon: TrendingUp, color: "#4ADE80" },
+            { label: "Hot Leads 🔥", value: hotLeads.length, icon: TrendingUp, color: "#4ADE80" },
             { label: "Warm Leads", value: warmCount, icon: Zap, color: "#FACC15" },
             { label: "Avg AI Score", value: `${avgScore}/100`, icon: Building2, color: "#A78BFA" },
           ].map(({ label, value, icon: Icon, color }) => (
@@ -260,9 +357,76 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Filter */}
+        {/* ── FEATURE 4: Priority Call List ── */}
+        {callList.length > 0 && (
+          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5 mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Phone size={14} className="text-[#4ADE80]" />
+              <h2 className="text-sm font-bold text-white uppercase tracking-widest">
+                Priority Call List
+              </h2>
+              <span className="text-xs text-gray-600 ml-1">— sorted by AI score</span>
+            </div>
+            <div className="space-y-2">
+              {callList.map((lead, i) => (
+                <div
+                  key={lead.id}
+                  className="flex items-center gap-4 px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] hover:border-[rgba(74,222,128,0.2)] transition-all"
+                >
+                  {/* Rank */}
+                  <span
+                    className="text-xs font-black w-5 text-center flex-shrink-0"
+                    style={{ color: scoreColor(lead.score) }}
+                  >
+                    #{i + 1}
+                  </span>
+                  {/* Score badge */}
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-black"
+                    style={{
+                      backgroundColor: `${scoreColor(lead.score)}12`,
+                      color: scoreColor(lead.score),
+                    }}
+                  >
+                    {lead.score}
+                  </div>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{lead.name}</p>
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-500 mt-0.5">
+                      <span>{lead.spaceType}</span>
+                      <span className="text-[#4ADE80] font-semibold">
+                        ${lead.budget.toLocaleString()}/mo
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar size={9} /> {lead.timeline}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Score label */}
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold hidden sm:block ${scoreBadge(lead.scoreLabel)}`}
+                  >
+                    {lead.scoreLabel}
+                  </span>
+                  {/* Call button */}
+                  <a
+                    href={`tel:${lead.phone}`}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity flex-shrink-0"
+                  >
+                    <Phone size={11} />
+                    {lead.phone}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Filter tabs */}
         <div className="flex items-center gap-2 mb-6">
           <Filter size={13} className="text-gray-500" />
+          <span className="text-xs text-gray-600 mr-1">All leads:</span>
           {(["All", "Hot Lead", "Warm Lead", "Nurture"] as const).map((f) => (
             <button
               key={f}
@@ -336,7 +500,6 @@ export default function AdminPage() {
                     )}
                   </div>
 
-                  {/* Lead details chips */}
                   <div className="flex flex-wrap gap-2 mb-3">
                     {[
                       `🏢 ${lead.spaceType}`,
@@ -353,13 +516,11 @@ export default function AdminPage() {
                     ))}
                   </div>
 
-                  {/* AI reasoning */}
                   <p className="text-xs text-gray-500 leading-relaxed mb-3">
                     <span className="text-[#4ADE80] font-semibold">AI Analysis: </span>
                     {lead.reasoning}
                   </p>
 
-                  {/* Matched properties */}
                   {lead.matchedProperties.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {lead.matchedProperties.map((prop) => (

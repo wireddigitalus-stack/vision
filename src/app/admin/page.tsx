@@ -213,33 +213,32 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#080C14] text-white">
-      {/* Header */}
-      <div className="border-b border-[rgba(74,222,128,0.1)] px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center">
-            <Zap size={18} className="text-black" />
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        {/* Page Title */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.25)]">
+              <Zap size={18} className="text-black" />
+            </div>
+            <div>
+              <h1 className="text-white font-black text-xl">Lease-Bot CRM</h1>
+              <p className="text-[11px] text-gray-500">AI Lead Intelligence Dashboard</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-white font-black text-base">Vision Lease-Bot CRM</h1>
-            <p className="text-[11px] text-gray-500">AI Lead Intelligence Dashboard</p>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-gray-600 hidden sm:block">
+              Last refresh: {lastRefresh.toLocaleTimeString()}
+            </span>
+            <button
+              onClick={fetchLeads}
+              disabled={loading}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-sm hover:bg-[rgba(74,222,128,0.12)] transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+              Refresh
+            </button>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] text-gray-600">
-            Last refresh: {lastRefresh.toLocaleTimeString()}
-          </span>
-          <button
-            onClick={fetchLeads}
-            disabled={loading}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-sm hover:bg-[rgba(74,222,128,0.12)] transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
-            Refresh
-          </button>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[

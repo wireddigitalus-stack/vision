@@ -97,7 +97,7 @@ const stage_questions: Record<Stage, string> = {
   team_size: "How many people will be using the space?",
   name: "Almost done! What's your name so we can personalize your results?",
   phone:
-    "And the best number for Allen's team to reach you? (Optional — skip to see results now)",
+    "And the best number for our team to reach you? (Optional — skip to see results now)",
   scoring: "",
   result: "",
 };
@@ -364,7 +364,7 @@ export default function LeaseBotWidget() {
                 ) : (
                   <>
                     <div className="chat-bubble-ai">
-                      👋 Hi! I&apos;m Allen — I&apos;ll match you with the perfect commercial space in the Tri-Cities in under 2 minutes.
+                      👋 Hi! I&apos;m VISION — your commercial real estate advisor for the Tri-Cities. I&apos;ll match you with the perfect space in under 2 minutes.
                     </div>
                     <div className="chat-bubble-ai">
                       I&apos;ll ask you 5 quick questions, then show you your{" "}

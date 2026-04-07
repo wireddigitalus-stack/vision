@@ -126,6 +126,8 @@ export default function LeaseBotWidget() {
   const [scoring, setScoring] = useState(false);
   const [result, setResult] = useState<ScoringResult | null>(null);
   const [hasNotif, setHasNotif] = useState(true);
+  const [showNudge, setShowNudge] = useState(false);
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -225,11 +227,17 @@ export default function LeaseBotWidget() {
     setScoring(false);
   };
 
+  // Auto-show nudge card after 3s
+  useEffect(() => {
+    const t = setTimeout(() => setShowNudge(true), 3000);
+    return () => clearTimeout(t);
+  }, []);
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <>
-      {/* Keyframe animation for breathing gold glow */}
+      {/* Keyframe animations */}
       <style>{`
         @keyframes breathe-glow {
           0%, 100% {
@@ -243,6 +251,18 @@ export default function LeaseBotWidget() {
         }
         .bot-breathe {
           animation: breathe-glow 2.8s ease-in-out infinite;
+        }
+        @keyframes nudge-slide-in {
+          0%   { opacity: 0; transform: translateX(20px) scale(0.95); }
+          100% { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @keyframes nudge-pulse-border {
+          0%, 100% { border-color: rgba(250,204,21,0.25); }
+          50%       { border-color: rgba(250,204,21,0.55); }
+        }
+        .nudge-card {
+          animation: nudge-slide-in 0.45s cubic-bezier(0.175,0.885,0.32,1.275) forwards,
+                     nudge-pulse-border 2.5s ease-in-out 0.5s infinite;
         }
       `}</style>
       {/* ── Chat Window ──────────────────────────────────────────────────── */}
@@ -552,11 +572,42 @@ export default function LeaseBotWidget() {
         </div>
       </div>
 
+      {/* ── Nudge Card ────────────────────────────────────────────────────── */}
+      {showNudge && !nudgeDismissed && !isOpen && (
+        <div className="nudge-card fixed bottom-28 sm:bottom-24 right-20 sm:right-24 z-50">
+          <div className="relative bg-[#0D1117] border border-[rgba(250,204,21,0.25)] rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] max-w-[210px]">
+            {/* Dismiss */}
+            <button
+              onClick={() => setNudgeDismissed(true)}
+              className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#1a1f2e] border border-[rgba(255,255,255,0.1)] flex items-center justify-center text-gray-500 hover:text-white transition-colors text-xs leading-none"
+              aria-label="Dismiss"
+            >
+              ×
+            </button>
+            {/* Live dot + label */}
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FACC15] animate-pulse" />
+              <span className="text-[10px] font-bold text-[#FACC15] uppercase tracking-wider">AI Lease Advisor</span>
+            </div>
+            {/* Headline */}
+            <p className="text-white text-xs font-semibold leading-snug mb-1.5">
+              Find your perfect space in 60 seconds ✨
+            </p>
+            <p className="text-gray-500 text-[10px] leading-relaxed">
+              Chat with me about your real estate needs.
+            </p>
+            {/* Arrow pointer → toward button */}
+            <div className="absolute right-[-7px] top-1/2 -translate-y-1/2 w-3 h-3 bg-[#0D1117] border-r border-t border-[rgba(250,204,21,0.25)] rotate-45" />
+          </div>
+        </div>
+      )}
+
       {/* ── Toggle Button ─────────────────────────────────────────────────── */}
       <button
         onClick={() => {
           setIsOpen(!isOpen);
           setHasNotif(false);
+          setNudgeDismissed(true);
         }}
         id="lease-bot-toggle"
         aria-label="Open Vision Lease-Bot"

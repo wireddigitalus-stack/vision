@@ -240,7 +240,7 @@ export default function AdminPage() {
               <Zap size={18} className="text-black" />
             </div>
             <div>
-              <h1 className="text-white font-black text-xl">Ask Allen CRM</h1>
+              <h1 className="text-white font-black text-xl">Ask VISION CRM</h1>
               <p className="text-[11px] text-gray-500">AI Lead Intelligence Dashboard</p>
             </div>
           </div>
@@ -550,7 +550,7 @@ export default function AdminPage() {
         )}
 
         <p className="text-center text-[11px] text-gray-700 mt-10">
-          Vision Ask Allen CRM · AI-Powered by Gemini · Auto-refreshes every 30s
+          Vision Ask VISION CRM · AI-Powered by Gemini · Auto-refreshes every 30s
           <br />
           <span className="text-gray-800">Monday.com sync — ready to activate on API connection</span>
         </p>

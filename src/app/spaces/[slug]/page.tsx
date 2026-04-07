@@ -158,7 +158,7 @@ export default async function SpaceTypePage({ params }: Props) {
                   </Link>
                 </div>
 
-                {/* Ask Allen nudge */}
+                {/* Ask VISION nudge */}
                 <div className="mt-4">
                   <LeaseBotTrigger propertyName={`${page.badge} space in the Tri-Cities`} />
                 </div>

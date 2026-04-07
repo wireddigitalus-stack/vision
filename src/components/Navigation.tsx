@@ -157,14 +157,16 @@ export default function Navigation() {
               </Link>
             </div>
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile Menu Toggle — hidden when drawer open (drawer has its own X) */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               id="mobile-menu-toggle"
               aria-label="Toggle mobile menu"
-              className="lg:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+              className={`lg:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 ${
+                isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
+              }`}
             >
-              {isOpen ? <X size={22} /> : <Menu size={22} />}
+              <Menu size={22} />
             </button>
           </div>
         </div>

@@ -1,38 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { LEADS_STORE, type Lead } from "@/lib/leads-store";
 
 const GEMINI_API_KEY =
   process.env.GEMINI_API_KEY || "AIzaSyA9UMB9Z7PeGWURP6wDUacctKpSzoOa9cQ";
-
-// In-memory lead store for demo (resets on server restart)
-// In production: swap this for a real DB / Monday.com API call
-export const LEADS_STORE: Lead[] = [];
-
-export interface Lead {
-  id: string;
-  timestamp: string;
-  name: string;
-  email: string;
-  phone: string;
-  spaceType: string;
-  budget: number;
-  timeline: string;
-  teamSize: string;
-  additionalInfo: string;
-  score: number;
-  scoreLabel: "Hot Lead" | "Warm Lead" | "Nurture";
-  reasoning: string;
-  matchedProperties: MatchedProperty[];
-}
-
-export interface MatchedProperty {
-  id: string;
-  name: string;
-  type: string;
-  sqft: string;
-  location: string;
-  matchReason: string;
-}
 
 const PROPERTIES_CONTEXT = `
 Available Vision LLC Properties:
@@ -115,11 +86,16 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const leadData: Partial<Lead> = { name, email, phone, spaceType, budget: Number(budget), timeline, teamSize, additionalInfo };
+    const leadData: Partial<Lead> = {
+      name, email, phone,
+      spaceType, budget: Number(budget),
+      timeline, teamSize, additionalInfo,
+    };
+
     const result = await model.generateContent(SCORING_PROMPT(leadData));
     const rawText = result.response.text().trim();
 
-    // Parse JSON — strip markdown if present
+    // Strip markdown fences if present
     const jsonText = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     const aiResult = JSON.parse(jsonText);
 
@@ -140,8 +116,7 @@ export async function POST(req: NextRequest) {
       matchedProperties: aiResult.matchedProperties || [],
     };
 
-    LEADS_STORE.unshift(lead); // newest first
-    // Keep only last 50 leads in memory
+    LEADS_STORE.unshift(lead);
     if (LEADS_STORE.length > 50) LEADS_STORE.pop();
 
     return NextResponse.json({ success: true, lead });

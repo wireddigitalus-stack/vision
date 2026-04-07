@@ -1,0 +1,31 @@
+// In-memory lead store for demo purposes
+// In production: replace with a real DB or Monday.com API
+
+export interface MatchedProperty {
+  id: string;
+  name: string;
+  type: string;
+  sqft: string;
+  location: string;
+  matchReason: string;
+}
+
+export interface Lead {
+  id: string;
+  timestamp: string;
+  name: string;
+  email: string;
+  phone: string;
+  spaceType: string;
+  budget: number;
+  timeline: string;
+  teamSize: string;
+  additionalInfo: string;
+  score: number;
+  scoreLabel: "Hot Lead" | "Warm Lead" | "Nurture";
+  reasoning: string;
+  matchedProperties: MatchedProperty[];
+}
+
+// Module-level singleton — persists across requests in the same server process
+export const LEADS_STORE: Lead[] = [];

@@ -12,7 +12,7 @@ const navLinks = [
     href: "/about",
   },
   {
-    label: "Commercial RE",
+    label: "Properties",
     href: "/commercial-real-estate",
     dropdown: [
       { label: "All Properties", href: "/commercial-real-estate" },

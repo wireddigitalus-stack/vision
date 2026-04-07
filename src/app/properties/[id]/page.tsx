@@ -65,8 +65,79 @@ export default async function PropertyDetailPage({ params }: Props) {
     gray: "bg-[rgba(156,163,175,0.12)] text-[#9CA3AF] border-[rgba(156,163,175,0.3)]",
   };
 
+  // ── JSON-LD Schema ─────────────────────────────────────────────────────────
+  const listingSchema = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    name: property.name,
+    description: property.description,
+    url: `https://teamvisionllc.com/properties/${property.id}`,
+    image: (property as any).image ? [`https://teamvisionllc.com${(property as any).image}`] : [],
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: (property as any).address || "Downtown Bristol",
+      addressLocality: property.city.replace(", TN", "").replace(", VA", ""),
+      addressRegion: property.city.includes("VA") ? "VA" : "TN",
+      postalCode: "37620",
+      addressCountry: "US",
+    },
+    floorSize: {
+      "@type": "QuantitativeValue",
+      value: property.sqft,
+      unitCode: "FTK",
+      unitText: "square feet",
+    },
+    amenityFeature: property.features.map((f) => ({
+      "@type": "LocationFeatureSpecification",
+      name: f,
+      value: true,
+    })),
+    offers: {
+      "@type": "Offer",
+      businessFunction: "https://purl.org/goodrelations/v1#LeaseOut",
+      availability: "https://schema.org/InStock",
+      seller: {
+        "@type": "Organization",
+        name: "Vision LLC",
+        telephone: "+14235731022",
+        url: "https://teamvisionllc.com",
+      },
+    },
+  };
+
+  const orgSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: `Vision LLC — ${property.name}`,
+    description: property.description.substring(0, 200),
+    url: `https://teamvisionllc.com/properties/${property.id}`,
+    telephone: "+14235731022",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "100 5th St., Suite 2W",
+      addressLocality: "Bristol",
+      addressRegion: "TN",
+      postalCode: "37620",
+      addressCountry: "US",
+    },
+    hasMap: `https://maps.google.com/?q=${encodeURIComponent(property.city)}`,
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://teamvisionllc.com" },
+      { "@type": "ListItem", position: 2, name: "Properties", item: "https://teamvisionllc.com/commercial-real-estate" },
+      { "@type": "ListItem", position: 3, name: property.name, item: `https://teamvisionllc.com/properties/${property.id}` },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listingSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <Navigation />
       <main>
         {/* Back nav */}

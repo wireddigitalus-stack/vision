@@ -128,6 +128,7 @@ export default function LeaseBotWidget() {
   const [hasNotif, setHasNotif] = useState(true);
   const [showNudge, setShowNudge] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [preloadedProperty, setPreloadedProperty] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -140,6 +141,22 @@ export default function LeaseBotWidget() {
       inputRef.current.focus();
     }
   }, [stage, isOpen]);
+
+  // Listen for property-specific trigger from listing cards
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const name = (e as CustomEvent<{ propertyName: string }>).detail?.propertyName;
+      if (name) {
+        setPreloadedProperty(name);
+        setIsOpen(true);
+        setStage("greeting");
+        setNudgeDismissed(true);
+        setHasNotif(false);
+      }
+    };
+    window.addEventListener("open-lease-bot", handler);
+    return () => window.removeEventListener("open-lease-bot", handler);
+  }, []);
 
   // ── Advance stage ──────────────────────────────────────────────────────────
 
@@ -320,20 +337,37 @@ export default function LeaseBotWidget() {
             {/* ── Greeting ─────────────────────────────────────────────── */}
             {stage === "greeting" && (
               <div className="space-y-4">
-                <div className="chat-bubble-ai">
-                  👋 Hi! I'm Vision Lease-Bot — I'll match you with the perfect commercial space in the Tri-Cities in under 2 minutes.
-                </div>
-                <div className="chat-bubble-ai">
-                  I'll ask you 5 quick questions, then show you your{" "}
-                  <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
-                  and the best properties from our portfolio for your needs.
-                </div>
+                {preloadedProperty ? (
+                  <>
+                    <div className="chat-bubble-ai">
+                      👋 Hi! I see you&apos;re interested in{" "}
+                      <span className="text-[#FACC15] font-bold">{preloadedProperty}</span>.
+                      Let&apos;s see if it&apos;s the perfect fit — I&apos;ll ask you a few quick questions.
+                    </div>
+                    <div className="chat-bubble-ai">
+                      I&apos;ll generate your{" "}
+                      <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
+                      and confirm whether this property checks all your boxes.
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="chat-bubble-ai">
+                      👋 Hi! I&apos;m Vision Lease-Bot — I&apos;ll match you with the perfect commercial space in the Tri-Cities in under 2 minutes.
+                    </div>
+                    <div className="chat-bubble-ai">
+                      I&apos;ll ask you 5 quick questions, then show you your{" "}
+                      <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
+                      and the best properties from our portfolio for your needs.
+                    </div>
+                  </>
+                )}
                 <button
                   onClick={() => advance("")}
                   id="lease-bot-start"
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                 >
-                  Find My Space <ArrowRight size={15} />
+                  {preloadedProperty ? "Check My Fit" : "Find My Space"} <ArrowRight size={15} />
                 </button>
                 <p className="text-[10px] text-gray-600 text-center">
                   Free · No obligation · Takes ~90 seconds

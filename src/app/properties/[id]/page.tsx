@@ -7,6 +7,8 @@ import { MapPin, Phone, ArrowRight, Check, ArrowLeft, Building2 } from "lucide-r
 import { PROPERTIES, COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import LeaseBotTrigger from "@/components/LeaseBotTrigger";
+
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -168,9 +170,10 @@ export default async function PropertyDetailPage({ params }: Props) {
                 <a href={COMPANY.phoneHref} className="btn-primary w-full justify-center mb-3">
                   <Phone size={16} /> Call {COMPANY.phone}
                 </a>
-                <Link href="/contact" className="btn-secondary w-full justify-center">
+                <Link href="/contact" className="btn-secondary w-full justify-center mb-4">
                   Send Inquiry <ArrowRight size={16} />
                 </Link>
+                <LeaseBotTrigger propertyName={property.name} variant="detail" />
 
                 <p className="text-center text-xs text-gray-600 mt-4">
                   {COMPANY.email}

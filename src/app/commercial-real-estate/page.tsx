@@ -6,6 +6,8 @@ import { MapPin, Building2, ArrowRight, Phone, Search, Users, Warehouse, Briefca
 import { PROPERTIES, COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import LeaseBotTrigger from "@/components/LeaseBotTrigger";
+
 
 const ALL_TYPES = ["All", "Mixed-Use", "Office", "CoWorking", "Retail / Office", "Event Space / Commercial", "Industrial"];
 
@@ -160,7 +162,7 @@ export default function CommercialRealEstatePage() {
                         </span>
                       ))}
                     </div>
-                    <div className="flex gap-3 mt-auto">
+                    <div className="flex gap-3 mt-auto mb-0">
                       <Link
                         href={`/properties/${property.id}`}
                         className="flex-1 btn-primary text-center text-sm py-2.5 justify-center"
@@ -174,6 +176,7 @@ export default function CommercialRealEstatePage() {
                         Inquire
                       </Link>
                     </div>
+                    <LeaseBotTrigger propertyName={property.name} />
                   </div>
                 </article>
               ))}

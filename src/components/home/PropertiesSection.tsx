@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Building2, Users, Warehouse, Briefcase, ArrowRight, MapPin } from "lucide-react";
 import { PROPERTIES } from "@/lib/data";
+import LeaseBotTrigger from "@/components/LeaseBotTrigger";
+
 
 const typeIcons: Record<string, React.ReactNode> = {
   "Mixed-Use": <Building2 size={14} />,
@@ -134,10 +136,11 @@ export default function PropertiesSection() {
                 <Link
                   href={`/properties/${property.id}`}
                   id={`property-cta-${property.id}`}
-                  className="flex items-center gap-2 text-sm font-semibold text-[#4ADE80] hover:text-white transition-colors group-hover:gap-3"
+                  className="flex items-center gap-2 text-sm font-semibold text-[#4ADE80] hover:text-white transition-colors group-hover:gap-3 mb-3"
                 >
                   Inquire About This Space <ArrowRight size={14} />
                 </Link>
+                <LeaseBotTrigger propertyName={property.name} />
               </div>
             </article>
           ))}

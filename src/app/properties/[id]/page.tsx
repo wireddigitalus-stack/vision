@@ -18,11 +18,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const property = PROPERTIES.find((p) => p.id === id);
   if (!property) return { title: "Property Not Found | Vision LLC" };
+  const desc = property.description.substring(0, 160);
   return {
     title: `${property.name} | Commercial Real Estate Bristol TN | Vision LLC`,
-    description: property.description.substring(0, 160),
+    description: desc,
+    alternates: {
+      canonical: `https://teamvisionllc.com/properties/${id}`,
+    },
+    openGraph: {
+      title: `${property.name} | Vision LLC`,
+      description: desc,
+      url: `https://teamvisionllc.com/properties/${id}`,
+      type: "website",
+    },
   };
 }
+
 
 export default async function PropertyDetailPage({ params }: Props) {
   const { id } = await params;

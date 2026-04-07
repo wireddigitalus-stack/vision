@@ -149,6 +149,26 @@ export default function RootLayout({
             }),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Vision LLC",
+              url: "https://teamvisionllc.com",
+              description: "Commercial real estate, development & executive advisement across the Tri-Cities TN/VA region.",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: "https://teamvisionllc.com/commercial-real-estate?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
       </head>
       <body className="bg-mesh antialiased">
         <Navigation />

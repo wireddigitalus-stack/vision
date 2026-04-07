@@ -42,6 +42,22 @@ export default function CommercialRealEstatePage() {
       <main>
         {/* Hero */}
         <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 bg-[#0D1117] relative overflow-hidden">
+          {/* Ghosted property image */}
+          <div className="absolute inset-0 pointer-events-none">
+            <Image
+              src="/property-images/commercial-city-centre-exterior.jpg"
+              alt=""
+              fill
+              className="object-cover object-center"
+              style={{ opacity: 0.07 }}
+              priority
+              aria-hidden="true"
+            />
+            {/* Gradient overlay — keeps text readable */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0D1117] via-[#0D1117]/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0D1117] via-transparent to-[#0D1117]/40" />
+          </div>
+
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(74,222,128,0.06)_0%,transparent_60%)]" />
           <div className="max-w-7xl mx-auto relative">
             <div className="section-line mb-4" />

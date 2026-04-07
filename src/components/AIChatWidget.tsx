@@ -302,12 +302,12 @@ export default function LeaseBotWidget() {
               </div>
               <div>
                 <p className="text-white font-bold text-sm leading-tight">
-                  Vision Lease-Bot
+                  Ask Allen
                 </p>
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] pulse-green" />
                   <span className="text-[11px] text-[#4ADE80]">
-                    AI-Powered Space Matching
+                    Vision LLC Space Advisor
                   </span>
                 </div>
               </div>
@@ -353,7 +353,7 @@ export default function LeaseBotWidget() {
                 ) : (
                   <>
                     <div className="chat-bubble-ai">
-                      👋 Hi! I&apos;m Vision Lease-Bot — I&apos;ll match you with the perfect commercial space in the Tri-Cities in under 2 minutes.
+                      👋 Hi! I&apos;m Allen — I&apos;ll match you with the perfect commercial space in the Tri-Cities in under 2 minutes.
                     </div>
                     <div className="chat-bubble-ai">
                       I&apos;ll ask you 5 quick questions, then show you your{" "}
@@ -553,7 +553,7 @@ export default function LeaseBotWidget() {
                 </div>
 
                 <p className="text-[10px] text-gray-600 text-center pb-2">
-                  Vision Lease-Bot · Powered by Gemini AI
+                  Ask Allen · Vision LLC · Powered by Gemini
                 </p>
               </div>
             )}
@@ -621,7 +621,7 @@ export default function LeaseBotWidget() {
             {/* Live dot + label */}
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#FACC15] animate-pulse" />
-              <span className="text-[10px] font-bold text-[#FACC15] uppercase tracking-wider">AI Lease Advisor</span>
+              <span className="text-[10px] font-bold text-[#FACC15] uppercase tracking-wider">Ask Allen · Vision LLC</span>
             </div>
             {/* Headline */}
             <p className="text-white text-xs font-semibold leading-snug mb-1.5">
@@ -644,7 +644,7 @@ export default function LeaseBotWidget() {
           setNudgeDismissed(true);
         }}
         id="lease-bot-toggle"
-        aria-label="Open Vision Lease-Bot"
+        aria-label="Chat with Allen — Vision LLC"
         className={`fixed bottom-28 right-4 sm:bottom-24 sm:right-6 z-50 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
           isOpen
             ? "bg-[#111827] border border-[rgba(74,222,128,0.3)] shadow-lg"

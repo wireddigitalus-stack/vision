@@ -240,7 +240,7 @@ export default function AdminPage() {
               <Zap size={18} className="text-black" />
             </div>
             <div>
-              <h1 className="text-white font-black text-xl">Lease-Bot CRM</h1>
+              <h1 className="text-white font-black text-xl">Ask Allen CRM</h1>
               <p className="text-[11px] text-gray-500">AI Lead Intelligence Dashboard</p>
             </div>
           </div>
@@ -545,12 +545,12 @@ export default function AdminPage() {
           <div className="text-center py-20 text-gray-600">
             <Zap size={32} className="mx-auto mb-3 opacity-30" />
             <p>No {filter.toLowerCase()}s yet.</p>
-            <p className="text-sm mt-1">Leads will appear here as they come in through the Lease-Bot.</p>
+            <p className="text-sm mt-1">Leads will appear here as they come in through Ask Allen.</p>
           </div>
         )}
 
         <p className="text-center text-[11px] text-gray-700 mt-10">
-          Vision Lease-Bot CRM · AI-Powered by Gemini · Auto-refreshes every 30s
+          Vision Ask Allen CRM · AI-Powered by Gemini · Auto-refreshes every 30s
           <br />
           <span className="text-gray-800">Monday.com sync — ready to activate on API connection</span>
         </p>

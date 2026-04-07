@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://teamvisionllc.com/sitemap.xml
+
+# Disallow admin/api routes
+Disallow: /api/

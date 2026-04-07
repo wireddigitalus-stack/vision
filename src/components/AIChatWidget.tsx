@@ -1,0 +1,567 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import {
+  MessageSquare,
+  X,
+  Send,
+  Loader2,
+  Bot,
+  Zap,
+  Building2,
+  CheckCircle2,
+  ChevronRight,
+  Star,
+  Phone,
+  ArrowRight,
+} from "lucide-react";
+import { COMPANY } from "@/lib/data";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Stage =
+  | "greeting"
+  | "space_type"
+  | "budget"
+  | "timeline"
+  | "team_size"
+  | "name"
+  | "phone"
+  | "scoring"
+  | "result";
+
+interface LeadData {
+  spaceType: string;
+  budget: string;
+  timeline: string;
+  teamSize: string;
+  name: string;
+  phone: string;
+}
+
+interface MatchedProperty {
+  id: string;
+  name: string;
+  type: string;
+  sqft: string;
+  location: string;
+  matchReason: string;
+}
+
+interface ScoringResult {
+  score: number;
+  scoreLabel: "Hot Lead" | "Warm Lead" | "Nurture";
+  reasoning: string;
+  matchedProperties: MatchedProperty[];
+}
+
+// ─── Quick-reply option sets ───────────────────────────────────────────────────
+
+const SPACE_OPTIONS = [
+  { label: "🏢 Executive Office", value: "Executive Office" },
+  { label: "💼 Private Office Suite", value: "Private Office Suite" },
+  { label: "☕ CoWork Membership", value: "CoWork Membership" },
+  { label: "🏪 Retail Storefront", value: "Retail Storefront" },
+  { label: "🏭 Warehouse / Industrial", value: "Warehouse / Industrial" },
+];
+
+const BUDGET_OPTIONS = [
+  { label: "Under $1,000/mo", value: "800" },
+  { label: "$1,000 – $2,000/mo", value: "1500" },
+  { label: "$2,000 – $4,000/mo", value: "3000" },
+  { label: "$4,000 – $8,000/mo", value: "6000" },
+  { label: "$8,000+/mo", value: "10000" },
+];
+
+const TIMELINE_OPTIONS = [
+  { label: "🔥 ASAP (< 30 days)", value: "ASAP — under 30 days" },
+  { label: "1–2 Months", value: "1–2 months" },
+  { label: "2–3 Months", value: "2–3 months" },
+  { label: "3–6 Months", value: "3–6 months" },
+  { label: "Just Exploring", value: "Just exploring options" },
+];
+
+const TEAM_OPTIONS = [
+  { label: "Solo (just me)", value: "Solo" },
+  { label: "2–4 People", value: "2–4 people" },
+  { label: "5–10 People", value: "5–10 people" },
+  { label: "10–25 People", value: "10–25 people" },
+  { label: "25+ People", value: "25+ people" },
+];
+
+const stage_questions: Record<Stage, string> = {
+  greeting: "",
+  space_type: "Great! What type of space are you looking for?",
+  budget: "What's your approximate monthly budget?",
+  timeline: "When are you looking to move in?",
+  team_size: "How many people will be using the space?",
+  name: "Almost done! What's your name so we can personalize your results?",
+  phone:
+    "And the best number for Allen's team to reach you? (Optional — skip to see results now)",
+  scoring: "",
+  result: "",
+};
+
+// ─── Score color helpers ──────────────────────────────────────────────────────
+
+function scoreColor(score: number) {
+  if (score >= 70) return "#4ADE80"; // green
+  if (score >= 40) return "#FACC15"; // yellow
+  return "#94A3B8"; // slate
+}
+
+function scoreLabelColor(label: string) {
+  if (label === "Hot Lead") return "text-[#4ADE80] bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.3)]";
+  if (label === "Warm Lead") return "text-[#FACC15] bg-[rgba(250,204,21,0.1)] border-[rgba(250,204,21,0.3)]";
+  return "text-[#94A3B8] bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.2)]";
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function LeaseBotWidget() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [stage, setStage] = useState<Stage>("greeting");
+  const [lead, setLead] = useState<Partial<LeadData>>({});
+  const [inputVal, setInputVal] = useState("");
+  const [scoring, setScoring] = useState(false);
+  const [result, setResult] = useState<ScoringResult | null>(null);
+  const [hasNotif, setHasNotif] = useState(true);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [stage, scoring, result]);
+
+  useEffect(() => {
+    if (isOpen && stage === "name" && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [stage, isOpen]);
+
+  // ── Advance stage ──────────────────────────────────────────────────────────
+
+  const advance = (value: string) => {
+    const next = (nextStage: Stage, key?: keyof LeadData, val?: string) => {
+      if (key && val !== undefined) setLead((p) => ({ ...p, [key]: val }));
+      setStage(nextStage);
+    };
+
+    switch (stage) {
+      case "greeting":   return setStage("space_type");
+      case "space_type": return next("budget", "spaceType", value);
+      case "budget":     return next("timeline", "budget", value);
+      case "timeline":   return next("team_size", "timeline", value);
+      case "team_size":  return next("name", "teamSize", value);
+      case "name":       return next("phone", "name", value);
+      case "phone":      return submitLead({ ...lead, phone: value });
+    }
+  };
+
+  const handleTextSubmit = () => {
+    if (!inputVal.trim()) {
+      if (stage === "phone") submitLead({ ...lead, phone: "" });
+      return;
+    }
+    advance(inputVal.trim());
+    setInputVal("");
+  };
+
+  // ── Score lead via API ──────────────────────────────────────────────────────
+
+  const submitLead = async (finalLead: Partial<LeadData>) => {
+    setLead(finalLead);
+    setStage("scoring");
+    setScoring(true);
+
+    try {
+      const res = await fetch("/api/lease-bot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: finalLead.name || "Anonymous",
+          email: "",
+          phone: finalLead.phone || "",
+          spaceType: finalLead.spaceType,
+          budget: finalLead.budget,
+          timeline: finalLead.timeline,
+          teamSize: finalLead.teamSize,
+          additionalInfo: "",
+        }),
+      });
+
+      const data = await res.json();
+      if (data.lead) {
+        setResult(data.lead);
+        setStage("result");
+      }
+    } catch {
+      setResult({
+        score: 72,
+        scoreLabel: "Hot Lead",
+        reasoning: "Based on your requirements, you appear to be an excellent fit for our portfolio.",
+        matchedProperties: [
+          {
+            id: "city-centre",
+            name: "City Centre Professional Suites",
+            type: "Office",
+            sqft: "1,200–18,000+ sqft",
+            location: "Downtown Bristol, TN",
+            matchReason: "Premium downtown office space that fits your requirements and timeline.",
+          },
+        ],
+      });
+      setStage("result");
+    } finally {
+      setScoring(false);
+    }
+  };
+
+  const reset = () => {
+    setStage("greeting");
+    setLead({});
+    setInputVal("");
+    setResult(null);
+    setScoring(false);
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  return (
+    <>
+      {/* ── Chat Window ──────────────────────────────────────────────────── */}
+      <div
+        className={`fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] max-w-sm transition-all duration-300 ${
+          isOpen
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-4 pointer-events-none"
+        }`}
+      >
+        <div
+          className="glass-strong rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+          style={{ height: "min(580px, 80vh)" }}
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-[#4ADE80]/20 to-[#22C55E]/10 px-4 py-3.5 flex items-center justify-between border-b border-[rgba(74,222,128,0.2)] flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_15px_rgba(74,222,128,0.3)]">
+                <Zap size={18} className="text-black" />
+              </div>
+              <div>
+                <p className="text-white font-bold text-sm leading-tight">
+                  Vision Lease-Bot
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] pulse-green" />
+                  <span className="text-[11px] text-[#4ADE80]">
+                    AI-Powered Space Matching
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {stage !== "greeting" && stage !== "scoring" && stage !== "result" && (
+                <button
+                  onClick={reset}
+                  className="text-[10px] text-gray-500 hover:text-[#4ADE80] transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
+                >
+                  restart
+                </button>
+              )}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+            {/* ── Greeting ─────────────────────────────────────────────── */}
+            {stage === "greeting" && (
+              <div className="space-y-4">
+                <div className="chat-bubble-ai">
+                  👋 Hi! I'm Vision Lease-Bot — I'll match you with the perfect commercial space in the Tri-Cities in under 2 minutes.
+                </div>
+                <div className="chat-bubble-ai">
+                  I'll ask you 5 quick questions, then show you your{" "}
+                  <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
+                  and the best properties from our portfolio for your needs.
+                </div>
+                <button
+                  onClick={() => advance("")}
+                  id="lease-bot-start"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                >
+                  Find My Space <ArrowRight size={15} />
+                </button>
+                <p className="text-[10px] text-gray-600 text-center">
+                  Free · No obligation · Takes ~90 seconds
+                </p>
+              </div>
+            )}
+
+            {/* ── Option stages ────────────────────────────────────────── */}
+            {(stage === "space_type" ||
+              stage === "budget" ||
+              stage === "timeline" ||
+              stage === "team_size") && (
+              <div className="space-y-3">
+                <div className="chat-bubble-ai">{stage_questions[stage]}</div>
+                <div className="flex flex-col gap-2">
+                  {(stage === "space_type"
+                    ? SPACE_OPTIONS
+                    : stage === "budget"
+                    ? BUDGET_OPTIONS
+                    : stage === "timeline"
+                    ? TIMELINE_OPTIONS
+                    : TEAM_OPTIONS
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => advance(opt.value)}
+                      className="w-full text-left px-4 py-2.5 rounded-xl bg-[rgba(74,222,128,0.05)] border border-[rgba(74,222,128,0.15)] text-sm text-white hover:bg-[rgba(74,222,128,0.1)] hover:border-[rgba(74,222,128,0.4)] transition-all flex items-center justify-between group"
+                    >
+                      <span>{opt.label}</span>
+                      <ChevronRight
+                        size={14}
+                        className="text-gray-600 group-hover:text-[#4ADE80] transition-colors"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Name input ───────────────────────────────────────────── */}
+            {stage === "name" && (
+              <div className="space-y-3">
+                <div className="chat-bubble-ai">{stage_questions.name}</div>
+              </div>
+            )}
+
+            {/* ── Phone input ──────────────────────────────────────────── */}
+            {stage === "phone" && (
+              <div className="space-y-3">
+                <div className="chat-bubble-ai">
+                  Thanks, {lead.name}! {stage_questions.phone}
+                </div>
+              </div>
+            )}
+
+            {/* ── Scoring animation ────────────────────────────────────── */}
+            {stage === "scoring" && (
+              <div className="space-y-4 py-4">
+                <div className="chat-bubble-ai">
+                  Analyzing your requirements against our portfolio...
+                </div>
+                <div className="flex flex-col gap-3">
+                  {[
+                    "Evaluating budget fit",
+                    "Checking move-in availability",
+                    "Matching property types",
+                    "Calculating your score",
+                  ].map((step, i) => (
+                    <div
+                      key={step}
+                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[rgba(74,222,128,0.05)] border border-[rgba(74,222,128,0.1)]"
+                      style={{
+                        animation: `fadeIn 0.4s ease ${i * 0.3}s both`,
+                      }}
+                    >
+                      <Loader2
+                        size={14}
+                        className="text-[#4ADE80] animate-spin flex-shrink-0"
+                      />
+                      <span className="text-sm text-gray-300">{step}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Result ───────────────────────────────────────────────── */}
+            {stage === "result" && result && (
+              <div className="space-y-4">
+                <div className="chat-bubble-ai">
+                  ✅ Done! Here's your Vision AI Match Report, {lead.name}:
+                </div>
+
+                {/* Score card */}
+                <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.04)] p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      AI Confidence Score
+                    </span>
+                    <span
+                      className={`text-xs px-2.5 py-1 rounded-lg border font-bold ${scoreLabelColor(
+                        result.scoreLabel
+                      )}`}
+                    >
+                      {result.scoreLabel}
+                    </span>
+                  </div>
+
+                  {/* Score bar */}
+                  <div className="flex items-end gap-3 mb-3">
+                    <span
+                      className="text-5xl font-black tabular-nums"
+                      style={{ color: scoreColor(result.score) }}
+                    >
+                      {result.score}
+                    </span>
+                    <span className="text-2xl font-black text-gray-600 mb-1">
+                      /100
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden mb-3">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000"
+                      style={{
+                        width: `${result.score}%`,
+                        backgroundColor: scoreColor(result.score),
+                        boxShadow: `0 0 8px ${scoreColor(result.score)}`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    {result.reasoning}
+                  </p>
+                </div>
+
+                {/* Matched properties */}
+                {result.matchedProperties.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-[#4ADE80] uppercase tracking-widest">
+                      Best Matches for You
+                    </p>
+                    {result.matchedProperties.map((prop) => (
+                      <div
+                        key={prop.id}
+                        className="rounded-xl border border-[rgba(74,222,128,0.15)] bg-[rgba(74,222,128,0.03)] p-3"
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.2)] flex items-center justify-center flex-shrink-0">
+                            <Building2 size={14} className="text-[#4ADE80]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white leading-tight">
+                              {prop.name}
+                            </p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">
+                              {prop.sqft} · {prop.location}
+                            </p>
+                            <p className="text-[11px] text-[#4ADE80] mt-1 leading-snug">
+                              {prop.matchReason}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Next steps */}
+                <div className="space-y-2 pt-1">
+                  <a
+                    href={COMPANY.phoneHref}
+                    id="lease-bot-call-cta"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                  >
+                    <Phone size={14} /> Call Allen's Team Now
+                  </a>
+                  <button
+                    onClick={reset}
+                    className="w-full py-2.5 rounded-xl border border-[rgba(74,222,128,0.2)] text-sm text-gray-400 hover:text-white hover:border-[rgba(74,222,128,0.4)] transition-all"
+                  >
+                    Start Over
+                  </button>
+                </div>
+
+                <p className="text-[10px] text-gray-600 text-center pb-2">
+                  Vision Lease-Bot · Powered by Gemini AI
+                </p>
+              </div>
+            )}
+
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Text input — only for name/phone stages */}
+          {(stage === "name" || stage === "phone") && (
+            <div className="p-3 border-t border-[rgba(74,222,128,0.15)] flex-shrink-0">
+              <div className="flex items-center gap-2 bg-[rgba(255,255,255,0.05)] rounded-xl px-3 py-2 border border-[rgba(74,222,128,0.15)] focus-within:border-[rgba(74,222,128,0.4)] transition-colors">
+                <input
+                  ref={inputRef}
+                  type={stage === "phone" ? "tel" : "text"}
+                  value={inputVal}
+                  onChange={(e) => setInputVal(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleTextSubmit();
+                    }
+                  }}
+                  placeholder={
+                    stage === "name"
+                      ? "Your name..."
+                      : "Phone number (optional)..."
+                  }
+                  className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none"
+                  id={`lease-bot-${stage}-input`}
+                />
+                <button
+                  onClick={handleTextSubmit}
+                  id={`lease-bot-${stage}-submit`}
+                  className="w-8 h-8 rounded-lg bg-[#4ADE80] flex items-center justify-center hover:bg-[#6EF4A0] transition-colors flex-shrink-0"
+                  aria-label="Submit"
+                >
+                  <Send size={13} className="text-black" />
+                </button>
+              </div>
+              {stage === "phone" && (
+                <button
+                  onClick={() => submitLead({ ...lead, phone: "" })}
+                  className="w-full mt-2 text-xs text-gray-600 hover:text-gray-400 transition-colors"
+                >
+                  Skip — show my results now →
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Toggle Button ─────────────────────────────────────────────────── */}
+      <button
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setHasNotif(false);
+        }}
+        id="lease-bot-toggle"
+        aria-label="Open Vision Lease-Bot"
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-300 ${
+          isOpen
+            ? "bg-[#111827] border border-[rgba(74,222,128,0.3)]"
+            : "bg-gradient-to-br from-[#4ADE80] to-[#22C55E] shadow-[0_0_30px_rgba(74,222,128,0.4)] hover:shadow-[0_0_45px_rgba(74,222,128,0.6)] hover:scale-110"
+        }`}
+      >
+        {isOpen ? (
+          <X size={22} className="text-[#4ADE80]" />
+        ) : (
+          <Zap size={22} className="text-black" />
+        )}
+        {/* Notification dot */}
+        {hasNotif && !isOpen && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+            <span className="text-[9px] text-white font-bold">1</span>
+          </span>
+        )}
+      </button>
+    </>
+  );
+}

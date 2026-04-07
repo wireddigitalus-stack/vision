@@ -1,0 +1,284 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Phone, ArrowRight, MapPin, Star } from "lucide-react";
+import { COMPANY } from "@/lib/data";
+
+const cityBadges = [
+  "Bristol, TN/VA",
+  "Kingsport, TN",
+  "Johnson City, TN",
+  "Abingdon, VA",
+];
+
+// Real scraped property images for the hero slideshow
+const HERO_SLIDES = [
+  {
+    src: "/property-images/commercial-city-centre-exterior.jpg",
+    label: "City Centre Professional Suites",
+    location: "Downtown Bristol, TN",
+  },
+  {
+    src: "/property-images/cowork-shared-office.jpg",
+    label: "Bristol CoWork",
+    location: "620 State Street",
+  },
+  {
+    src: "/property-images/commercial-executive-entry.jpg",
+    label: "The Executive — Premier Offices",
+    location: "Downtown Bristol, TN",
+  },
+  {
+    src: "/property-images/commercial-centerpoint-mall.jpg",
+    label: "Centre Point Suites",
+    location: "Bristol, TN",
+  },
+  {
+    src: "/property-images/development-event-space-after.jpg",
+    label: "Foundation Event Facility",
+    location: "Downtown Bristol",
+  },
+  {
+    src: "/property-images/cowork-conference-room.jpg",
+    label: "Bristol CoWork — Conference Rooms",
+    location: "620 State Street",
+  },
+];
+
+export default function HeroSection() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [nextSlide, setNextSlide] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const SLIDE_DURATION = 5000; // 5s per slide
+  const TRANSITION_DURATION = 1200; // 1.2s crossfade
+
+  const advanceSlide = () => {
+    setIsTransitioning(true);
+    setNextSlide((prev) => (currentSlide + 1) % HERO_SLIDES.length);
+    setTimeout(() => {
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setIsTransitioning(false);
+      setProgress(0);
+    }, TRANSITION_DURATION);
+  };
+
+  useEffect(() => {
+    // Progress bar
+    progressRef.current = setInterval(() => {
+      setProgress((p) => Math.min(p + 100 / (SLIDE_DURATION / 50), 100));
+    }, 50);
+
+    intervalRef.current = setInterval(advanceSlide, SLIDE_DURATION);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (progressRef.current) clearInterval(progressRef.current);
+    };
+  }, [currentSlide]);
+
+  const goToSlide = (idx: number) => {
+    if (idx === currentSlide || isTransitioning) return;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (progressRef.current) clearInterval(progressRef.current);
+    setNextSlide(idx);
+    setIsTransitioning(true);
+    setProgress(0);
+    setTimeout(() => {
+      setCurrentSlide(idx);
+      setIsTransitioning(false);
+    }, TRANSITION_DURATION);
+  };
+
+  return (
+    <section
+      id="hero"
+      className="relative min-h-screen flex flex-col justify-center overflow-hidden"
+      aria-label="Hero — Vision LLC Commercial Real Estate"
+    >
+      {/* ── SLIDESHOW BACKGROUND ── */}
+      <div className="absolute inset-0 z-0">
+        {/* Current slide */}
+        <div className="absolute inset-0">
+          <Image
+            key={`current-${currentSlide}`}
+            src={HERO_SLIDES[currentSlide].src}
+            alt={HERO_SLIDES[currentSlide].label}
+            fill
+            priority
+            className="object-cover scale-[1.03] transition-transform duration-[10000ms] ease-linear"
+            sizes="100vw"
+          />
+        </div>
+
+        {/* Next slide (fades in during transition) */}
+        <div
+          className="absolute inset-0 transition-opacity"
+          style={{
+            opacity: isTransitioning ? 1 : 0,
+            transitionDuration: `${TRANSITION_DURATION}ms`,
+            transitionTimingFunction: "ease-in-out",
+          }}
+        >
+          <Image
+            key={`next-${nextSlide}`}
+            src={HERO_SLIDES[nextSlide].src}
+            alt={HERO_SLIDES[nextSlide].label}
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+        </div>
+
+        {/* Dark overlay — heavier at top/bottom, lighter in middle */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#080B0F]/85 via-[#080B0F]/55 to-[#080B0F]/90" />
+
+        {/* Subtle green tint */}
+        <div className="absolute inset-0 bg-[rgba(10,20,15,0.25)]" />
+
+        {/* Grid overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.025]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(74, 222, 128, 1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(74, 222, 128, 1) 1px, transparent 1px)`,
+            backgroundSize: "60px 60px",
+          }}
+        />
+
+        {/* Green orb */}
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[#4ADE80]/8 blur-[120px] pointer-events-none" />
+      </div>
+
+      {/* ── HERO CONTENT ── */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 lg:pt-36 lg:pb-24">
+        <div className="max-w-4xl">
+          {/* Trust badge */}
+          <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-lg border border-[rgba(74,222,128,0.3)] bg-[rgba(74,222,128,0.08)] backdrop-blur-sm">
+            <div className="flex">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star key={i} size={12} className="text-[#FACC15] fill-[#FACC15]" />
+              ))}
+            </div>
+            <span className="text-sm font-semibold text-[#4ADE80]">
+              #1 Commercial Property Owner in Downtown Bristol
+            </span>
+          </div>
+
+          {/* H1 */}
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-[1.05] mb-6 tracking-tight drop-shadow-2xl">
+            The Tri-Cities&apos;{" "}
+            <span className="gradient-text-green glow-green-text">
+              Commercial
+            </span>{" "}
+            Real Estate Leader
+          </h1>
+
+          <p className="text-lg sm:text-xl text-gray-300 leading-relaxed mb-8 max-w-2xl drop-shadow-lg">
+            Vision LLC has been building Downtown Bristol — and serving businesses across
+            the entire Tri-Cities region — for over 20 years. Office. Retail. Warehouse.
+            Development. Executive Advisement. One team. One vision.
+          </p>
+
+          {/* City badges */}
+          <div className="flex flex-wrap gap-2 mb-10">
+            {cityBadges.map((city) => (
+              <span key={city} className="map-badge backdrop-blur-sm">
+                <MapPin size={11} />
+                {city}
+              </span>
+            ))}
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link href="/contact" id="hero-tour-cta" className="btn-primary-cta text-base px-7 py-4">
+              Schedule a Tour
+              <ArrowRight size={18} />
+            </Link>
+            <a
+              href={COMPANY.phoneHref}
+              id="hero-phone-cta"
+              className="btn-secondary text-base px-7 py-4 backdrop-blur-sm"
+            >
+              <Phone size={18} />
+              {COMPANY.phone}
+            </a>
+          </div>
+
+          {/* Trust micro-stats */}
+          <div className="flex flex-wrap gap-6 mt-12 pt-12 border-t border-[rgba(74,222,128,0.12)]">
+            {[
+              { value: "20+", label: "Years Invested in the Tri-Cities" },
+              { value: "50+", label: "Commercial Properties" },
+              { value: "3", label: "Integrated Divisions" },
+              { value: "Award-Winning", label: "Historic Developer" },
+            ].map((stat) => (
+              <div key={stat.label} className="flex-shrink-0">
+                <p className="text-2xl font-black text-white leading-none drop-shadow-lg">{stat.value}</p>
+                <p className="text-xs text-gray-400 mt-1 max-w-[120px] leading-snug">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SLIDE CONTROLS (bottom-right) ── */}
+      <div className="absolute bottom-8 right-6 z-20 flex flex-col items-end gap-3">
+        {/* Current property label */}
+        <div
+          className="text-right transition-all duration-500"
+          style={{ opacity: isTransitioning ? 0 : 1 }}
+        >
+          <p className="text-xs text-[#4ADE80] font-semibold tracking-wider uppercase">
+            {HERO_SLIDES[currentSlide].label}
+          </p>
+          <p className="text-[11px] text-gray-500">{HERO_SLIDES[currentSlide].location}</p>
+        </div>
+
+        {/* Dot progress indicators */}
+        <div className="flex items-center gap-2">
+          {HERO_SLIDES.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => goToSlide(idx)}
+              aria-label={`Go to slide ${idx + 1}`}
+              className="group relative focus:outline-none"
+            >
+              <div
+                className={`h-0.5 transition-all duration-300 rounded-full ${
+                  idx === currentSlide
+                    ? "w-8 bg-[#4ADE80]"
+                    : "w-3 bg-white/25 group-hover:bg-white/50"
+                }`}
+              />
+              {/* Progress fill on active dot */}
+              {idx === currentSlide && (
+                <div
+                  className="absolute inset-0 h-0.5 bg-white/30 rounded-full origin-left"
+                  style={{
+                    transform: `scaleX(${progress / 100})`,
+                    transformOrigin: "left",
+                    transition: "transform 0.05s linear",
+                  }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── SCROLL INDICATOR ── */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-40">
+        <div className="w-5 h-8 rounded-full border border-white/20 flex items-start justify-center p-1">
+          <div className="w-1 h-2 rounded-full bg-[#4ADE80] animate-bounce" />
+        </div>
+      </div>
+    </section>
+  );
+}

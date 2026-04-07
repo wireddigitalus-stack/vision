@@ -1,0 +1,328 @@
+import React from "react";
+import Link from "next/link";
+import { Metadata } from "next";
+import {
+  Phone,
+  ArrowRight,
+  TrendingUp,
+  Users,
+  Globe,
+  BarChart3,
+  Building2,
+  Shield,
+  CheckCircle2,
+  Briefcase,
+} from "lucide-react";
+import { COMPANY } from "@/lib/data";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Executive Advisement & Consulting | Vision LLC | Bristol, TN",
+  description:
+    "Vision LLC delivers C-suite consulting, strategic planning, and government advisement grounded in 30+ years of real-world executive leadership. Bristol, TN. Call 423-573-1022.",
+};
+
+const services = [
+  {
+    icon: <Users size={24} />,
+    title: "Executive Leadership Coaching",
+    desc: "Personalized, high-accountability mentorship for C-suite leaders, founders, and senior decision-makers. We work alongside you — not just behind a whiteboard.",
+  },
+  {
+    icon: <TrendingUp size={24} />,
+    title: "Strategic Planning & Growth Execution",
+    desc: "Practical frameworks that actually get implemented. From market entry strategy to expansion roadmaps — we turn vision into a disciplined, executable plan.",
+  },
+  {
+    icon: <BarChart3 size={24} />,
+    title: "Operational Alignment & Accountability",
+    desc: "Synchronize your people, processes, and systems. Eliminate silos, reduce overhead, and build an organization that scales without breaking.",
+  },
+  {
+    icon: <Building2 size={24} />,
+    title: "Planning & Infrastructure",
+    desc: "Site selection, facility design, operational flow, and long-range capital planning — all informed by 20+ years of real development and construction experience.",
+  },
+  {
+    icon: <Briefcase size={24} />,
+    title: "Real Estate-Driven Business Optimization",
+    desc: "We uniquely leverage commercial real estate as a strategic tool — reducing occupancy costs, unlocking equity, and aligning physical space with business objectives.",
+  },
+];
+
+const divisions = [
+  {
+    icon: <Shield size={28} />,
+    accent: "#4ADE80",
+    title: "Government & Public Sector",
+    sub: "Public-Private Partnerships · Regulatory Navigation · Grant-Aligned Development",
+    desc: "Vision LLC has deep experience bridging the public and private sectors. From navigating regulatory environments to structuring PPP frameworks that unlock federal and state funding, we help government entities and community stakeholders move at the speed of business.",
+  },
+  {
+    icon: <Globe size={28} />,
+    accent: "#FACC15",
+    title: "Global & National Industry",
+    sub: "Construction · Manufacturing · Technology · Professional Services",
+    desc: "With established relationships across construction, manufacturing, technology, public safety, and professional services sectors, Vision LLC provides strategic counsel informed by decades of real industry exposure — not just textbook theory.",
+  },
+  {
+    icon: <BarChart3 size={28} />,
+    accent: "#60A5FA",
+    title: "Private Equity & Strategic Investment",
+    sub: "Board Advisory · Portfolio Strategy · Sustainable Scaling",
+    desc: "We take active board-level advisory roles in select portfolio companies. Our integrated model means we bring more than capital guidance — we bring operational accountability, real estate strategy, and execution discipline to every investment.",
+  },
+];
+
+const ecosystem = [
+  { label: "Real Estate Ownership", sub: "50+ properties, Downtown Bristol anchor" },
+  { label: "Development & Construction", sub: "Historic adaptive reuse, ground-up builds" },
+  { label: "Executive Advisement", sub: "30+ years C-suite & strategy expertise" },
+  { label: "Private Equity", sub: "Board-level involvement, portfolio scaling" },
+];
+
+export default function ExecutiveAdvisementPage() {
+  return (
+    <>
+      <Navigation />
+      <main>
+        {/* Hero */}
+        <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 bg-[#0D1117] relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(250,204,21,0.07)_0%,transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(74,222,128,0.04)_0%,transparent_55%)]" />
+          <div className="max-w-7xl mx-auto relative">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(250,204,21,0.08)] border border-[rgba(250,204,21,0.2)] text-[#FACC15] text-xs font-bold mb-6 tracking-wider uppercase">
+                Division III — Executive Advisement
+              </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-6">
+                Big Moves.{" "}
+                <span className="gradient-text-gold">Smart Strategy.</span>
+                <br />Fresh Insight.
+              </h1>
+              <p className="text-xl text-gray-300 mb-4 leading-relaxed">
+                Vision LLC's Executive Advisement division delivers C-suite consulting and strategic
+                guidance grounded in 30+ years of real-world leadership — not theory.
+              </p>
+              <p className="text-gray-500 mb-10">
+                We scale WITH you. Hands-on. Accountable. Integrated.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Link href="/contact" className="btn-primary-cta px-8 py-4">
+                  Schedule a Strategy Call <ArrowRight size={17} />
+                </Link>
+                <a href={COMPANY.phoneHref} className="btn-secondary px-8 py-4">
+                  <Phone size={17} /> {COMPANY.phone}
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Credibility Bar */}
+        <div className="border-y border-[rgba(250,204,21,0.1)] bg-[rgba(250,204,21,0.03)] py-6 px-4">
+          <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 text-sm text-gray-400">
+            <span><strong className="text-white text-lg">30+</strong> Years Executive Experience</span>
+            <span><strong className="text-white text-lg">3</strong> Specialized Advisory Divisions</span>
+            <span><strong className="text-white text-lg">20+</strong> Years Tri-Cities Market Knowledge</span>
+            <span><strong className="text-[#FACC15] text-lg">#1</strong> Integrated CRE + Strategy Firm in Region</span>
+          </div>
+        </div>
+
+        {/* Core Services */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-14">
+              <div className="section-line mx-auto mb-5" />
+              <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">
+                Core Advisory <span className="gradient-text-gold">Services</span>
+              </h2>
+              <p className="text-gray-400 max-w-xl mx-auto">
+                Five integrated service pillars — each designed to move the needle at the executive level.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {services.map((s, i) => (
+                <div
+                  key={s.title}
+                  className="glass rounded-2xl p-7 border border-[rgba(250,204,21,0.08)] hover:border-[rgba(250,204,21,0.25)] transition-all group"
+                >
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-[#FACC15] mb-5"
+                    style={{ background: "rgba(250,204,21,0.08)" }}
+                  >
+                    {s.icon}
+                  </div>
+                  <div className="text-[10px] font-black text-[rgba(250,204,21,0.4)] tracking-[0.15em] uppercase mb-2">
+                    0{i + 1}
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-3 group-hover:text-[#FACC15] transition-colors">
+                    {s.title}
+                  </h3>
+                  <p className="text-sm text-gray-400 leading-relaxed">{s.desc}</p>
+                </div>
+              ))}
+              {/* CTA tile */}
+              <div className="glass rounded-2xl p-7 border border-[rgba(250,204,21,0.2)] bg-[rgba(250,204,21,0.03)] flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-bold text-[#FACC15] uppercase tracking-widest mb-3">
+                    Ready to Talk?
+                  </p>
+                  <h3 className="text-lg font-bold text-white mb-3">
+                    Let's Build Your Roadmap
+                  </h3>
+                  <p className="text-sm text-gray-400 mb-6">
+                    Strategy calls are free. Insight is immediate. Results are measurable.
+                  </p>
+                </div>
+                <Link href="/contact" className="btn-primary-cta justify-center text-sm py-3">
+                  Schedule a Call <ArrowRight size={15} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Specialized Divisions */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0D1117]/60">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-14">
+              <div className="section-line mx-auto mb-5" />
+              <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">
+                Specialized <span className="gradient-text-green">Divisions</span>
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {divisions.map((d) => (
+                <div
+                  key={d.title}
+                  className="glass rounded-2xl p-8 border flex flex-col"
+                  style={{ borderColor: `${d.accent}22` }}
+                >
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 flex-shrink-0"
+                    style={{ background: `${d.accent}12`, color: d.accent }}
+                  >
+                    {d.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-1">{d.title}</h3>
+                  <p className="text-xs font-semibold mb-4" style={{ color: d.accent }}>
+                    {d.sub}
+                  </p>
+                  <p className="text-sm text-gray-400 leading-relaxed">{d.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Integrated Ecosystem Advantage */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <div className="section-line mb-5" />
+              <h2 className="text-3xl sm:text-4xl font-black text-white mb-5 leading-tight">
+                The{" "}
+                <span className="gradient-text-gold">Integrated Ecosystem</span>
+                {" "}Advantage
+              </h2>
+              <p className="text-gray-300 text-lg mb-5">
+                Vision LLC is the only firm in the Tri-Cities that operates simultaneously across four
+                critical domains. This isn't a pitch — it's a structural advantage that directly benefits
+                every client we advise.
+              </p>
+              <p className="text-gray-500 mb-8">
+                When your advisor also owns the buildings, builds the facilities, and has board seats
+                in the companies they work with — you get strategy that is grounded in reality, not
+                PowerPoint decks.
+              </p>
+              <div className="flex gap-4">
+                <Link href="/contact" className="btn-primary-cta py-3 px-7">
+                  Start a Conversation <ArrowRight size={16} />
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {ecosystem.map((item, i) => (
+                <div
+                  key={item.label}
+                  className="glass rounded-2xl p-6 border border-[rgba(250,204,21,0.1)] hover:border-[rgba(250,204,21,0.3)] transition-all"
+                >
+                  <div className="text-3xl font-black text-[#FACC15] mb-2">0{i + 1}</div>
+                  <h4 className="text-white font-bold text-sm mb-1">{item.label}</h4>
+                  <p className="text-xs text-gray-500">{item.sub}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Who We Work With */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#0D1117]/40">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-2xl sm:text-3xl font-black text-white mb-4">
+              Who We <span className="gradient-text-green">Work With</span>
+            </h2>
+            <p className="text-gray-400 mb-10">
+              From local founders to national executives — we work with leaders who are serious about growth.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
+              {[
+                "Growth-Stage Founders",
+                "C-Suite & Board Members",
+                "Regional Governments",
+                "Private Equity Firms",
+                "Healthcare Organizations",
+                "Manufacturing Companies",
+                "Commercial Developers",
+                "Nonprofit Leadership",
+              ].map((who) => (
+                <span
+                  key={who}
+                  className="px-4 py-2 rounded-lg text-sm font-medium border border-[rgba(250,204,21,0.15)] text-gray-300 bg-[rgba(250,204,21,0.04)]"
+                >
+                  {who}
+                </span>
+              ))}
+            </div>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/contact" className="btn-primary-cta px-8 py-4">
+                Schedule a Strategy Call <ArrowRight size={17} />
+              </Link>
+              <a href={COMPANY.phoneHref} className="btn-secondary px-8 py-4">
+                <Phone size={17} /> {COMPANY.phone}
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="glass-strong rounded-3xl p-10 border border-[rgba(250,204,21,0.2)] text-center glow-gold">
+              <div className="text-5xl mb-4">🎯</div>
+              <h2 className="text-3xl font-black text-white mb-4">
+                "The sum of all parts is greater than the whole."
+              </h2>
+              <p className="text-gray-400 mb-2 text-lg italic">— J. Allen Hurley II</p>
+              <p className="text-gray-500 mb-10 max-w-lg mx-auto">
+                That's not just a philosophy. It's how we build. How we advise. How we grow — with you.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/contact" className="btn-primary-cta py-4 px-8">
+                  Book a Strategy Session <ArrowRight size={17} />
+                </Link>
+                <a href={COMPANY.phoneHref} className="btn-secondary py-4 px-8">
+                  <Phone size={17} /> Call Direct: {COMPANY.phone}
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}

@@ -1,0 +1,161 @@
+import type { Metadata } from "next";
+import { DM_Sans, Inter } from "next/font/google";
+import "./globals.css";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import AIChatWidget from "@/components/AIChatWidget";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-dm-sans",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://teamvisionllc.com"),
+  title: {
+    default: "Vision LLC | Commercial Real Estate Bristol TN | Tri-Cities CRE Leader",
+    template: "%s | Vision LLC",
+  },
+  description:
+    "Vision LLC is the largest private commercial property owner in Downtown Bristol, TN/VA. Award-winning commercial real estate, development & executive consulting across the Tri-Cities region.",
+  keywords: [
+    "commercial real estate Bristol TN",
+    "commercial property Bristol Virginia",
+    "office space downtown Bristol",
+    "Tri-Cities commercial real estate",
+    "Kingsport commercial property",
+    "Johnson City office space",
+    "Abingdon VA commercial real estate",
+    "Elizabethton TN office space",
+    "Gate City VA commercial property",
+    "Blountville TN commercial real estate",
+    "Greeneville TN office space",
+    "Bristol CoWork",
+    "executive advisement Tennessee",
+    "Vision LLC Bristol",
+    "Sullivan County commercial real estate",
+    "Washington County commercial property",
+    "Carter County office space",
+    "37620", "37660", "37601", "24210", "37643", "24251", "37617", "37743",
+    "downtown Bristol TN office",
+    "State Street Bristol commercial property",
+    "Tri-Cities MSA commercial real estate",
+  ],
+  authors: [{ name: "Vision LLC" }],
+  creator: "Vision LLC",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://teamvisionllc.com",
+    siteName: "Vision LLC",
+    title: "Vision LLC | Tri-Cities Commercial Real Estate Leader",
+    description:
+      "The largest private commercial property owner in Downtown Bristol, TN/VA. Serving the entire Tri-Cities region.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vision LLC | Commercial Real Estate Leader in the Tri-Cities",
+    description:
+      "Award-winning commercial real estate, development & executive consulting across Bristol, Kingsport, Johnson City & the Tri-Cities.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className={`${dmSans.variable} ${inter.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="icon" href="/favicon.ico" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "RealEstateAgent",
+              name: "Vision LLC",
+              alternateName: "Team Vision LLC",
+              url: "https://teamvisionllc.com",
+              logo: "https://teamvisionllc.com/logo.png",
+              telephone: "+14235731022",
+              email: "leasing@teamvisionllc.com",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "100 5th St., Suite 2W",
+                addressLocality: "Bristol",
+                addressRegion: "TN",
+                postalCode: "37620",
+                addressCountry: "US",
+              },
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: "36.5951",
+                longitude: "-82.1887",
+              },
+              areaServed: [
+                { "@type": "City", name: "Bristol", containedIn: "Tennessee" },
+                { "@type": "City", name: "Bristol", containedIn: "Virginia" },
+                { "@type": "City", name: "Kingsport", containedIn: "Tennessee" },
+                { "@type": "City", name: "Johnson City", containedIn: "Tennessee" },
+                { "@type": "City", name: "Abingdon", containedIn: "Virginia" },
+                { "@type": "City", name: "Gate City", containedIn: "Virginia" },
+                { "@type": "City", name: "Elizabethton", containedIn: "Tennessee" },
+                { "@type": "City", name: "Blountville", containedIn: "Tennessee" },
+              ],
+              description:
+                "Vision LLC is the largest private commercial property owner in Downtown Bristol and an award-winning developer specializing in historic adaptive reuse across the Tri-Cities region.",
+              foundingDate: "2002",
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.9",
+                reviewCount: "47",
+                bestRating: "5",
+              },
+              priceRange: "$$",
+              currenciesAccepted: "USD",
+              paymentAccepted: "Cash, Check, Wire Transfer",
+              sameAs: [
+                "https://www.facebook.com/teamvisionllc",
+                "https://www.linkedin.com/company/vision-llc",
+              ],
+              hasMap: "https://maps.google.com/?q=100+5th+St+Bristol+TN+37620",
+              openingHoursSpecification: {
+                "@type": "OpeningHoursSpecification",
+                dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                opens: "08:00",
+                closes: "17:00",
+              },
+            }),
+          }}
+        />
+      </head>
+      <body className="bg-mesh antialiased">
+        <Navigation />
+        <main>{children}</main>
+        <Footer />
+        <AIChatWidget />
+      </body>
+    </html>
+  );
+}

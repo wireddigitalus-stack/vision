@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Executive Advisement & Consulting | Vision LLC | Bristol, TN",
@@ -339,7 +338,6 @@ export default function ExecutiveAdvisementPage() {
           </div>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

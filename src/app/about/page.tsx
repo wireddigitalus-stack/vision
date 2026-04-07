@@ -5,7 +5,6 @@ import { Metadata } from "next";
 import { Phone, ArrowRight, Award, Clock, Building2, TrendingUp } from "lucide-react";
 import { COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "About Vision LLC | Commercial Real Estate Bristol TN | J. Allen Hurley II",
@@ -214,7 +213,6 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

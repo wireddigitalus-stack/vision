@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import { ArrowRight, Phone, Check, MapPin, ChevronDown } from "lucide-react";
 import { SPACE_TYPE_PAGES, PROPERTIES, GEO_PAGES, COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 import LeaseBotTrigger from "@/components/LeaseBotTrigger";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -396,7 +395,6 @@ export default async function SpaceTypePage({ params }: Props) {
         </section>
       </main>
 
-      <Footer />
     </>
   );
 }

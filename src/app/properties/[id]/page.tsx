@@ -6,7 +6,6 @@ import { Metadata } from "next";
 import { MapPin, Phone, ArrowRight, Check, ArrowLeft, Building2 } from "lucide-react";
 import { PROPERTIES, COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 import LeaseBotTrigger from "@/components/LeaseBotTrigger";
 
 
@@ -292,7 +291,6 @@ export default async function PropertyDetailPage({ params }: Props) {
           </div>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

@@ -5,7 +5,6 @@ import { Metadata } from "next";
 import { Phone, ArrowRight, Check, Wifi, Coffee, Users, Clock, Monitor, Lock } from "lucide-react";
 import { COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Bristol CoWork | Premium Coworking Space | Vision LLC",
@@ -216,7 +215,6 @@ export default function CoWorkPage() {
           </div>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { MapPin, Building2, ArrowRight, Phone, Search, Users, Warehouse, Briefcase } from "lucide-react";
 import { PROPERTIES, COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 import LeaseBotTrigger from "@/components/LeaseBotTrigger";
 
 
@@ -221,7 +220,6 @@ export default function CommercialRealEstatePage() {
           </div>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

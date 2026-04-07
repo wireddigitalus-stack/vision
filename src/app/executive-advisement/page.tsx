@@ -97,7 +97,7 @@ export default function ExecutiveAdvisementPage() {
               alt=""
               fill
               className="object-cover object-center"
-              style={{ opacity: 0.08 }}
+              style={{ opacity: 0.12 }}
               priority
               aria-hidden="true"
             />

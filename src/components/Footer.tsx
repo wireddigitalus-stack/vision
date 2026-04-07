@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Phone, Mail, MapPin, Facebook, Linkedin, Youtube, ArrowRight } from "lucide-react";
 import { COMPANY, GEO_PAGES, SPACE_TYPE_PAGES } from "@/lib/data";
@@ -13,14 +14,14 @@ export default function Footer() {
 
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.3)]">
-                <span className="text-black font-black text-xl">V</span>
-              </div>
-              <div>
-                <span className="font-black text-2xl text-white tracking-tight">VISION</span>
-                <span className="block text-[10px] text-[#4ADE80] font-bold tracking-[0.2em] uppercase">LLC</span>
-              </div>
+            <Link href="/" className="inline-flex mb-6">
+              <Image
+                src="/vision-logo.png"
+                alt="Vision LLC — Commercial Real Estate Bristol TN"
+                width={160}
+                height={60}
+                className="h-10 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+              />
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-6">
               The Tri-Cities&apos; premier commercial real estate, development &amp; executive advisement firm — rooted in Bristol for 20+ years.

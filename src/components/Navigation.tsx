@@ -16,11 +16,13 @@ const navLinks = [
     href: "/commercial-real-estate",
     dropdown: [
       { label: "All Properties", href: "/commercial-real-estate" },
-      { label: "Office Space", href: "/commercial-real-estate/office" },
-      { label: "Retail Storefronts", href: "/commercial-real-estate/retail" },
-      { label: "Warehouse Space", href: "/commercial-real-estate/warehouse" },
+      { label: "Office Space", href: "/spaces/office-space-tri-cities-tn" },
+      { label: "CoWorking Space", href: "/spaces/coworking-space-bristol-tn" },
+      { label: "Retail Storefronts", href: "/spaces/retail-space-bristol-tn" },
+      { label: "Warehouse & Industrial", href: "/spaces/industrial-space-tri-cities-tn" },
     ],
   },
+
   {
     label: "Markets",
     href: "#",

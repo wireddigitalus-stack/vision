@@ -157,14 +157,12 @@ export default function Navigation() {
               </Link>
             </div>
 
-            {/* Mobile Menu Toggle — hidden when drawer open (drawer has its own X) */}
+            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               id="mobile-menu-toggle"
-              aria-label="Toggle mobile menu"
-              className={`lg:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 ${
-                isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
-              }`}
+              aria-label="Open mobile menu"
+              className="lg:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
             >
               <Menu size={22} />
             </button>
@@ -172,9 +170,9 @@ export default function Navigation() {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay — z-[60] sits above header (z-50) so only drawer X is visible */}
       <div
-        className={`fixed inset-0 z-40 lg:hidden transition-all duration-300 ${
+        className={`fixed inset-0 z-[60] lg:hidden transition-all duration-300 ${
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >

@@ -84,9 +84,9 @@ export async function POST(req: NextRequest) {
       timeline, teamSize, additionalInfo,
     };
 
-    // Direct fetch to v1 REST API — bypasses SDK's v1beta default
+    // Direct fetch to v1 REST API — gemini-2.0-flash confirmed available for this key
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

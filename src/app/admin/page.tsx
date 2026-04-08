@@ -459,15 +459,21 @@ function AskVisionModal({ leads, onClose }: { leads: Lead[]; onClose: () => void
     setAsked(true);
     setResponse("");
     try {
+      // Strip heavy fields before sending — keep payload lean
+      const leanLeads = leads.map(l => ({
+        name: l.name, spaceType: l.spaceType, budget: l.budget,
+        score: l.score, scoreLabel: l.scoreLabel, timeline: l.timeline,
+        teamSize: l.teamSize, timestamp: l.timestamp, phone: l.phone,
+      }));
       const res = await fetch("/api/ask-vision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, leads }),
+        body: JSON.stringify({ question, leads: leanLeads }),
       });
       const data = await res.json();
       setResponse(data.response || data.error || "No response received.");
-    } catch {
-      setResponse("Connection error — please try again.");
+    } catch (err) {
+      setResponse(`Connection error — ${err instanceof Error ? err.message : "please try again"}.`);
     } finally {
       setLoading(false);
     }
@@ -587,16 +593,21 @@ function DailyBriefCard({ leads }: { leads: Lead[] }) {
   const generateBrief = async () => {
     setBriefLoading(true);
     try {
+      const leanLeads = leads.map(l => ({
+        name: l.name, spaceType: l.spaceType, budget: l.budget,
+        score: l.score, scoreLabel: l.scoreLabel, timeline: l.timeline,
+        teamSize: l.teamSize, timestamp: l.timestamp, phone: l.phone,
+      }));
       const res = await fetch("/api/ask-vision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: "Write a 2-sentence CEO daily brief. First sentence: who to prioritise calling today and why (name + budget). Second sentence: overall pipeline health in one clear statement. Be direct and specific.",
-          leads,
+          question: "Write a 2-sentence CEO daily brief. First: who to call today and why (use their name and budget). Second: one sentence on overall pipeline health. Be specific and direct.",
+          leads: leanLeads,
         }),
       });
       const data = await res.json();
-      setBriefText(data.response || "");
+      setBriefText(data.response || data.error || "");
     } catch {
       setBriefText("Unable to generate brief — check your connection.");
     } finally {

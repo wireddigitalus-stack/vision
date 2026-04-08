@@ -89,8 +89,20 @@ export default function CoWorkPage() {
     <>
       <Navigation />
       <main>
+        {/* Bristol CoWork Logo Strip — pure white, full-width, outside the dark hero section */}
+        <div className="w-full bg-white border-b border-gray-200 flex items-center justify-center pt-20 pb-6 sm:pt-24 sm:pb-7">
+          <Image
+            src="/images/bristol-cowork-logo.svg"
+            alt="Bristol CoWork — 620 State Street, Bristol TN"
+            width={560}
+            height={270}
+            className="h-28 sm:h-36 lg:h-40 w-auto"
+            priority
+          />
+        </div>
+
         {/* Hero */}
-        <section className="pt-32 pb-0 px-4 sm:px-6 lg:px-8 bg-[#0D1117] relative overflow-hidden">
+        <section className="pt-12 pb-0 px-4 sm:px-6 lg:px-8 bg-[#0D1117] relative overflow-hidden">
           {/* Ghosted cowork interior image */}
           <div className="absolute inset-0 pointer-events-none">
             <Image
@@ -106,18 +118,6 @@ export default function CoWorkPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#0D1117] via-transparent to-[#0D1117]/50" />
           </div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(250,204,21,0.06)_0%,transparent_60%)]" />
-          {/* Bristol CoWork Brand Logo — full-width white strip */}
-          <div className="-mx-4 sm:-mx-6 lg:-mx-8 bg-white flex items-center justify-center py-6 sm:py-8 shadow-[0_6px_30px_rgba(0,0,0,0.35)] border-b border-[rgba(250,204,21,0.25)] mb-12">
-            <Image
-              src="/images/bristol-cowork-logo.svg"
-              alt="Bristol CoWork — 620 State Street, Bristol TN"
-              width={560}
-              height={270}
-              className="h-28 sm:h-36 lg:h-40 w-auto"
-              priority
-            />
-          </div>
-
 
           <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-12 items-center pb-16">
             <div>

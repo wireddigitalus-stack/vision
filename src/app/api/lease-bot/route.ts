@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { LEADS_STORE, type Lead } from "@/lib/leads-store";
 
-const GEMINI_API_KEY =
-  process.env.GEMINI_API_KEY || "AIzaSyA9UMB9Z7PeGWURP6wDUacctKpSzoOa9cQ";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY environment variable is not set");
+
 
 const PROPERTIES_CONTEXT = `
 Available Vision LLC Properties:
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY!);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash",
       generationConfig: {

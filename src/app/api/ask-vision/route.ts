@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const GEMINI_API_KEY =
-  process.env.GEMINI_API_KEY || "AIzaSyA9UMB9Z7PeGWURP6wDUacctKpSzoOa9cQ";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY environment variable is not set");
+
+
 
 // Lean lead type — only the fields needed for analysis (avoids oversized payloads)
 type LeanLead = {
@@ -61,7 +63,8 @@ CEO QUESTION: "${question}"
 
 Instructions: Be direct and actionable. Name specific people. Reference budgets and scores. Under 120 words. No filler.`;
 
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY!);
+
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const result = await model.generateContent({

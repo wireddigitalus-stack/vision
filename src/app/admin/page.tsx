@@ -6,6 +6,7 @@ import {
   Users, Filter, AlertCircle, DollarSign, Calendar,
   Settings, Plus, Trash2, Save, CheckCircle2, Loader2,
   Bell, Mail, Shield, ExternalLink, Key, Globe, X, Radio,
+  Sparkles, Brain, Send, ChevronRight,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -431,6 +432,250 @@ function SettingsPanel() {
   );
 }
 
+// ─── Ask VISION Modal ──────────────────────────────────────────────────────────
+
+const QUICK_QUERIES = [
+  "Who should I call first today?",
+  "Summarise the hot leads",
+  "What's the total pipeline value?",
+  "Which leads need follow-up this week?",
+  "Compare our warm leads by budget",
+];
+
+function AskVisionModal({ leads, onClose }: { leads: Lead[]; onClose: () => void }) {
+  const [query, setQuery] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [asked, setAsked] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const ask = async (q?: string) => {
+    const question = q || query.trim();
+    if (!question) return;
+    setQuery(question);
+    setLoading(true);
+    setAsked(true);
+    setResponse("");
+    try {
+      const res = await fetch("/api/ask-vision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, leads }),
+      });
+      const data = await res.json();
+      setResponse(data.response || data.error || "No response received.");
+    } catch {
+      setResponse("Connection error — please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-[#0A0F1A] border border-[rgba(74,222,128,0.25)] rounded-2xl w-full max-w-xl shadow-[0_24px_80px_rgba(0,0,0,0.7)] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(74,222,128,0.12)] bg-gradient-to-r from-[rgba(74,222,128,0.06)] to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_16px_rgba(74,222,128,0.35)]">
+              <Brain size={16} className="text-black" />
+            </div>
+            <div>
+              <p className="text-white font-black text-sm">Ask VISION</p>
+              <p className="text-[10px] text-[#4ADE80]">Lead Intelligence · {leads.length} leads in context</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/8 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-5 space-y-4">
+          {/* Quick queries */}
+          {!asked && (
+            <div>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Quick questions</p>
+              <div className="flex flex-wrap gap-2">
+                {QUICK_QUERIES.map(q => (
+                  <button
+                    key={q}
+                    onClick={() => ask(q)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(74,222,128,0.05)] border border-[rgba(74,222,128,0.15)] text-xs text-gray-300 hover:text-white hover:border-[rgba(74,222,128,0.4)] hover:bg-[rgba(74,222,128,0.1)] transition-all"
+                  >
+                    {q} <ChevronRight size={10} className="text-gray-600" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Response area */}
+          {asked && (
+            <div className="rounded-xl border border-[rgba(74,222,128,0.15)] bg-[rgba(74,222,128,0.03)] p-4 min-h-[80px]">
+              <p className="text-[10px] text-[#4ADE80] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Sparkles size={10} /> Ask VISION Analysis
+              </p>
+              {loading ? (
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <Loader2 size={14} className="animate-spin text-[#4ADE80]" />
+                  Analysing {leads.length} leads…
+                </div>
+              ) : (
+                <p className="text-sm text-gray-200 leading-relaxed">{response}</p>
+              )}
+            </div>
+          )}
+
+          {/* Input */}
+          <div className="flex items-end gap-2">
+            <div className="flex-1 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2.5 focus-within:border-[rgba(74,222,128,0.4)] transition-colors">
+              <textarea
+                ref={inputRef}
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } }}
+                placeholder="Ask anything about your leads…"
+                rows={2}
+                className="w-full bg-transparent text-sm text-white placeholder-gray-600 outline-none resize-none"
+              />
+            </div>
+            <button
+              onClick={() => ask()}
+              disabled={!query.trim() || loading}
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center text-black hover:opacity-90 disabled:opacity-40 transition-all flex-shrink-0"
+            >
+              <Send size={14} />
+            </button>
+          </div>
+          {asked && (
+            <button
+              onClick={() => { setAsked(false); setQuery(""); setResponse(""); }}
+              className="w-full text-xs text-gray-600 hover:text-gray-400 transition-colors text-center"
+            >
+              ← Ask another question
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Daily Brief Card ──────────────────────────────────────────────────────────
+
+function DailyBriefCard({ leads }: { leads: Lead[] }) {
+  const [briefText, setBriefText] = useState("");
+  const [briefLoading, setBriefLoading] = useState(false);
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric",
+  });
+
+  const hot = leads.filter(l => l.scoreLabel === "Hot Lead").length;
+  const warm = leads.filter(l => l.scoreLabel === "Warm Lead").length;
+  const nurture = leads.filter(l => l.scoreLabel === "Nurture").length;
+  const newToday = leads.filter(l => {
+    const hrs = (Date.now() - new Date(l.timestamp).getTime()) / 36e5;
+    return hrs < 24;
+  }).length;
+  const pipeline = leads.filter(l => l.scoreLabel === "Hot Lead").reduce((a, l) => a + l.budget, 0);
+  const topLead = [...leads].sort((a, b) => b.score - a.score)[0];
+
+  const generateBrief = async () => {
+    setBriefLoading(true);
+    try {
+      const res = await fetch("/api/ask-vision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: "Write a 2-sentence CEO daily brief. First sentence: who to prioritise calling today and why (name + budget). Second sentence: overall pipeline health in one clear statement. Be direct and specific.",
+          leads,
+        }),
+      });
+      const data = await res.json();
+      setBriefText(data.response || "");
+    } catch {
+      setBriefText("Unable to generate brief — check your connection.");
+    } finally {
+      setBriefLoading(false);
+    }
+  };
+
+  useEffect(() => { if (leads.length) generateBrief(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const stats = [
+    { label: "Hot", value: hot, emoji: "🔥", color: "#4ADE80" },
+    { label: "Warm", value: warm, emoji: "⚡", color: "#FACC15" },
+    { label: "Nurture", value: nurture, emoji: "●", color: "#94A3B8" },
+    { label: "New Today", value: newToday, emoji: "🆕", color: "#60A5FA" },
+  ];
+
+  return (
+    <div className="rounded-2xl border border-[rgba(74,222,128,0.3)] bg-gradient-to-br from-[rgba(74,222,128,0.06)] via-[rgba(74,222,128,0.03)] to-transparent p-5 mb-6 relative overflow-hidden">
+      {/* Subtle glow */}
+      <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-[#4ADE80] opacity-[0.04] blur-3xl pointer-events-none" />
+
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_12px_rgba(74,222,128,0.3)] flex-shrink-0">
+            <Sparkles size={14} className="text-black" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-[#4ADE80] uppercase tracking-widest">Daily Brief</p>
+            <p className="text-[11px] text-gray-500">{today}</p>
+          </div>
+        </div>
+        <button
+          onClick={generateBrief}
+          disabled={briefLoading}
+          className="flex items-center gap-1 text-[10px] text-gray-600 hover:text-[#4ADE80] transition-colors disabled:opacity-40"
+          title="Regenerate brief"
+        >
+          <RefreshCw size={10} className={briefLoading ? "animate-spin" : ""} />
+          {briefLoading ? "Updating…" : "Refresh"}
+        </button>
+      </div>
+
+      {/* Stats chips */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {stats.map(s => (
+          <div key={s.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)]">
+            <span className="text-sm">{s.emoji}</span>
+            <span className="text-xs text-gray-400">{s.label}</span>
+            <span className="text-sm font-black tabular-nums" style={{ color: s.color }}>{s.value}</span>
+          </div>
+        ))}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)]">
+          <DollarSign size={12} className="text-[#4ADE80]" />
+          <span className="text-xs text-gray-400">Hot Pipeline</span>
+          <span className="text-sm font-black text-[#4ADE80] tabular-nums">${pipeline.toLocaleString()}/mo</span>
+        </div>
+      </div>
+
+      {/* AI Brief text */}
+      <div className="border-t border-[rgba(74,222,128,0.1)] pt-3">
+        {briefLoading ? (
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Loader2 size={12} className="animate-spin text-[#4ADE80]" />
+            Generating brief…
+          </div>
+        ) : briefText ? (
+          <p className="text-sm text-gray-300 leading-relaxed">{briefText}</p>
+        ) : topLead ? (
+          <p className="text-sm text-gray-500 italic">Top priority: {topLead.name} — {topLead.spaceType} at ${topLead.budget.toLocaleString()}/mo</p>
+        ) : null}
+        <p className="text-[10px] text-gray-600 mt-2 flex items-center gap-1">
+          <Sparkles size={9} /> Powered by Ask VISION
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Admin Page ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -441,6 +686,7 @@ export default function AdminPage() {
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [newLeadToast, setNewLeadToast] = useState<Lead | null>(null);
   const [recentLiveIds, setRecentLiveIds] = useState<Set<string>>(new Set());
+  const [showAskVision, setShowAskVision] = useState(false);
   const seenIdsRef = useRef<Set<string>>(new Set(DEMO_LEADS.map(d => d.id)));
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -569,6 +815,12 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[11px] text-gray-600 hidden sm:block">Last refresh: {lastRefresh.toLocaleTimeString()}</span>
+            <button
+              onClick={() => setShowAskVision(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[rgba(74,222,128,0.12)] to-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.3)] text-[#4ADE80] text-xs font-bold hover:from-[rgba(74,222,128,0.2)] hover:to-[rgba(74,222,128,0.1)] transition-all shadow-[0_0_12px_rgba(74,222,128,0.1)]"
+            >
+              <Brain size={13} /> Ask VISION
+            </button>
             {activeTab === "leads" && (
               <button onClick={fetchLeads} disabled={loading} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-sm hover:bg-[rgba(74,222,128,0.12)] transition-colors disabled:opacity-50">
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
@@ -576,6 +828,11 @@ export default function AdminPage() {
             )}
           </div>
         </div>
+
+        {/* Ask VISION Modal */}
+        {showAskVision && (
+          <AskVisionModal leads={leads} onClose={() => setShowAskVision(false)} />
+        )}
 
         {/* Tab Nav */}
         <div className="flex items-center gap-1 mb-8 border-b border-[rgba(255,255,255,0.06)] pb-0">
@@ -596,6 +853,9 @@ export default function AdminPage() {
         {/* ─ LEADS TAB ──────────────────────────────────────────────────────── */}
         {activeTab === "leads" && (
           <>
+            {/* Daily Brief — first thing a CEO sees */}
+            <DailyBriefCard leads={leads} />
+
             {/* Pipeline Banner */}
             <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-gradient-to-r from-[rgba(74,222,128,0.07)] to-[rgba(74,222,128,0.02)] p-6 mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center gap-6">

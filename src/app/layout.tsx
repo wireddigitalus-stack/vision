@@ -3,7 +3,7 @@ import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import AIChatWidget from "@/components/AIChatWidget";
+import AIChatWidgetConditional from "@/components/AIChatWidgetConditional";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -186,7 +186,7 @@ export default function RootLayout({
         <Navigation />
         <main>{children}</main>
         <Footer />
-        <AIChatWidget />
+        <AIChatWidgetConditional />
       </body>
     </html>
   );

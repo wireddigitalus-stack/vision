@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Zap, RefreshCw, Phone, Clock, Building2, TrendingUp,
   Users, Filter, AlertCircle, DollarSign, Calendar,
   Settings, Plus, Trash2, Save, CheckCircle2, Loader2,
-  Bell, Mail, Shield, ExternalLink, Key, Globe, X,
+  Bell, Mail, Shield, ExternalLink, Key, Globe, X, Radio,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -439,6 +439,10 @@ export default function AdminPage() {
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture">("All");
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [newLeadToast, setNewLeadToast] = useState<Lead | null>(null);
+  const [recentLiveIds, setRecentLiveIds] = useState<Set<string>>(new Set());
+  const seenIdsRef = useRef<Set<string>>(new Set(DEMO_LEADS.map(d => d.id)));
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -454,11 +458,50 @@ export default function AdminPage() {
     finally { setLoading(false); setLastRefresh(new Date()); }
   };
 
+  // ── localStorage live-lead poller (4s interval) ────────────────────────────
+  const pollLocalStorage = useCallback(() => {
+    try {
+      const stored: Lead[] = JSON.parse(localStorage.getItem("vision_live_leads") || "[]");
+      if (!stored.length) return;
+
+      const brandNew = stored.filter(l => !seenIdsRef.current.has(l.id));
+      if (!brandNew.length) return;
+
+      // Mark all as seen
+      brandNew.forEach(l => seenIdsRef.current.add(l.id));
+      setRecentLiveIds(prev => { const s = new Set(prev); brandNew.forEach(l => s.add(l.id)); return s; });
+
+      // Merge into leads list (new ones at top, before demo leads)
+      setLeads(prev => {
+        const existingIds = new Set(prev.map(l => l.id));
+        const toAdd = brandNew.filter(l => !existingIds.has(l.id));
+        return toAdd.length ? [...toAdd, ...prev] : prev;
+      });
+
+      // Show toast for the most recent new lead
+      const latest = brandNew[0];
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      setNewLeadToast(latest);
+      toastTimerRef.current = setTimeout(() => setNewLeadToast(null), 5000);
+      setLastRefresh(new Date());
+    } catch { /* ignore */ }
+  }, []);
+
   useEffect(() => {
     fetchLeads();
-    const interval = setInterval(fetchLeads, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    const apiInterval = setInterval(fetchLeads, 30000);
+    const lsInterval = setInterval(pollLocalStorage, 4000);
+    // Also run once on mount in case chatbot already fired
+    pollLocalStorage();
+    return () => { clearInterval(apiInterval); clearInterval(lsInterval); };
+  }, [pollLocalStorage]);
+
+  // Remove NEW badge after 60s
+  useEffect(() => {
+    if (!recentLiveIds.size) return;
+    const t = setTimeout(() => setRecentLiveIds(new Set()), 60000);
+    return () => clearTimeout(t);
+  }, [recentLiveIds]);
 
   const filtered = filter === "All" ? leads : leads.filter(l => l.scoreLabel === filter);
   const hotLeads = leads.filter(l => l.scoreLabel === "Hot Lead");
@@ -474,6 +517,39 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#080C14] text-white">
       <div className="max-w-6xl mx-auto px-6 pt-20 pb-16">
 
+        {/* ─ New Lead Toast ──────────────────────────────────────────────── */}
+        {newLeadToast && (
+          <div
+            className="fixed top-24 right-4 z-50 max-w-xs w-full"
+            style={{ animation: "slideInRight 0.4s cubic-bezier(0.175,0.885,0.32,1.275) both" }}
+          >
+            <style>{`
+              @keyframes slideInRight {
+                from { opacity: 0; transform: translateX(120%); }
+                to   { opacity: 1; transform: translateX(0); }
+              }
+            `}</style>
+            <div className="bg-[#0D1117] border border-[rgba(74,222,128,0.4)] rounded-2xl p-4 shadow-[0_8px_40px_rgba(0,0,0,0.6)] flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center flex-shrink-0 shadow-[0_0_16px_rgba(74,222,128,0.4)]">
+                <Radio size={16} className="text-black" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-xs font-black text-[#4ADE80] uppercase tracking-wider">New Lead</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
+                </div>
+                <p className="text-sm font-bold text-white truncate">{newLeadToast.name}</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  {newLeadToast.spaceType} · <span style={{ color: scoreColor(newLeadToast.score) }}>{newLeadToast.score}/100</span> · {newLeadToast.scoreLabel}
+                </p>
+              </div>
+              <button onClick={() => setNewLeadToast(null)} className="text-gray-600 hover:text-white transition-colors flex-shrink-0 mt-0.5">
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Page Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -481,7 +557,13 @@ export default function AdminPage() {
               <Zap size={18} className="text-black" />
             </div>
             <div>
-              <h1 className="text-white font-black text-xl">Ask VISION CRM</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-white font-black text-xl">Ask VISION CRM</h1>
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#4ADE80] bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.25)] px-2 py-0.5 rounded-lg">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
+                  LIVE
+                </span>
+              </div>
               <p className="text-[11px] text-gray-500">AI Lead Intelligence Dashboard</p>
             </div>
           </div>
@@ -621,8 +703,26 @@ export default function AdminPage() {
             </div>
 
             <div className="space-y-4">
-              {filtered.map(lead => (
-                <div key={lead.id} className="glass rounded-2xl border border-[rgba(255,255,255,0.06)] hover:border-[rgba(74,222,128,0.2)] transition-all p-5">
+              {filtered.map(lead => {
+                const isLive = recentLiveIds.has(lead.id);
+                return (
+                <div
+                  key={lead.id}
+                  className={`glass rounded-2xl border transition-all p-5 ${
+                    isLive
+                      ? "border-[rgba(74,222,128,0.5)] shadow-[0_0_24px_rgba(74,222,128,0.1)]"
+                      : "border-[rgba(255,255,255,0.06)] hover:border-[rgba(74,222,128,0.2)]"
+                  }`}
+                  style={isLive ? { animation: "slideInTop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both" } : undefined}
+                >
+                  {isLive && (
+                    <style>{`
+                      @keyframes slideInTop {
+                        from { opacity: 0; transform: translateY(-12px); }
+                        to   { opacity: 1; transform: translateY(0); }
+                      }
+                    `}</style>
+                  )}
                   <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                     <div className="flex-shrink-0 text-center">
                       <div className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center border" style={{ borderColor: `${scoreColor(lead.score)}40`, backgroundColor: `${scoreColor(lead.score)}0A` }}>
@@ -634,7 +734,15 @@ export default function AdminPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                         <div>
-                          <h3 className="text-white font-bold text-base">{lead.name}</h3>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-white font-bold text-base">{lead.name}</h3>
+                            {isLive && (
+                              <span className="flex items-center gap-1 text-[10px] font-black text-[#4ADE80] bg-[rgba(74,222,128,0.12)] border border-[rgba(74,222,128,0.35)] px-2 py-0.5 rounded-lg">
+                                <span className="w-1 h-1 rounded-full bg-[#4ADE80] animate-pulse" />
+                                NEW
+                              </span>
+                            )}
+                          </div>
                           <div className="flex flex-wrap gap-3 mt-0.5 text-xs text-gray-500">
                             {lead.phone && <span className="flex items-center gap-1"><Phone size={10} /> {lead.phone}</span>}
                             <span className="flex items-center gap-1"><Clock size={10} /> {timeAgo(lead.timestamp)}</span>
@@ -668,7 +776,8 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+                ); })}
+
             </div>
 
             {filtered.length === 0 && (

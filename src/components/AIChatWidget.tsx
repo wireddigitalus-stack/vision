@@ -279,6 +279,32 @@ export default function LeaseBotWidget() {
     };
   };
 
+  // ── Persist lead to localStorage for live dashboard sync ──────────────────
+
+  const saveLiveLeadToStorage = (finalLead: Partial<LeadData>, scored: ScoringResult) => {
+    if (typeof window === "undefined") return;
+    const lead = {
+      id: `live_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      name: finalLead.name || "Anonymous",
+      email: "",
+      phone: finalLead.phone || "",
+      spaceType: finalLead.spaceType || "",
+      budget: Number(finalLead.budget) || 0,
+      timeline: finalLead.timeline || "",
+      teamSize: finalLead.teamSize || "",
+      score: scored.score,
+      scoreLabel: scored.scoreLabel,
+      reasoning: scored.reasoning,
+      matchedProperties: scored.matchedProperties,
+    };
+    try {
+      const existing = JSON.parse(localStorage.getItem("vision_live_leads") || "[]");
+      existing.unshift(lead);
+      localStorage.setItem("vision_live_leads", JSON.stringify(existing.slice(0, 50)));
+    } catch { /* ignore */ }
+  };
+
   // ── Score lead via API ──────────────────────────────────────────────────────
 
   const submitLead = async (finalLead: Partial<LeadData>) => {
@@ -310,6 +336,7 @@ export default function LeaseBotWidget() {
 
       const data = await res.json();
       if (data.lead) {
+        saveLiveLeadToStorage(finalLead, data.lead);
         setResult(data.lead);
         setStage("result");
       } else {
@@ -318,7 +345,9 @@ export default function LeaseBotWidget() {
     } catch {
       clearTimeout(timeout);
       // Graceful fallback — real score calculated from lead data
-      setResult(calcFallbackScore(finalLead));
+      const fallback = calcFallbackScore(finalLead);
+      saveLiveLeadToStorage(finalLead, fallback);
+      setResult(fallback);
       setStage("result");
     } finally {
       setScoring(false);

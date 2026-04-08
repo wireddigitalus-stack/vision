@@ -587,20 +587,21 @@ export default function AdminPage() {
                 </div>
                 <div className="space-y-2">
                   {callList.map((lead, i) => (
-                    <div key={lead.id} className="flex items-center gap-4 px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] hover:border-[rgba(74,222,128,0.2)] transition-all">
-                      <span className="text-xs font-black w-5 text-center flex-shrink-0" style={{ color: scoreColor(lead.score) }}>#{i + 1}</span>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-black" style={{ backgroundColor: `${scoreColor(lead.score)}12`, color: scoreColor(lead.score) }}>{lead.score}</div>
+                    <div key={lead.id} className="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] hover:border-[rgba(74,222,128,0.2)] transition-all">
+                      <span className="text-xs font-black w-4 text-center flex-shrink-0" style={{ color: scoreColor(lead.score) }}>#{i + 1}</span>
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 text-xs sm:text-sm font-black" style={{ backgroundColor: `${scoreColor(lead.score)}12`, color: scoreColor(lead.score) }}>{lead.score}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-white truncate">{lead.name}</p>
-                        <div className="flex flex-wrap gap-3 text-xs text-gray-500 mt-0.5">
-                          <span>{lead.spaceType}</span>
+                        <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-gray-500 mt-0.5">
+                          <span className="truncate max-w-[90px] sm:max-w-none">{lead.spaceType}</span>
                           <span className="text-[#4ADE80] font-semibold">${lead.budget.toLocaleString()}/mo</span>
-                          <span className="flex items-center gap-1"><Calendar size={9} /> {lead.timeline}</span>
                         </div>
                       </div>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold hidden sm:block ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</span>
-                      <a href={`tel:${lead.phone}`} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity flex-shrink-0">
-                        <Phone size={11} /> {lead.phone}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold hidden sm:block flex-shrink-0 ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</span>
+                      <a href={`tel:${lead.phone}`} className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity flex-shrink-0">
+                        <Phone size={11} />
+                        <span className="hidden sm:inline">{lead.phone}</span>
+                        <span className="sm:hidden">Call</span>
                       </a>
                     </div>
                   ))}

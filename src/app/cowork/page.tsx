@@ -106,22 +106,22 @@ export default function CoWorkPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#0D1117] via-transparent to-[#0D1117]/50" />
           </div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(250,204,21,0.06)_0%,transparent_60%)]" />
+          {/* Bristol CoWork Brand Logo — centered above hero content */}
+          <div className="max-w-7xl mx-auto relative pt-6 pb-10 flex justify-center">
+            <div className="bg-white rounded-2xl px-10 sm:px-16 py-5 sm:py-7 shadow-[0_16px_60px_rgba(0,0,0,0.5)] border border-[rgba(250,204,21,0.3)]">
+              <Image
+                src="/images/bristol-cowork-logo.svg"
+                alt="Bristol CoWork — 620 State Street, Bristol TN"
+                width={560}
+                height={270}
+                className="h-28 sm:h-36 lg:h-40 w-auto"
+                priority
+              />
+            </div>
+          </div>
+
           <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-12 items-center pb-16">
             <div>
-              {/* Bristol CoWork Brand Logo */}
-              <div className="mb-8">
-                <div className="inline-block bg-white rounded-2xl p-4 sm:p-5 shadow-[0_8px_40px_rgba(0,0,0,0.35)] border border-[rgba(250,204,21,0.15)]">
-                  <Image
-                    src="/images/bristol-cowork-logo.svg"
-                    alt="Bristol CoWork — 620 State Street, Bristol TN"
-                    width={300}
-                    height={200}
-                    className="h-24 sm:h-28 w-auto"
-                    priority
-                  />
-                </div>
-              </div>
-
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(250,204,21,0.1)] border border-[rgba(250,204,21,0.2)] text-[#FACC15] text-xs font-bold mb-6 tracking-wider uppercase">
                 Now Open · 620 State Street
               </div>

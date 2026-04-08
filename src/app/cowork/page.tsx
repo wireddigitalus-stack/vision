@@ -89,8 +89,11 @@ export default function CoWorkPage() {
     <>
       <Navigation />
       <main>
-        {/* Bristol CoWork Logo Strip — pure white, full-width, outside the dark hero section */}
-        <div className="w-full bg-white border-b border-gray-200 flex items-center justify-center pt-20 pb-6 sm:pt-24 sm:pb-7">
+        {/* Dark spacer behind the fixed nav — keeps the top of the page black */}
+        <div className="w-full h-16 sm:h-20 bg-[#080B0F]" />
+
+        {/* Bristol CoWork Logo Strip — pure white, full-width */}
+        <div className="w-full bg-white border-b border-gray-200 flex items-center justify-center py-6 sm:py-8">
           <Image
             src="/images/bristol-cowork-logo.svg"
             alt="Bristol CoWork — 620 State Street, Bristol TN"

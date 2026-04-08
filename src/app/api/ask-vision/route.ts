@@ -65,7 +65,8 @@ Instructions: Be direct and actionable. Name specific people. Reference budgets 
 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY!);
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
 
 
     const result = await model.generateContent({

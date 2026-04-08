@@ -10,6 +10,32 @@ export const metadata: Metadata = {
   title: "Bristol CoWork | Premium Coworking Space | Vision LLC",
   description:
     "Bristol CoWork at 620 State Street offers private offices, dedicated desks & conference rooms in the heart of Bristol, TN. All-inclusive memberships. Call 423-573-1022.",
+  alternates: {
+    canonical: "https://teamvisionllc.com/cowork",
+  },
+  openGraph: {
+    title: "Bristol CoWork | Downtown Bristol's Premier Coworking Space",
+    description:
+      "Private offices, dedicated desks & conference rooms at 620 State Street, Bristol, TN. All-inclusive memberships. Move in tomorrow. Call 423-573-1022.",
+    url: "https://teamvisionllc.com/cowork",
+    images: [
+      {
+        url: "https://teamvisionllc.com/api/og?title=Bristol+CoWork&subtitle=620+State+Street+%C2%B7+Bristol%2C+TN+%E2%80%94+Premium+Coworking&tag=Now+Open&type=default",
+        width: 1200,
+        height: 630,
+        alt: "Bristol CoWork — 620 State Street, Bristol TN",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bristol CoWork | Premium Coworking in Downtown Bristol, TN",
+    description:
+      "Private offices, dedicated desks & conference rooms. 620 State Street, Bristol TN. All-inclusive memberships from Vision LLC.",
+    images: [
+      "https://teamvisionllc.com/api/og?title=Bristol+CoWork&subtitle=620+State+Street+%C2%B7+Bristol%2C+TN+%E2%80%94+Premium+Coworking&tag=Now+Open&type=default",
+    ],
+  },
 };
 
 const plans = [
@@ -82,6 +108,20 @@ export default function CoWorkPage() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(250,204,21,0.06)_0%,transparent_60%)]" />
           <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-12 items-center pb-16">
             <div>
+              {/* Bristol CoWork Brand Logo */}
+              <div className="mb-8">
+                <div className="inline-block bg-white rounded-2xl p-4 sm:p-5 shadow-[0_8px_40px_rgba(0,0,0,0.35)] border border-[rgba(250,204,21,0.15)]">
+                  <Image
+                    src="/images/bristol-cowork-logo.svg"
+                    alt="Bristol CoWork — 620 State Street, Bristol TN"
+                    width={300}
+                    height={200}
+                    className="h-24 sm:h-28 w-auto"
+                    priority
+                  />
+                </div>
+              </div>
+
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(250,204,21,0.1)] border border-[rgba(250,204,21,0.2)] text-[#FACC15] text-xs font-bold mb-6 tracking-wider uppercase">
                 Now Open · 620 State Street
               </div>

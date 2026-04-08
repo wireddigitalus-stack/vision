@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | Vision LLC",
   },
   description:
-    "Vision LLC is the largest private commercial property owner in Downtown Bristol, TN/VA. Award-winning commercial real estate, development & executive consulting across the Tri-Cities region.",
+    "Vision LLC — Downtown Bristol's premier commercial real estate firm. Office space, retail, coworking & executive consulting across the Tri-Cities TN/VA region.",
   keywords: [
     "commercial real estate Bristol TN",
     "commercial property Bristol Virginia",

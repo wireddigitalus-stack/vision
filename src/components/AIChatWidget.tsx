@@ -255,8 +255,10 @@ export default function LeaseBotWidget() {
     setScoring(false);
   };
 
-  // Auto-show nudge card after 3s
+  // Auto-show nudge card after 3s — desktop only (mobile: too intrusive)
   useEffect(() => {
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    if (isMobile) return;
     const t = setTimeout(() => setShowNudge(true), 3000);
     return () => clearTimeout(t);
   }, []);

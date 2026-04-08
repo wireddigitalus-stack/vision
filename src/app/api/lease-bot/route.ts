@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { LEADS_STORE, type Lead } from "@/lib/leads-store";
+
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY environment variable is not set");
@@ -78,24 +78,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
-
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 600,
-      },
-    });
-
     const leadData: Partial<Lead> = {
       name, email, phone,
       spaceType, budget: Number(budget),
       timeline, teamSize, additionalInfo,
     };
 
-    const result = await model.generateContent(SCORING_PROMPT(leadData));
-    const rawText = result.response.text().trim();
+    // Direct fetch to v1 REST API — bypasses SDK's v1beta default
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: SCORING_PROMPT(leadData) }] }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 600 },
+        }),
+      }
+    );
+
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      console.error("Gemini error:", errText);
+      return NextResponse.json({ error: "Scoring failed — please try again" }, { status: 500 });
+    }
+
+    const geminiData = await geminiRes.json();
+    const rawText = (geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
 
     // Strip markdown fences if present
     const jsonText = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();

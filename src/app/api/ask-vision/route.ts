@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY environment variable is not set");
 
-
-
-// Lean lead type — only the fields needed for analysis (avoids oversized payloads)
+// Lean lead type — only the fields needed for analysis
 type LeanLead = {
   name: string;
   spaceType: string;
@@ -28,7 +25,7 @@ function timeAgo(ts: string) {
 
 function buildLeadsContext(leads: LeanLead[]) {
   return leads
-    .slice(0, 15) // cap at 15 to keep prompt lean
+    .slice(0, 15)
     .map(
       (l, i) =>
         `${i + 1}. ${l.name} | ${l.spaceType} | $${l.budget}/mo | Score: ${l.score} (${l.scoreLabel}) | Timeline: ${l.timeline} | Team: ${l.teamSize} | ${timeAgo(l.timestamp)}${l.phone ? " | ☎" : ""}`
@@ -63,23 +60,33 @@ CEO QUESTION: "${question}"
 
 Instructions: Be direct and actionable. Name specific people. Reference budgets and scores. Under 120 words. No filler.`;
 
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY!);
+    // Use the REST API directly with v1 endpoint — bypasses SDK's v1beta default
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 300 },
+        }),
+      }
+    );
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      return NextResponse.json(
+        { error: `Gemini API error ${geminiRes.status}: ${errText}` },
+        { status: 500 }
+      );
+    }
 
-
-
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.3, maxOutputTokens: 300 },
-    });
-
-    const response = result.response.text().trim();
+    const geminiData = await geminiRes.json();
+    const response = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "No response generated.";
     return NextResponse.json({ response });
 
   } catch (error: unknown) {
     console.error("Ask VISION error:", error);
-    // Return real error message so we can debug in the UI
     const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
       { error: `Analysis failed: ${message}` },

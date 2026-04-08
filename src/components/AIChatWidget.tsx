@@ -186,6 +186,99 @@ export default function LeaseBotWidget() {
     setInputVal("");
   };
 
+  // ── Client-side fallback scorer (used when API fails) ──────────────────────
+
+  const calcFallbackScore = (lead: Partial<LeadData>): ScoringResult => {
+    let score = 0;
+
+    // Budget scoring
+    const budget = Number(lead.budget) || 0;
+    if (budget >= 2000) score += 25;
+    else if (budget >= 1000) score += 15;
+    else score += 5;
+
+    // Timeline scoring
+    const tl = (lead.timeline || "").toLowerCase();
+    if (tl.includes("asap") || tl.includes("under 30") || tl.includes("30")) score += 30;
+    else if (tl.includes("1") || tl.includes("2 month")) score += 20;
+    else if (tl.includes("2") || tl.includes("3 month")) score += 10;
+    else score += 5;
+
+    // Space type fit scoring + property match
+    const st = (lead.spaceType || "").toLowerCase();
+    let matchedProperties: MatchedProperty[];
+
+    if (st.includes("warehouse") || st.includes("industrial")) {
+      score += 10;
+      matchedProperties = [{
+        id: "commercial-warehouse",
+        name: "Commercial Warehouse",
+        type: "Warehouse",
+        sqft: "2,000–25,000 sqft",
+        location: "Bristol Metro Area",
+        matchReason: "Loading docks, highway access, and flexible bay sizes match your industrial requirements.",
+      }];
+    } else if (st.includes("retail")) {
+      score += 10;
+      matchedProperties = [{
+        id: "centre-point",
+        name: "Centre Point Suites",
+        type: "Retail",
+        sqft: "800–5,000 sqft",
+        location: "Downtown Bristol, TN",
+        matchReason: "High-traffic retail frontage in a prime downtown corridor.",
+      }];
+    } else if (st.includes("cowork")) {
+      score += 15;
+      matchedProperties = [{
+        id: "bristol-cowork",
+        name: "Bristol CoWork",
+        type: "CoWork",
+        sqft: "Private offices & dedicated desks",
+        location: "620 State Street, Bristol TN",
+        matchReason: "All-inclusive monthly membership — no long-term lease required.",
+      }];
+    } else if (st.includes("executive")) {
+      score += 20;
+      matchedProperties = [{
+        id: "the-executive",
+        name: "The Executive",
+        type: "Office",
+        sqft: "500–12,000 sqft",
+        location: "Downtown Bristol, TN",
+        matchReason: "Private executive suites in a prestigious historic building.",
+      }];
+    } else {
+      score += 20;
+      matchedProperties = [{
+        id: "city-centre",
+        name: "City Centre Professional Suites",
+        type: "Office",
+        sqft: "1,200–18,000+ sqft",
+        location: "Downtown Bristol, TN",
+        matchReason: "Premium downtown office space with flexible suite sizes.",
+      }];
+    }
+
+    // Team size scoring
+    const ts = (lead.teamSize || "").toLowerCase();
+    if (ts.includes("10") || ts.includes("25")) score += 15;
+    else if (ts.includes("5")) score += 15;
+    else if (ts.includes("2") || ts.includes("4")) score += 10;
+    else score += 5;
+
+    score = Math.min(score, 100);
+    const scoreLabel: ScoringResult["scoreLabel"] =
+      score >= 70 ? "Hot Lead" : score >= 40 ? "Warm Lead" : "Nurture";
+
+    return {
+      score,
+      scoreLabel,
+      reasoning: `Based on your ${lead.spaceType} requirement with a $${budget}/mo budget and ${lead.timeline} timeline.`,
+      matchedProperties,
+    };
+  };
+
   // ── Score lead via API ──────────────────────────────────────────────────────
 
   const submitLead = async (finalLead: Partial<LeadData>) => {
@@ -220,27 +313,12 @@ export default function LeaseBotWidget() {
         setResult(data.lead);
         setStage("result");
       } else {
-        // API returned but no lead (error response) — fall into catch
         throw new Error(data.error || "No result returned");
       }
     } catch {
       clearTimeout(timeout);
-      // Always show a graceful fallback — never leave user stuck
-      setResult({
-        score: 72,
-        scoreLabel: "Hot Lead",
-        reasoning: "Based on your requirements, you appear to be an excellent fit for our portfolio.",
-        matchedProperties: [
-          {
-            id: "city-centre",
-            name: "City Centre Professional Suites",
-            type: "Office",
-            sqft: "1,200–18,000+ sqft",
-            location: "Downtown Bristol, TN",
-            matchReason: "Premium downtown office space that fits your requirements and timeline.",
-          },
-        ],
-      });
+      // Graceful fallback — real score calculated from lead data
+      setResult(calcFallbackScore(finalLead));
       setStage("result");
     } finally {
       setScoring(false);

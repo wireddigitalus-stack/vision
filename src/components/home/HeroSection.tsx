@@ -51,9 +51,8 @@ export default function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [nextSlide, setNextSlide] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [progressKey, setProgressKey] = useState(0); // CSS animation restart key
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const SLIDE_DURATION = 5000; // 5s per slide
   const TRANSITION_DURATION = 1200; // 1.2s crossfade
@@ -64,31 +63,23 @@ export default function HeroSection() {
     setTimeout(() => {
       setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
       setIsTransitioning(false);
-      setProgress(0);
     }, TRANSITION_DURATION);
   };
 
   useEffect(() => {
-    // Progress bar
-    progressRef.current = setInterval(() => {
-      setProgress((p) => Math.min(p + 100 / (SLIDE_DURATION / 50), 100));
-    }, 50);
-
+    setProgressKey((k) => k + 1); // restart CSS progress animation
     intervalRef.current = setInterval(advanceSlide, SLIDE_DURATION);
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      if (progressRef.current) clearInterval(progressRef.current);
     };
   }, [currentSlide]);
 
   const goToSlide = (idx: number) => {
     if (idx === currentSlide || isTransitioning) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (progressRef.current) clearInterval(progressRef.current);
     setNextSlide(idx);
     setIsTransitioning(true);
-    setProgress(0);
+    setProgressKey((k) => k + 1);
     setTimeout(() => {
       setCurrentSlide(idx);
       setIsTransitioning(false);
@@ -111,7 +102,7 @@ export default function HeroSection() {
             alt={HERO_SLIDES[currentSlide].label}
             fill
             priority
-            className="object-cover scale-[1.03] transition-transform duration-[10000ms] ease-linear"
+            className="object-cover md:scale-[1.03] md:transition-transform md:duration-[10000ms] md:ease-linear"
             sizes="100vw"
           />
         </div>
@@ -152,7 +143,7 @@ export default function HeroSection() {
         />
 
         {/* Green orb */}
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[#4ADE80]/8 blur-[120px] pointer-events-none" />
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[#4ADE80]/8 hidden md:block blur-[120px] pointer-events-none" />
       </div>
 
       {/* ── HERO CONTENT ── */}
@@ -260,14 +251,14 @@ export default function HeroSection() {
               {/* Progress fill on active dot */}
               {idx === currentSlide && (
                 <div
-                  className="absolute inset-0 h-0.5 bg-white/30 rounded-full origin-left"
+                  key={progressKey}
+                  className="absolute inset-0 h-0.5 bg-white/30 rounded-full"
                   style={{
-                    transform: `scaleX(${progress / 100})`,
-                    transformOrigin: "left",
-                    transition: "transform 0.05s linear",
+                    animation: `slideProgress ${SLIDE_DURATION}ms linear forwards`,
                   }}
                 />
               )}
+              <style>{`@keyframes slideProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
             </button>
           ))}
         </div>

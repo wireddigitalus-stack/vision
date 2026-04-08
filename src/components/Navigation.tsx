@@ -74,10 +74,10 @@ export default function Navigation() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#080B0F]/98 backdrop-blur-xl border-b border-[rgba(74,222,128,0.1)] ${
           scrolled
-            ? "bg-[#080B0F]/95 backdrop-blur-xl border-b border-[rgba(74,222,128,0.1)] shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
-            : "bg-transparent"
+            ? "shadow-[0_4px_30px_rgba(0,0,0,0.6)]"
+            : "shadow-none"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

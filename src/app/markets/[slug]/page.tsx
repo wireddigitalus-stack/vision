@@ -80,7 +80,9 @@ export default async function GeoPage({ params }: Props) {
   const faqs = [
     {
       q: `Does Vision LLC have commercial property available in ${geo.city}, ${geo.state}?`,
-      a: `Yes! Vision LLC serves ${geo.city} and the broader ${geo.region} area with a full range of commercial real estate options including ${geo.availableTypes.join(", ")}. Contact our team at ${COMPANY.phone} to discuss current availability.`,
+      a: geo.isPrimary
+        ? `Yes! Vision LLC is the largest private commercial property owner in Downtown Bristol with a full portfolio including ${geo.availableTypes.join(", ")}. Contact our team at ${COMPANY.phone} to discuss current availability.`
+        : `Vision LLC doesn't maintain offices in ${geo.city}, but we actively serve businesses from ${geo.city} — connecting them with our commercial portfolio in Downtown Bristol, TN, typically a short drive via regional highways. Our available types include ${geo.availableTypes.join(", ")}. Call ${COMPANY.phone} to discuss options.`,
     },
     {
       q: `What types of commercial space does Vision LLC offer in the ${geo.region}?`,
@@ -231,7 +233,7 @@ export default async function GeoPage({ params }: Props) {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/contact" id={`geo-tour-cta-${slug}`} className="btn-primary py-4 px-7">
-                Schedule a Tour in {geo.city} <ArrowRight size={17} />
+                {geo.isPrimary ? `Schedule a Tour in ${geo.city}` : "Schedule a Tour"} <ArrowRight size={17} />
               </Link>
               <a href={COMPANY.phoneHref} id={`geo-phone-cta-${slug}`} className="btn-secondary py-4 px-7">
                 <Phone size={17} /> {COMPANY.phone}
@@ -300,7 +302,7 @@ export default async function GeoPage({ params }: Props) {
             {/* Available space types */}
             <div className="glass rounded-2xl p-7 border border-[rgba(74,222,128,0.15)]">
               <h3 className="text-lg font-bold text-white mb-5">
-                Available Space Types in {geo.city}
+                {geo.isPrimary ? `Available Space Types in ${geo.city}` : "Space Types Available — Downtown Bristol, TN"}
               </h3>
               <div className="space-y-4">
                 {geo.availableTypes.map((type) => (
@@ -321,7 +323,7 @@ export default async function GeoPage({ params }: Props) {
               </div>
               <div className="mt-6">
                 <Link href="/contact" id={`geo-space-cta-${slug}`} className="btn-primary w-full justify-center py-3">
-                  Inquire About Space in {geo.city}
+                  {geo.isPrimary ? `Inquire About Space in ${geo.city}` : "Inquire About Our Bristol Portfolio"}
                 </Link>
               </div>
             </div>
@@ -402,11 +404,14 @@ export default async function GeoPage({ params }: Props) {
           <div className="glass-strong rounded-3xl p-10 border border-[rgba(74,222,128,0.2)] text-center glow-green">
             <MapPin size={32} className="text-[#4ADE80] mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-black text-white mb-3">
-              Ready to Explore Commercial Real Estate in {geo.city}?
+              {geo.isPrimary
+                ? `Ready to Explore Commercial Real Estate in ${geo.city}?`
+                : "Ready to Find Your Space in Downtown Bristol?"}
             </h2>
             <p className="text-gray-400 mb-8 max-w-lg mx-auto">
-              Our team has deep roots in the {geo.region} market. Let&apos;s find the right
-              space for your business.
+              {geo.isPrimary
+                ? `Our team has deep roots in the ${geo.region} market. Let's find the right space for your business.`
+                : `Our Downtown Bristol portfolio is a short drive from ${geo.city}. Let's find the right space for your business.`}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/contact" id={`geo-final-cta-${slug}`} className="btn-primary py-4 px-8">

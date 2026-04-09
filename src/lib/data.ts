@@ -54,7 +54,7 @@ export const GEO_PAGES = [
     h1: "Commercial Real Estate in Kingsport, TN",
     metaTitle: "Commercial Real Estate Kingsport TN | Vision LLC",
     metaDescription:
-      "Looking for commercial property in Kingsport, TN? Vision LLC serves the entire Tri-Cities region with office space, retail, and industrial properties. Call 423-573-1022.",
+      "Kingsport, TN businesses: Vision LLC connects you with premium commercial space in Downtown Bristol, a short drive via I-26. Office, retail & industrial options across the Tri-Cities. Call 423-573-1022.",
     heroSubline: "Commercial Property Solutions Serving Kingsport & the Tri-Cities",
     lat: 36.5484,
     lng: -82.5618,
@@ -79,7 +79,7 @@ export const GEO_PAGES = [
     h1: "Commercial Real Estate in Johnson City, TN",
     metaTitle: "Commercial Real Estate Johnson City TN | Vision LLC",
     metaDescription:
-      "Vision LLC offers commercial real estate solutions in Johnson City, TN. Office space, retail storefronts & more. Serving the full Tri-Cities region. Call 423-573-1022.",
+      "Johnson City, TN businesses: Vision LLC connects you with commercial real estate in Downtown Bristol, TN. Office, retail & mixed-use options across the Tri-Cities. Call 423-573-1022.",
     heroSubline: "Office Space & Commercial Properties Serving Johnson City",
     lat: 36.3134,
     lng: -82.3535,
@@ -104,7 +104,7 @@ export const GEO_PAGES = [
     h1: "Commercial Real Estate in Abingdon, VA",
     metaTitle: "Commercial Real Estate Abingdon VA | Vision LLC",
     metaDescription:
-      "Commercial property in Abingdon, VA. Vision LLC serves both sides of the TN/VA state line with office, retail & development services. Call 423-573-1022.",
+      "Abingdon, VA businesses: Vision LLC connects you with commercial real estate in Downtown Bristol, TN — just 20 min on I-81. Office & retail options at the TN/VA state line. Call 423-573-1022.",
     heroSubline: "Virginia Commercial Real Estate — Just Across the State Line",
     lat: 36.7098,
     lng: -81.9774,
@@ -129,7 +129,7 @@ export const GEO_PAGES = [
     h1: "Commercial Real Estate in Elizabethton, TN",
     metaTitle: "Commercial Real Estate Elizabethton TN | Vision LLC",
     metaDescription:
-      "Commercial property & office space in Elizabethton, TN. Vision LLC serves all of Northeast Tennessee including Carter County. Contact us today.",
+      "Elizabethton, TN businesses: Vision LLC connects you with commercial space in Downtown Bristol. Serving Carter County & Northeast Tennessee. Call 423-573-1022.",
     heroSubline: "Commercial Opportunities in Carter County & Elizabethton",
     lat: 36.3487,
     lng: -82.2107,
@@ -154,7 +154,7 @@ export const GEO_PAGES = [
     h1: "Commercial Real Estate in Gate City, VA",
     metaTitle: "Commercial Real Estate Gate City VA | Vision LLC",
     metaDescription:
-      "Commercial property in Gate City, VA (Scott County). Vision LLC serves Southwest Virginia businesses with office space, retail & consulting. Call 423-573-1022.",
+      "Gate City, VA businesses: Vision LLC connects you with commercial real estate in Downtown Bristol, TN — accessible via US-23. Serving Scott County & Southwest Virginia. Call 423-573-1022.",
     heroSubline: "Scott County Commercial Real Estate Near the Bristol Market",
     lat: 36.6323,
     lng: -82.5779,
@@ -179,7 +179,7 @@ export const GEO_PAGES = [
     h1: "Commercial Real Estate in Blountville, TN",
     metaTitle: "Commercial Real Estate Blountville TN | Vision LLC",
     metaDescription:
-      "Commercial property near Tri-Cities Airport in Blountville, TN. Vision LLC serves Sullivan County with office & industrial space. Call 423-573-1022.",
+      "Blountville, TN businesses: Vision LLC connects you with commercial space in Downtown Bristol. Serving Sullivan County near Tri-Cities Airport. Call 423-573-1022.",
     heroSubline: "Sullivan County Commercial Real Estate Near Tri-Cities Airport",
     lat: 36.5292,
     lng: -82.3296,
@@ -204,7 +204,7 @@ export const GEO_PAGES = [
     h1: "Commercial Real Estate in Greeneville, TN",
     metaTitle: "Commercial Real Estate Greeneville TN | Vision LLC",
     metaDescription:
-      "Commercial property in Greeneville, TN (Greene County). Vision LLC serves Northeast Tennessee with office space, retail & business consulting. Call 423-573-1022.",
+      "Greeneville, TN businesses: Vision LLC connects you with commercial space in Downtown Bristol. Serving Greene County & Northeast Tennessee. Call 423-573-1022.",
     heroSubline: "Greene County Commercial Real Estate & Business Consulting",
     lat: 36.1637,
     lng: -82.8318,

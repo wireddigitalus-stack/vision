@@ -14,6 +14,8 @@ type LeanLead = {
   teamSize: string;
   timestamp: string;
   phone?: string;
+  isWhale?: boolean;
+  whaleKeywords?: string[];
 };
 
 function timeAgo(ts: string) {
@@ -28,7 +30,7 @@ function buildLeadsContext(leads: LeanLead[]) {
     .slice(0, 15)
     .map(
       (l, i) =>
-        `${i + 1}. ${l.name} | ${l.spaceType} | $${l.budget}/mo | Score: ${l.score} (${l.scoreLabel}) | Timeline: ${l.timeline} | Team: ${l.teamSize} | ${timeAgo(l.timestamp)}${l.phone ? " | ☎" : ""}`
+        `${i + 1}. ${l.name} | ${l.spaceType} | $${l.budget}/mo | Score: ${l.score} (${l.scoreLabel}) | Timeline: ${l.timeline} | Team: ${l.teamSize} | ${timeAgo(l.timestamp)}${l.phone ? " | ☎" : ""}${l.isWhale ? ` | ⭐ WHALE ALERT [${(l.whaleKeywords || []).join(", ")}]` : ""}`
     )
     .join("\n");
 }

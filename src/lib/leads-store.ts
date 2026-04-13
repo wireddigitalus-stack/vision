@@ -25,7 +25,12 @@ export interface Lead {
   scoreLabel: "Hot Lead" | "Warm Lead" | "Nurture";
   reasoning: string;
   matchedProperties: MatchedProperty[];
+  // Whale Alert fields
+  isWhale?: boolean;
+  whaleTier?: "gold" | "silver" | null;
+  whaleKeywords?: string[];
 }
+
 
 // Module-level singleton — persists across requests in the same server process
 export const LEADS_STORE: Lead[] = [];

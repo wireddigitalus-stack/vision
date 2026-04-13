@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LEADS_STORE, type Lead } from "@/lib/leads-store";
+import { detectWhale } from "@/lib/whale-detector";
 
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -110,6 +111,9 @@ export async function POST(req: NextRequest) {
     const jsonText = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     const aiResult = JSON.parse(jsonText);
 
+    // Run whale detection on the free-text additionalInfo
+    const whale = detectWhale(additionalInfo || "");
+
     const lead: Lead = {
       id: `lead_${Date.now()}`,
       timestamp: new Date().toISOString(),
@@ -125,6 +129,10 @@ export async function POST(req: NextRequest) {
       scoreLabel: aiResult.scoreLabel,
       reasoning: aiResult.reasoning,
       matchedProperties: aiResult.matchedProperties || [],
+      // Whale Alert
+      isWhale: whale.isWhale,
+      whaleTier: whale.whaleTier,
+      whaleKeywords: whale.whaleKeywords,
     };
 
     LEADS_STORE.unshift(lead);

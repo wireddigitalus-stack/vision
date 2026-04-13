@@ -173,7 +173,7 @@ export default function HeroSection() {
           <p className="text-lg sm:text-xl text-gray-300 leading-relaxed mb-8 max-w-2xl drop-shadow-lg">
             Vision LLC has been building Downtown Bristol — and serving businesses across
             the entire Tri-Cities region — for over 20 years. Office. Retail. Warehouse.
-            Development. Executive Advisement. One team. One vision.
+            Development. Executive Advisement.<br />One team. One vision.
           </p>
 
           {/* City badges */}

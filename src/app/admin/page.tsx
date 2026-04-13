@@ -22,6 +22,9 @@ interface Lead {
   teamSize: string; score: number;
   scoreLabel: "Hot Lead" | "Warm Lead" | "Nurture";
   reasoning: string; matchedProperties: MatchedProperty[];
+  isWhale?: boolean;
+  whaleTier?: "gold" | "silver" | null;
+  whaleKeywords?: string[];
 }
 
 interface AdminUser {
@@ -67,7 +70,7 @@ function initials(name: string) {
 const DEMO_LEADS: Lead[] = [
   { id: "demo_1", timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(), name: "Sarah Mitchell", email: "", phone: "423-555-0192", spaceType: "Executive Office", budget: 3000, timeline: "ASAP — under 30 days", teamSize: "2–4 people", score: 91, scoreLabel: "Hot Lead", reasoning: "Strong budget, urgent timeline, and professional office need align perfectly with City Centre availability.", matchedProperties: [{ id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "1,200–3,000 sqft", location: "Downtown Bristol, TN", matchReason: "Premium finishes, immediate availability, fits 2-4 team." }] },
   { id: "demo_2", timestamp: new Date(Date.now() - 1000 * 60 * 34).toISOString(), name: "Mark Delaney", email: "", phone: "", spaceType: "CoWork Membership", budget: 800, timeline: "1–2 months", teamSize: "Solo", score: 58, scoreLabel: "Warm Lead", reasoning: "Solo operator with moderate budget — Bristol CoWork is an excellent fit. Nurture toward dedicated desk.", matchedProperties: [{ id: "bristol-cowork", name: "Bristol CoWork", type: "CoWork", sqft: "Hot desk / Dedicated desk", location: "620 State Street, Bristol, TN", matchReason: "All-inclusive monthly membership, perfect for solo professional." }] },
-  { id: "demo_3", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), name: "Dr. James Patel", email: "", phone: "276-555-0847", spaceType: "Private Office Suite", budget: 6000, timeline: "ASAP — under 30 days", teamSize: "5–10 people", score: 96, scoreLabel: "Hot Lead", reasoning: "Very high budget, urgent timeline, established team — priority contact for today.", matchedProperties: [{ id: "the-executive", name: "The Executive Office Suites", type: "Office", sqft: "2,000–6,000 sqft", location: "Downtown Bristol, TN", matchReason: "Historic prestige building, fits team of 5-10, premium positioning." }, { id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "3,000–8,000 sqft", location: "Downtown Bristol, TN", matchReason: "Larger footprint option with flexible configuration." }] },
+  { id: "demo_3", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), name: "Dr. James Patel", email: "", phone: "276-555-0847", spaceType: "Private Office Suite", budget: 6000, timeline: "ASAP — under 30 days", teamSize: "5–10 people", score: 96, scoreLabel: "Hot Lead", reasoning: "Very high budget, urgent timeline, established team — priority contact for today.", matchedProperties: [{ id: "the-executive", name: "The Executive Office Suites", type: "Office", sqft: "2,000–6,000 sqft", location: "Downtown Bristol, TN", matchReason: "Historic prestige building, fits team of 5-10, premium positioning." }, { id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "3,000–8,000 sqft", location: "Downtown Bristol, TN", matchReason: "Larger footprint option with flexible configuration." }], isWhale: true, whaleTier: "gold", whaleKeywords: ["1031 exchange", "triple net"] },
   { id: "demo_4", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), name: "Blake Thornton", email: "", phone: "", spaceType: "Retail Storefront", budget: 1500, timeline: "3–6 months", teamSize: "2–4 people", score: 42, scoreLabel: "Warm Lead", reasoning: "Retail need with longer timeline. Good candidate for State Street storefront. Follow up in 60 days.", matchedProperties: [{ id: "centre-point", name: "Centre Point Suites", type: "Retail", sqft: "800–2,000 sqft", location: "Downtown Bristol, TN", matchReason: "High foot traffic retail units at budget-friendly rates." }] },
 ];
 
@@ -464,6 +467,7 @@ function AskVisionModal({ leads, onClose }: { leads: Lead[]; onClose: () => void
         name: l.name, spaceType: l.spaceType, budget: l.budget,
         score: l.score, scoreLabel: l.scoreLabel, timeline: l.timeline,
         teamSize: l.teamSize, timestamp: l.timestamp, phone: l.phone,
+        isWhale: l.isWhale, whaleKeywords: l.whaleKeywords,
       }));
       const res = await fetch("/api/ask-vision", {
         method: "POST",
@@ -583,6 +587,7 @@ function DailyBriefCard({ leads }: { leads: Lead[] }) {
   const hot = leads.filter(l => l.scoreLabel === "Hot Lead").length;
   const warm = leads.filter(l => l.scoreLabel === "Warm Lead").length;
   const nurture = leads.filter(l => l.scoreLabel === "Nurture").length;
+  const whales = leads.filter(l => l.isWhale).length;
   const newToday = leads.filter(l => {
     const hrs = (Date.now() - new Date(l.timestamp).getTime()) / 36e5;
     return hrs < 24;
@@ -597,6 +602,7 @@ function DailyBriefCard({ leads }: { leads: Lead[] }) {
         name: l.name, spaceType: l.spaceType, budget: l.budget,
         score: l.score, scoreLabel: l.scoreLabel, timeline: l.timeline,
         teamSize: l.teamSize, timestamp: l.timestamp, phone: l.phone,
+        isWhale: l.isWhale, whaleKeywords: l.whaleKeywords,
       }));
       const res = await fetch("/api/ask-vision", {
         method: "POST",
@@ -622,6 +628,7 @@ function DailyBriefCard({ leads }: { leads: Lead[] }) {
     { label: "Warm", value: warm, emoji: "⚡", color: "#FACC15" },
     { label: "Nurture", value: nurture, emoji: "●", color: "#94A3B8" },
     { label: "New Today", value: newToday, emoji: "🆕", color: "#60A5FA" },
+    { label: "Whales", value: whales, emoji: "🐳", color: "#FACC15" },
   ];
 
   return (
@@ -764,6 +771,7 @@ export default function AdminPage() {
   const hotLeads = leads.filter(l => l.scoreLabel === "Hot Lead");
   const warmCount = leads.filter(l => l.scoreLabel === "Warm Lead").length;
   const urgentLeads = leads.filter(isUrgent);
+  const whaleLeads = leads.filter(l => l.isWhale);
   const avgScore = Math.round(leads.reduce((a, l) => a + l.score, 0) / leads.length);
   const hotMonthlyPipeline = hotLeads.reduce((a, l) => a + l.budget, 0);
   const totalMonthlyPipeline = leads.reduce((a, l) => a + l.budget, 0);
@@ -824,20 +832,29 @@ export default function AdminPage() {
               <p className="text-[11px] text-gray-500">AI Lead Intelligence Dashboard</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="text-[11px] text-gray-600 hidden sm:block">Last refresh: {lastRefresh.toLocaleTimeString()}</span>
             <button
               onClick={() => setShowAskVision(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[rgba(74,222,128,0.12)] to-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.3)] text-[#4ADE80] text-xs font-bold hover:from-[rgba(74,222,128,0.2)] hover:to-[rgba(74,222,128,0.1)] transition-all shadow-[0_0_12px_rgba(74,222,128,0.1)]"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl bg-gradient-to-r from-[rgba(74,222,128,0.12)] to-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.3)] text-[#4ADE80] text-xs font-bold hover:from-[rgba(74,222,128,0.2)] hover:to-[rgba(74,222,128,0.1)] transition-all shadow-[0_0_12px_rgba(74,222,128,0.1)]"
+              title="Ask VISION"
             >
-              <Brain size={13} /> Ask VISION
+              <Brain size={13} />
+              <span className="hidden sm:inline">Ask VISION</span>
             </button>
             {activeTab === "leads" && (
-              <button onClick={fetchLeads} disabled={loading} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-sm hover:bg-[rgba(74,222,128,0.12)] transition-colors disabled:opacity-50">
-                <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
+              <button
+                onClick={fetchLeads}
+                disabled={loading}
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-xs hover:bg-[rgba(74,222,128,0.12)] transition-colors disabled:opacity-50"
+                title="Refresh leads"
+              >
+                <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+                <span className="hidden sm:inline">Refresh</span>
               </button>
             )}
           </div>
+
         </div>
 
         {/* Ask VISION Modal */}
@@ -921,7 +938,7 @@ export default function AdminPage() {
                 { label: "Total Leads", value: leads.length, icon: Users, color: "#60A5FA" },
                 { label: "Hot Leads 🔥", value: hotLeads.length, icon: TrendingUp, color: "#4ADE80" },
                 { label: "Warm Leads", value: warmCount, icon: Zap, color: "#FACC15" },
-                { label: "Avg AI Score", value: `${avgScore}/100`, icon: Building2, color: "#A78BFA" },
+                { label: "Whale Alerts 🐳", value: whaleLeads.length, icon: Building2, color: "#FACC15" },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="glass rounded-2xl p-4 border border-[rgba(255,255,255,0.06)]">
                   <div className="flex items-center gap-2 mb-2"><Icon size={14} style={{ color }} /><span className="text-xs text-gray-500">{label}</span></div>
@@ -980,7 +997,11 @@ export default function AdminPage() {
                 <div
                   key={lead.id}
                   className={`glass rounded-2xl border transition-all p-5 ${
-                    isLive
+                    lead.isWhale && lead.whaleTier === "gold"
+                      ? "border-[rgba(250,204,21,0.45)] shadow-[0_0_28px_rgba(250,204,21,0.07)]"
+                      : lead.isWhale
+                      ? "border-[rgba(196,181,253,0.3)]"
+                      : isLive
                       ? "border-[rgba(74,222,128,0.5)] shadow-[0_0_24px_rgba(74,222,128,0.1)]"
                       : "border-[rgba(255,255,255,0.06)] hover:border-[rgba(74,222,128,0.2)]"
                   }`}
@@ -1007,6 +1028,16 @@ export default function AdminPage() {
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="text-white font-bold text-base">{lead.name}</h3>
+                            {lead.isWhale && lead.whaleTier === "gold" && (
+                              <span className="flex items-center gap-1 text-[10px] font-black text-[#FACC15] bg-[rgba(250,204,21,0.12)] border border-[rgba(250,204,21,0.4)] px-2 py-0.5 rounded-lg">
+                                ⭐ Whale Alert
+                              </span>
+                            )}
+                            {lead.isWhale && lead.whaleTier === "silver" && (
+                              <span className="flex items-center gap-1 text-[10px] font-black text-[#C4B5FD] bg-[rgba(196,181,253,0.08)] border border-[rgba(196,181,253,0.25)] px-2 py-0.5 rounded-lg">
+                                🐳 High Intent
+                              </span>
+                            )}
                             {isLive && (
                               <span className="flex items-center gap-1 text-[10px] font-black text-[#4ADE80] bg-[rgba(74,222,128,0.12)] border border-[rgba(74,222,128,0.35)] px-2 py-0.5 rounded-lg">
                                 <span className="w-1 h-1 rounded-full bg-[#4ADE80] animate-pulse" />
@@ -1029,6 +1060,11 @@ export default function AdminPage() {
                         {[`🏢 ${lead.spaceType}`, `💰 $${lead.budget.toLocaleString()}/mo`, `📅 ${lead.timeline}`, `👥 ${lead.teamSize}`].map(chip => (
                           <span key={chip} className="text-xs px-2.5 py-1 rounded-lg bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] text-gray-400">{chip}</span>
                         ))}
+                        {lead.isWhale && lead.whaleKeywords && lead.whaleKeywords.length > 0 && (
+                          <span className="text-xs px-2.5 py-1 rounded-lg bg-[rgba(250,204,21,0.08)] border border-[rgba(250,204,21,0.25)] text-[#FACC15] font-semibold">
+                            🎯 {lead.whaleKeywords.slice(0, 2).join(" · ")}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500 leading-relaxed mb-3">
                         <span className="text-[#4ADE80] font-semibold">AI Analysis: </span>{lead.reasoning}

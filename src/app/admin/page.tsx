@@ -25,6 +25,9 @@ interface Lead {
   isWhale?: boolean;
   whaleTier?: "gold" | "silver" | null;
   whaleKeywords?: string[];
+  source?: string;
+  medium?: string;
+  campaign?: string;
 }
 
 interface AdminUser {
@@ -608,7 +611,8 @@ function DailyBriefCard({ leads }: { leads: Lead[] }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: "Write a 2-sentence CEO daily brief. First: who to call today and why (use their name and budget). Second: one sentence on overall pipeline health. Be specific and direct.",
+          question: `CEO DAILY BRIEF — write exactly 3 complete sentences, no more: (1) Priority call: name the single highest-score lead, their budget per month, timeline, and why they need a call today. (2) Whale alert: if any lead has a WHALE ALERT flag, name them and the high-intent keywords detected — otherwise skip this sentence and combine into one. (3) Pipeline snapshot: state the number of Hot Leads and total hot pipeline value per month. Be specific, use real names and numbers from the data. No greetings, no headers.`,
+
           leads: leanLeads,
         }),
       });
@@ -1063,6 +1067,19 @@ export default function AdminPage() {
                         {lead.isWhale && lead.whaleKeywords && lead.whaleKeywords.length > 0 && (
                           <span className="text-xs px-2.5 py-1 rounded-lg bg-[rgba(250,204,21,0.08)] border border-[rgba(250,204,21,0.25)] text-[#FACC15] font-semibold">
                             🎯 {lead.whaleKeywords.slice(0, 2).join(" · ")}
+                          </span>
+                        )}
+                        {lead.source && lead.source !== "organic" && (
+                          <span className={`text-xs px-2.5 py-1 rounded-lg font-semibold border ${
+                            lead.source === "facebook"
+                              ? "bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.25)] text-[#60A5FA]"
+                              : lead.source === "instagram"
+                              ? "bg-[rgba(236,72,153,0.08)] border-[rgba(236,72,153,0.25)] text-[#F472B6]"
+                              : lead.source === "google"
+                              ? "bg-[rgba(250,204,21,0.08)] border-[rgba(250,204,21,0.2)] text-[#FACC15]"
+                              : "bg-[rgba(148,163,184,0.08)] border-[rgba(148,163,184,0.2)] text-[#94A3B8]"
+                          }`}>
+                            {lead.source === "facebook" ? "📘" : lead.source === "instagram" ? "📷" : lead.source === "google" ? "🔍" : "🌐"} {lead.source.charAt(0).toUpperCase() + lead.source.slice(1)}
                           </span>
                         )}
                       </div>

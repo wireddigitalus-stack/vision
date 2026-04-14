@@ -60,7 +60,7 @@ SCORING KEY: Hot Lead = 70+, Warm Lead = 40-69, Nurture = <40
 
 CEO QUESTION: "${question}"
 
-Instructions: Be direct and actionable. Name specific people. Reference budgets and scores. Under 120 words. No filler.`;
+Instructions: Be direct and actionable. Name specific people. Reference budgets and scores. Max 80 words. No filler. No preamble. Complete every sentence.`;
 
     // Use gemini-2.0-flash — confirmed available for this API key
     const geminiRes = await fetch(
@@ -70,8 +70,12 @@ Instructions: Be direct and actionable. Name specific people. Reference budgets 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 600 },
-
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 1000,
+          },
+          // Disable thinking — not needed for lead summaries, saves token budget
+          thinkingConfig: { thinkingBudget: 0 },
         }),
       }
     );

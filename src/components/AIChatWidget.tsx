@@ -129,8 +129,23 @@ export default function LeaseBotWidget() {
   const [showNudge, setShowNudge] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [preloadedProperty, setPreloadedProperty] = useState<string | null>(null);
+  const [utmSource, setUtmSource] = useState("");
+  const [utmMedium, setUtmMedium] = useState("");
+  const [utmCampaign, setUtmCampaign] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Read UTM params from URL on first mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setUtmSource(params.get("utm_source") || "");
+    setUtmMedium(params.get("utm_medium") || "");
+    setUtmCampaign(params.get("utm_campaign") || "");
+    // Auto-open on social landing pages
+    if (params.get("utm_source") === "facebook" || params.get("utm_source") === "instagram") {
+      setTimeout(() => { setIsOpen(true); setNudgeDismissed(true); setHasNotif(false); }, 1500);
+    }
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -297,6 +312,9 @@ export default function LeaseBotWidget() {
       scoreLabel: scored.scoreLabel,
       reasoning: scored.reasoning,
       matchedProperties: scored.matchedProperties,
+      source: utmSource || "organic",
+      medium: utmMedium || "direct",
+      campaign: utmCampaign || "",
     };
     try {
       const existing = JSON.parse(localStorage.getItem("vision_live_leads") || "[]");
@@ -330,6 +348,9 @@ export default function LeaseBotWidget() {
           timeline: finalLead.timeline,
           teamSize: finalLead.teamSize,
           additionalInfo: "",
+          utm_source: utmSource || "organic",
+          utm_medium: utmMedium || "direct",
+          utm_campaign: utmCampaign || "",
         }),
       });
       clearTimeout(timeout);
@@ -472,14 +493,29 @@ export default function LeaseBotWidget() {
                   </>
                 ) : (
                   <>
-                    <div className="chat-bubble-ai">
-                      👋 Hi! I&apos;m VISION — your commercial real estate advisor for the Tri-Cities. I&apos;ll match you with the perfect space in under 2 minutes.
-                    </div>
-                    <div className="chat-bubble-ai">
-                      I&apos;ll ask you 5 quick questions, then show you your{" "}
-                      <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
-                      and the best properties from our portfolio for your needs.
-                    </div>
+                    {utmSource === "facebook" || utmSource === "instagram" ? (
+                      <>
+                        <div className="chat-bubble-ai">
+                          👋 Hey! Glad you found us on {utmSource === "facebook" ? "Facebook" : "Instagram"}. I&apos;m VISION — Bristol&apos;s commercial space advisor.
+                        </div>
+                        <div className="chat-bubble-ai">
+                          Let me match you with the right space in under 2 minutes. I&apos;ll show you your{" "}
+                          <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
+                          and the best properties for your needs — no obligation.
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="chat-bubble-ai">
+                          👋 Hi! I&apos;m VISION — your commercial real estate advisor for the Tri-Cities. I&apos;ll match you with the perfect space in under 2 minutes.
+                        </div>
+                        <div className="chat-bubble-ai">
+                          I&apos;ll ask you 5 quick questions, then show you your{" "}
+                          <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
+                          and the best properties from our portfolio for your needs.
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
                 <button

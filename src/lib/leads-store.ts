@@ -29,7 +29,12 @@ export interface Lead {
   isWhale?: boolean;
   whaleTier?: "gold" | "silver" | null;
   whaleKeywords?: string[];
+  // UTM source attribution
+  source?: string;    // e.g. "facebook", "instagram", "google", "organic"
+  medium?: string;    // e.g. "social", "cpc", "email"
+  campaign?: string;  // e.g. "spring-office-push"
 }
+
 
 
 // Module-level singleton — persists across requests in the same server process

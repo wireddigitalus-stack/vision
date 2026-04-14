@@ -73,7 +73,8 @@ Include 1-2 best matching properties only.
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, spaceType, budget, timeline, teamSize, additionalInfo } = body;
+    const { name, email, phone, spaceType, budget, timeline, teamSize, additionalInfo,
+      utm_source, utm_medium, utm_campaign } = body;
 
     if (!name || !spaceType || !budget) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -133,6 +134,10 @@ export async function POST(req: NextRequest) {
       isWhale: whale.isWhale,
       whaleTier: whale.whaleTier,
       whaleKeywords: whale.whaleKeywords,
+      // UTM attribution
+      source: utm_source || "organic",
+      medium: utm_medium || "direct",
+      campaign: utm_campaign || "",
     };
 
     LEADS_STORE.unshift(lead);

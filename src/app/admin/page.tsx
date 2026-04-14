@@ -823,7 +823,7 @@ export default function AdminPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-white font-black text-xl">Ask VISION CRM</h1>
+                <h1 className="text-white font-black text-xl">VISION CRM</h1>
                 <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#4ADE80] bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.25)] px-2 py-0.5 rounded-lg">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
                   LIVE
@@ -1101,7 +1101,7 @@ export default function AdminPage() {
         {activeTab === "settings" && <SettingsPanel />}
 
         <p className="text-center text-[11px] text-gray-700 mt-10">
-          Ask VISION CRM · AI-Powered by Gemini · Auto-refreshes every 30s
+          VISION CRM · AI-Powered by Gemini · Auto-refreshes every 30s
           <br />
           <span className="text-gray-800">Monday.com sync — ready to activate on API connection</span>
         </p>

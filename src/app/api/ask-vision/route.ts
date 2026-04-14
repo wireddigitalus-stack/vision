@@ -74,8 +74,6 @@ Instructions: Be direct and actionable. Name specific people. Reference budgets 
             temperature: 0.3,
             maxOutputTokens: 1000,
           },
-          // Disable thinking — not needed for lead summaries, saves token budget
-          thinkingConfig: { thinkingBudget: 0 },
         }),
       }
     );

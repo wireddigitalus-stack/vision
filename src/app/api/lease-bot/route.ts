@@ -144,8 +144,9 @@ export async function POST(req: NextRequest) {
     LEADS_STORE.unshift(lead);
     if (LEADS_STORE.length > 50) LEADS_STORE.pop();
 
-    // Persist to Supabase (non-blocking — don't fail the response if DB is slow)
-    supabaseAdmin.from("leads").insert({
+    // Persist to Supabase — must be awaited before response returns.
+    // Serverless functions terminate on response, killing fire-and-forget async work.
+    const { error: dbError } = await supabaseAdmin.from("leads").insert({
       id: lead.id,
       timestamp: lead.timestamp,
       name: lead.name,
@@ -166,11 +167,15 @@ export async function POST(req: NextRequest) {
       source: lead.source,
       medium: lead.medium,
       campaign: lead.campaign,
-    }).then(({ error }) => {
-      if (error) console.error("Supabase insert error:", error.message);
     });
 
+    if (dbError) {
+      // Log but don't fail the user — they still get their score
+      console.error("Supabase insert error:", dbError.message);
+    }
+
     return NextResponse.json({ success: true, lead });
+
   } catch (error) {
     console.error("Lease-Bot scoring error:", error);
     return NextResponse.json(

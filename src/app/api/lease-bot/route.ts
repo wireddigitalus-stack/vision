@@ -87,15 +87,17 @@ export async function POST(req: NextRequest) {
       timeline, teamSize, additionalInfo,
     };
 
-    // Use gemini-1.5-flash via v1beta (v1 only supports gemini-2.5+)
+    // gemini-2.5-flash on v1 — matches ask-vision (confirmed working).
+    // thinkingBudget:0 suppresses thinking tokens that break JSON.parse.
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: SCORING_PROMPT(leadData) }] }],
           generationConfig: { temperature: 0.2, maxOutputTokens: 600 },
+          thinkingConfig: { thinkingBudget: 0 },
         }),
       }
     );
@@ -103,16 +105,19 @@ export async function POST(req: NextRequest) {
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       console.error("Gemini error:", errText);
-      // Return actual error for debugging
       return NextResponse.json({ error: `Gemini ${geminiRes.status}: ${errText.slice(0, 200)}` }, { status: 500 });
     }
 
     const geminiData = await geminiRes.json();
     const rawText = (geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
 
-    // Strip markdown fences if present
-    const jsonText = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    const aiResult = JSON.parse(jsonText);
+    // Robust JSON extraction — find the first {...} block even if thinking text is present
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error("No JSON found in Gemini response:", rawText.slice(0, 300));
+      return NextResponse.json({ error: "AI response was not valid JSON" }, { status: 500 });
+    }
+    const aiResult = JSON.parse(jsonMatch[0]);
 
     // Run whale detection on the free-text additionalInfo
     const whale = detectWhale(additionalInfo || "");

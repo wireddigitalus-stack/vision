@@ -87,9 +87,9 @@ export async function POST(req: NextRequest) {
       timeline, teamSize, additionalInfo,
     };
 
-    // Direct fetch to v1 REST API — gemini-2.0-flash confirmed available for this key
+    // Use gemini-1.5-flash — stable, confirmed available
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,7 +103,8 @@ export async function POST(req: NextRequest) {
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       console.error("Gemini error:", errText);
-      return NextResponse.json({ error: "Scoring failed — please try again" }, { status: 500 });
+      // Return actual error for debugging
+      return NextResponse.json({ error: `Gemini ${geminiRes.status}: ${errText.slice(0, 200)}` }, { status: 500 });
     }
 
     const geminiData = await geminiRes.json();

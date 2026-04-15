@@ -17,11 +17,27 @@ import { COMPANY } from "@/lib/data";
 
 // ─── Property URL map (id → internal page) ───────────────────────────────────
 const PROPERTY_URLS: Record<string, string> = {
-  "city-centre":           "/spaces/office-space-tri-cities-tn",
-  "the-executive":         "/spaces/office-space-tri-cities-tn",
-  "bristol-cowork":        "/cowork",
-  "centre-point":          "/spaces/retail-space-bristol-tn",
-  "commercial-warehouse":  "/spaces/industrial-space-tri-cities-tn",
+  // Canonical IDs (as instructed in the AI prompt)
+  "city-centre":            "/spaces/office-space-tri-cities-tn",
+  "the-executive":          "/spaces/office-space-tri-cities-tn",
+  "bristol-cowork":         "/cowork",
+  "centre-point":           "/spaces/retail-space-bristol-tn",
+  "foundation-event":       "/spaces",
+  "commercial-warehouse":   "/spaces/industrial-space-tri-cities-tn",
+  // Common AI-generated variations (safety net)
+  "city-centre-professional-suites": "/spaces/office-space-tri-cities-tn",
+  "city-centre-suites":     "/spaces/office-space-tri-cities-tn",
+  "executive":              "/spaces/office-space-tri-cities-tn",
+  "the-executive-suites":   "/spaces/office-space-tri-cities-tn",
+  "bristol-cowork-space":   "/cowork",
+  "cowork":                 "/cowork",
+  "centre-point-suites":    "/spaces/retail-space-bristol-tn",
+  "centerpoint":            "/spaces/retail-space-bristol-tn",
+  "center-point":           "/spaces/retail-space-bristol-tn",
+  "foundation":             "/spaces",
+  "foundation-event-facility": "/spaces",
+  "warehouse":              "/spaces/industrial-space-tri-cities-tn",
+  "commercial-warehouse-space": "/spaces/industrial-space-tri-cities-tn",
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────

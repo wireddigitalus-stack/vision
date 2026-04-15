@@ -9,13 +9,13 @@ if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY environment variable is not
 
 
 const PROPERTIES_CONTEXT = `
-Available Vision LLC Properties:
-1. City Centre Professional Suites — 1,200–18,000+ sqft, downtown office, State Street Bristol TN, mixed-use building, premium finishes
-2. The Executive — 500–12,000 sqft, private executive office suites, historic building, downtown Bristol TN
-3. Bristol CoWork — 620 State Street, private offices, dedicated desks, conference rooms, monthly memberships, all-inclusive pricing, downtown Bristol TN
-4. Centre Point Suites — 800–5,000 sqft, high-traffic retail/office, multiple units available, Bristol TN
-5. Foundation Event Facility — 3,000–8,000 sqft, historic adaptive reuse, event & commercial space, downtown Bristol TN
-6. Commercial Warehouse — 2,000–25,000 sqft, loading docks, highway access, Bristol metro area
+Available Vision LLC Properties (use EXACT id values shown):
+1. id="city-centre"       — City Centre Professional Suites — 1,200–18,000+ sqft, downtown office, State Street Bristol TN, premium finishes
+2. id="the-executive"     — The Executive — 500–12,000 sqft, private executive office suites, historic building, downtown Bristol TN
+3. id="bristol-cowork"    — Bristol CoWork — 620 State Street, private offices, dedicated desks, conference rooms, monthly memberships
+4. id="centre-point"      — Centre Point Suites — 800–5,000 sqft, high-traffic retail/office, multiple units available, Bristol TN
+5. id="foundation-event"  — Foundation Event Facility — 3,000–8,000 sqft, historic adaptive reuse, event & commercial space
+6. id="commercial-warehouse" — Commercial Warehouse — 2,000–25,000 sqft, loading docks, highway access, Bristol metro area
 `;
 
 const SCORING_PROMPT = (lead: Partial<Lead>) => `
@@ -53,7 +53,7 @@ Respond with ONLY valid JSON in this exact format (no markdown, no explanation):
   "reasoning": "<2-sentence max explanation of score>",
   "matchedProperties": [
     {
-      "id": "<property-id-slug>",
+      "id": "<use EXACT id from property list above>",
       "name": "<property name>",
       "type": "<Office|CoWork|Retail|Warehouse|Event>",
       "sqft": "<size range>",

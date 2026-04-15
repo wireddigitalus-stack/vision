@@ -144,34 +144,47 @@ export async function POST(req: NextRequest) {
     LEADS_STORE.unshift(lead);
     if (LEADS_STORE.length > 50) LEADS_STORE.pop();
 
-    // Persist to Supabase — must be awaited before response returns.
-    // Serverless functions terminate on response, killing fire-and-forget async work.
-    const { error: dbError } = await supabaseAdmin.from("leads").insert({
-      id: lead.id,
-      timestamp: lead.timestamp,
-      name: lead.name,
-      email: lead.email,
-      phone: lead.phone,
-      space_type: lead.spaceType,
-      budget: lead.budget,
-      timeline: lead.timeline,
-      team_size: lead.teamSize,
-      additional_info: lead.additionalInfo,
-      score: lead.score,
-      score_label: lead.scoreLabel,
-      reasoning: lead.reasoning,
-      matched_properties: lead.matchedProperties,
-      is_whale: lead.isWhale,
-      whale_tier: lead.whaleTier,
-      whale_keywords: lead.whaleKeywords,
-      source: lead.source,
-      medium: lead.medium,
-      campaign: lead.campaign,
-    });
-
-    if (dbError) {
-      // Log but don't fail the user — they still get their score
-      console.error("Supabase insert error:", dbError.message);
+    // Persist to Supabase via direct REST API (supabase-js was silently failing)
+    try {
+      const SUPABASE_URL = process.env.SUPABASE_URL!;
+      const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal",
+        },
+        body: JSON.stringify({
+          id: lead.id,
+          timestamp: lead.timestamp,
+          name: lead.name,
+          email: lead.email,
+          phone: lead.phone,
+          space_type: lead.spaceType,
+          budget: lead.budget,
+          timeline: lead.timeline,
+          team_size: lead.teamSize,
+          additional_info: lead.additionalInfo,
+          score: lead.score,
+          score_label: lead.scoreLabel,
+          reasoning: lead.reasoning,
+          matched_properties: lead.matchedProperties,
+          is_whale: lead.isWhale,
+          whale_tier: lead.whaleTier,
+          whale_keywords: lead.whaleKeywords,
+          source: lead.source,
+          medium: lead.medium,
+          campaign: lead.campaign,
+        }),
+      });
+      if (!insertRes.ok) {
+        const errText = await insertRes.text();
+        console.error("Supabase REST insert failed:", insertRes.status, errText);
+      }
+    } catch (dbErr) {
+      console.error("Supabase insert error:", dbErr);
     }
 
     return NextResponse.json({ success: true, lead });

@@ -224,6 +224,15 @@ export default function LeaseBotWidget() {
     }
   };
 
+  // ── Phone number formatter ──────────────────────────────────────────────────
+  const formatPhone = (raw: string): string => {
+    const digits = raw.replace(/\D/g, "").slice(0, 10);
+    if (digits.length === 0) return "";
+    if (digits.length <= 3) return `(${digits}`;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  };
+
   const handleTextSubmit = () => {
     if (!inputVal.trim()) {
       if (stage === "phone") submitLead({ ...lead, phone: "" });
@@ -778,7 +787,13 @@ export default function LeaseBotWidget() {
                   ref={inputRef}
                   type={stage === "phone" ? "tel" : "text"}
                   value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
+                  onChange={(e) => {
+                    if (stage === "phone") {
+                      setInputVal(formatPhone(e.target.value));
+                    } else {
+                      setInputVal(e.target.value);
+                    }
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -788,7 +803,7 @@ export default function LeaseBotWidget() {
                   placeholder={
                     stage === "name"
                       ? "Your name..."
-                      : "Phone number (optional)..."
+                      : "(___) ___-____"
                   }
                   className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none"
                   id={`lease-bot-${stage}-input`}

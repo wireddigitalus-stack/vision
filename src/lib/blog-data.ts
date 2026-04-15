@@ -15,6 +15,8 @@ export interface BlogPost {
   authorTitle: string;
   excerpt: string;
   content: string;
+  image?: string;       // optional hero image path (relative to /public)
+  imageAlt?: string;   // alt text for the image
 }
 
 export const BLOG_POSTS: BlogPost[] = [
@@ -31,6 +33,8 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: "2026-04-01",
     author: "Vision LLC Team",
     authorTitle: "Commercial Real Estate Experts — Tri-Cities, TN",
+    image: "/images/Hard_Rock_Bristol_VA.jpg",
+    imageAlt: "Hard Rock Hotel & Casino Bristol, Virginia — a key anchor driving commercial real estate demand in the Tri-Cities market",
     excerpt:
       "Downtown Bristol, TN is experiencing one of its most dynamic commercial real estate cycles in two decades. Here's what business owners and investors need to know heading into 2026.",
     content: `## The Bristol Market in 2025: A Confluence of Momentum

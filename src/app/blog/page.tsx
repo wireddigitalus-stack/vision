@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock, Tag, BookOpen } from "lucide-react";
 import { BLOG_POSTS } from "@/lib/blog-data";
@@ -66,16 +67,29 @@ export default function BlogPage() {
             className="group block glass rounded-3xl border border-[rgba(74,222,128,0.1)] hover:border-[rgba(74,222,128,0.3)] overflow-hidden transition-all duration-300 property-card"
           >
             <div className="grid lg:grid-cols-5 gap-0">
-              {/* Color accent panel */}
-              <div className="lg:col-span-2 min-h-[220px] bg-gradient-to-br from-[rgba(74,222,128,0.12)] via-[rgba(74,222,128,0.04)] to-transparent flex items-center justify-center p-10">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-[rgba(74,222,128,0.15)] border border-[rgba(74,222,128,0.25)] flex items-center justify-center mx-auto mb-4">
-                    <BookOpen size={28} className="text-[#4ADE80]" />
+              {/* Image or colour accent panel */}
+              <div className="lg:col-span-2 min-h-[220px] relative overflow-hidden">
+                {featured.image ? (
+                  <Image
+                    src={featured.image}
+                    alt={featured.imageAlt || featured.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                    priority
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[rgba(74,222,128,0.12)] via-[rgba(74,222,128,0.04)] to-transparent flex items-center justify-center p-10">
+                    <div className="text-center">
+                      <div className="w-16 h-16 rounded-2xl bg-[rgba(74,222,128,0.15)] border border-[rgba(74,222,128,0.25)] flex items-center justify-center mx-auto mb-4">
+                        <BookOpen size={28} className="text-[#4ADE80]" />
+                      </div>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold border ${categoryColors[featured.category] || categoryColors["Market Reports"]}`}>
+                        {featured.category}
+                      </span>
+                    </div>
                   </div>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold border ${categoryColors[featured.category] || categoryColors["Market Reports"]}`}>
-                    {featured.category}
-                  </span>
-                </div>
+                )}
               </div>
               {/* Content */}
               <div className="lg:col-span-3 p-8 lg:p-10 flex flex-col justify-center">

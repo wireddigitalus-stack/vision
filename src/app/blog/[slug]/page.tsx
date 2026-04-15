@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, ArrowRight, Clock, Calendar, User, Tag } from "lucide-react";
 import { BLOG_POSTS } from "@/lib/blog-data";
 import { COMPANY } from "@/lib/data";
@@ -205,6 +206,23 @@ export default async function BlogPostPage({ params }: Props) {
               <p className="text-xs text-gray-500">{post.authorTitle}</p>
             </div>
           </div>
+
+          {/* Hero image */}
+          {post.image && (
+            <div className="relative w-full rounded-2xl overflow-hidden mb-10" style={{ aspectRatio: "16/7" }}>
+              <Image
+                src={post.image}
+                alt={post.imageAlt || post.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 768px"
+                priority
+              />
+              {post.imageAlt && (
+                <p className="absolute bottom-0 left-0 right-0 px-3 py-1.5 text-[10px] text-gray-400 bg-black/60 backdrop-blur-sm">{post.imageAlt}</p>
+              )}
+            </div>
+          )}
 
           {/* Article Body */}
           <div itemProp="articleBody">

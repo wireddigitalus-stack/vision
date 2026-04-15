@@ -1,21 +1,28 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import {
-  MessageSquare,
   X,
   Send,
   Loader2,
-  Bot,
   Zap,
   Building2,
-  CheckCircle2,
   ChevronRight,
-  Star,
   Phone,
   ArrowRight,
+  ExternalLink,
 } from "lucide-react";
 import { COMPANY } from "@/lib/data";
+
+// ─── Property URL map (id → internal page) ───────────────────────────────────
+const PROPERTY_URLS: Record<string, string> = {
+  "city-centre":           "/spaces/office-space-tri-cities-tn",
+  "the-executive":         "/spaces/office-space-tri-cities-tn",
+  "bristol-cowork":        "/cowork",
+  "centre-point":          "/spaces/retail-space-bristol-tn",
+  "commercial-warehouse":  "/spaces/industrial-space-tri-cities-tn",
+};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -134,6 +141,7 @@ export default function LeaseBotWidget() {
   const [utmCampaign, setUtmCampaign] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const chatBodyRef = useRef<HTMLDivElement>(null);
 
   // Read UTM params from URL on first mount
   useEffect(() => {
@@ -147,8 +155,16 @@ export default function LeaseBotWidget() {
     }
   }, []);
 
+  // Scroll: result → top of chat body so score hits first; all other stages → bottom
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (stage === "result") {
+      // Small delay to let React paint the result before scrolling
+      setTimeout(() => {
+        chatBodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      }, 80);
+    } else {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [stage, scoring, result]);
 
   useEffect(() => {
@@ -473,7 +489,7 @@ export default function LeaseBotWidget() {
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div ref={chatBodyRef} className="flex-1 overflow-y-auto p-4 space-y-4">
 
             {/* ── Greeting ─────────────────────────────────────────────── */}
             {stage === "greeting" && (
@@ -665,29 +681,50 @@ export default function LeaseBotWidget() {
                     <p className="text-xs font-bold text-[#4ADE80] uppercase tracking-widest">
                       Best Matches for You
                     </p>
-                    {result.matchedProperties.map((prop) => (
-                      <div
-                        key={prop.id}
-                        className="rounded-xl border border-[rgba(74,222,128,0.15)] bg-[rgba(74,222,128,0.03)] p-3"
-                      >
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.2)] flex items-center justify-center flex-shrink-0">
-                            <Building2 size={14} className="text-[#4ADE80]" />
+                    {result.matchedProperties.map((prop) => {
+                      const url = PROPERTY_URLS[prop.id];
+                      const CardWrapper = url
+                        ? ({ children }: { children: React.ReactNode }) => (
+                            <Link
+                              href={url}
+                              className="block rounded-xl border border-[rgba(74,222,128,0.25)] bg-[rgba(74,222,128,0.04)] p-3 hover:border-[rgba(74,222,128,0.5)] hover:bg-[rgba(74,222,128,0.08)] transition-all group cursor-pointer"
+                            >
+                              {children}
+                            </Link>
+                          )
+                        : ({ children }: { children: React.ReactNode }) => (
+                            <div className="rounded-xl border border-[rgba(74,222,128,0.15)] bg-[rgba(74,222,128,0.03)] p-3">
+                              {children}
+                            </div>
+                          );
+                      return (
+                        <CardWrapper key={prop.id}>
+                          <div className="flex items-start gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.2)] flex items-center justify-center flex-shrink-0">
+                              <Building2 size={14} className="text-[#4ADE80]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-bold text-white leading-tight">
+                                  {prop.name}
+                                </p>
+                                {url && (
+                                  <span className="flex items-center gap-1 text-[10px] text-[#4ADE80] font-bold opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                    View <ExternalLink size={9} />
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-gray-500 mt-0.5">
+                                {prop.sqft} · {prop.location}
+                              </p>
+                              <p className="text-[11px] text-[#4ADE80] mt-1 leading-snug">
+                                {prop.matchReason}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white leading-tight">
-                              {prop.name}
-                            </p>
-                            <p className="text-[11px] text-gray-500 mt-0.5">
-                              {prop.sqft} · {prop.location}
-                            </p>
-                            <p className="text-[11px] text-[#4ADE80] mt-1 leading-snug">
-                              {prop.matchReason}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                        </CardWrapper>
+                      );
+                    })}
                   </div>
                 )}
 

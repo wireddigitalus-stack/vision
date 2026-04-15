@@ -712,14 +712,21 @@ export default function AdminPage() {
   const seenIdsRef = useRef<Set<string>>(new Set(DEMO_LEADS.map(d => d.id)));
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Clear stale localStorage on mount — Supabase is now source of truth
+  useEffect(() => {
+    try { localStorage.removeItem("vision_live_leads"); } catch { /* ignore */ }
+  }, []);
+
   const fetchLeads = async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/lease-bot");
       const data = await res.json();
       if (data.leads && Array.isArray(data.leads)) {
-        // Supabase is source of truth — use its data directly
-        setLeads(data.leads.length > 0 ? data.leads : DEMO_LEADS);
+        const fetched: Lead[] = data.leads.length > 0 ? data.leads : DEMO_LEADS;
+        // Mark all fetched IDs as seen so localStorage poller won't re-toast them
+        fetched.forEach(l => seenIdsRef.current.add(l.id));
+        setLeads(fetched);
       }
     } catch { /* keep existing state on error */ }
     finally { setLoading(false); setLastRefresh(new Date()); }

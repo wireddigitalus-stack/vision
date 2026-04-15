@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin, ArrowRight, Users, Building2 } from "lucide-react";
 import { GEO_PAGES } from "@/lib/data";
 
@@ -33,23 +34,18 @@ export default function GeoMarketsSection() {
               id={`geo-primary-${geo.slug}`}
               className="group relative glass rounded-2xl overflow-hidden property-card border border-[rgba(74,222,128,0.2)] flex flex-col lg:flex-row"
             >
-              {/* Map placeholder */}
-              <div className="relative lg:w-2/5 h-48 lg:h-auto bg-gradient-to-br from-[#111827] to-[#0D1117] flex items-center justify-center">
-                <div
-                  className="absolute inset-0 opacity-10"
-                  style={{
-                    backgroundImage: `radial-gradient(circle at 50% 50%, #4ADE80 1px, transparent 1px)`,
-                    backgroundSize: "30px 30px",
-                  }}
+              {/* Hero photo */}
+              <div className="relative lg:w-2/5 h-52 lg:h-auto overflow-hidden">
+                <Image
+                  src="/images/Down-Town-Bristol-TN-VA.jpg"
+                  alt="Downtown Bristol, TN-VA — Commercial Real Estate"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  priority
                 />
-                <div className="relative flex flex-col items-center gap-3">
-                  <div className="w-16 h-16 rounded-full bg-[rgba(74,222,128,0.15)] border-2 border-[#4ADE80] flex items-center justify-center shadow-[0_0_30px_rgba(74,222,128,0.2)]">
-                    <MapPin size={28} className="text-[#4ADE80]" />
-                  </div>
-                  <span className="text-[#4ADE80] font-bold text-sm">
-                    {geo.city}, {geo.state}
-                  </span>
-                </div>
+                {/* Dark gradient so badge stays legible */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0D1117]/60 via-transparent to-transparent" />
                 {/* PRIMARY badge */}
                 <div className="absolute top-4 left-4 px-3 py-1 bg-[#4ADE80] text-black text-xs font-black rounded-lg uppercase tracking-wider">
                   Primary Market

@@ -1,0 +1,45 @@
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+if (!SUPABASE_URL) throw new Error("SUPABASE_URL is not set");
+
+// ── Server-side admin client (service role — never expose to browser) ──────────
+// Use this in API routes for full DB access (inserts, reads bypassing RLS).
+export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false },
+});
+
+// ── Public client (anon key — safe for client components if needed) ───────────
+export const supabaseAnon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: false },
+});
+
+// ── Row → Lead mapper (snake_case DB → camelCase TypeScript) ─────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function rowToLead(row: any) {
+  return {
+    id: row.id,
+    timestamp: row.timestamp,
+    name: row.name,
+    email: row.email || "",
+    phone: row.phone || "",
+    spaceType: row.space_type,
+    budget: row.budget,
+    timeline: row.timeline,
+    teamSize: row.team_size,
+    additionalInfo: row.additional_info || "",
+    score: row.score,
+    scoreLabel: row.score_label as "Hot Lead" | "Warm Lead" | "Nurture",
+    reasoning: row.reasoning,
+    matchedProperties: row.matched_properties || [],
+    isWhale: row.is_whale || false,
+    whaleTier: row.whale_tier || null,
+    whaleKeywords: row.whale_keywords || [],
+    source: row.source || "organic",
+    medium: row.medium || "direct",
+    campaign: row.campaign || "",
+  };
+}

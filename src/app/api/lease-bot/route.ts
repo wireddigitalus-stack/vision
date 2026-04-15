@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LEADS_STORE, type Lead } from "@/lib/leads-store";
 import { detectWhale } from "@/lib/whale-detector";
+import { supabaseAdmin, rowToLead } from "@/lib/supabase";
 
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -143,6 +144,32 @@ export async function POST(req: NextRequest) {
     LEADS_STORE.unshift(lead);
     if (LEADS_STORE.length > 50) LEADS_STORE.pop();
 
+    // Persist to Supabase (non-blocking — don't fail the response if DB is slow)
+    supabaseAdmin.from("leads").insert({
+      id: lead.id,
+      timestamp: lead.timestamp,
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      space_type: lead.spaceType,
+      budget: lead.budget,
+      timeline: lead.timeline,
+      team_size: lead.teamSize,
+      additional_info: lead.additionalInfo,
+      score: lead.score,
+      score_label: lead.scoreLabel,
+      reasoning: lead.reasoning,
+      matched_properties: lead.matchedProperties,
+      is_whale: lead.isWhale,
+      whale_tier: lead.whaleTier,
+      whale_keywords: lead.whaleKeywords,
+      source: lead.source,
+      medium: lead.medium,
+      campaign: lead.campaign,
+    }).then(({ error }) => {
+      if (error) console.error("Supabase insert error:", error.message);
+    });
+
     return NextResponse.json({ success: true, lead });
   } catch (error) {
     console.error("Lease-Bot scoring error:", error);
@@ -154,5 +181,24 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json({ leads: LEADS_STORE });
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("leads")
+      .select("*")
+      .order("timestamp", { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+
+    const leads: Lead[] = (data || []).map(rowToLead);
+    // Also sync into memory store so the same-process cache is warm
+    LEADS_STORE.length = 0;
+    LEADS_STORE.push(...leads);
+
+    return NextResponse.json({ leads });
+  } catch (err) {
+    console.error("Supabase fetch error:", err);
+    // Graceful fallback: return whatever is in-memory
+    return NextResponse.json({ leads: LEADS_STORE });
+  }
 }

@@ -717,12 +717,11 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/lease-bot");
       const data = await res.json();
-      if (data.leads && data.leads.length > 0) {
-        const realIds = new Set(data.leads.map((l: Lead) => l.id));
-        const uniqueDemo = DEMO_LEADS.filter((d) => !realIds.has(d.id));
-        setLeads([...data.leads, ...uniqueDemo]);
+      if (data.leads && Array.isArray(data.leads)) {
+        // Supabase is source of truth — use its data directly
+        setLeads(data.leads.length > 0 ? data.leads : DEMO_LEADS);
       }
-    } catch { /* keep demo data */ }
+    } catch { /* keep existing state on error */ }
     finally { setLoading(false); setLastRefresh(new Date()); }
   };
 
@@ -1120,6 +1119,7 @@ export default function AdminPage() {
         <p className="text-center text-[11px] text-gray-700 mt-10">
           VISION CRM · AI-Powered by Gemini · Auto-refreshes every 30s
           <br />
+          <span className="text-gray-600">🟢 Supabase connected · </span>
           <span className="text-gray-800">Monday.com sync — ready to activate on API connection</span>
         </p>
       </div>

@@ -87,8 +87,7 @@ export async function POST(req: NextRequest) {
       timeline, teamSize, additionalInfo,
     };
 
-    // v1beta required for thinkingConfig. thinkingBudget:0 prevents thinking
-    // tokens from appearing in the output and breaking JSON.parse.
+    // v1beta for gemini-2.5-flash — v1 returns 400 for this key on some configurations
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
@@ -97,7 +96,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           contents: [{ parts: [{ text: SCORING_PROMPT(leadData) }] }],
           generationConfig: { temperature: 0.2, maxOutputTokens: 600 },
-          thinkingConfig: { thinkingBudget: 0 },
+          // NOTE: no thinkingConfig — not supported by this API key
         }),
       }
     );
@@ -109,7 +108,15 @@ export async function POST(req: NextRequest) {
     }
 
     const geminiData = await geminiRes.json();
-    const rawText = (geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
+    // Filter out thought:true parts — gemini-2.5-flash returns thinking tokens
+    // in separate parts alongside the real response. We only want the actual text.
+    const parts: Array<{ text?: string; thought?: boolean }> =
+      geminiData.candidates?.[0]?.content?.parts || [];
+    const rawText = parts
+      .filter((p) => !p.thought)
+      .map((p) => p.text || "")
+      .join("")
+      .trim();
 
     // Robust JSON extraction — find the first {...} block even if thinking text is present
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);

@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: SCORING_PROMPT(leadData) }] }],
-          generationConfig: { temperature: 0.2, maxOutputTokens: 600 },
+          generationConfig: { temperature: 0.2, maxOutputTokens: 4096 },
           // NOTE: no thinkingConfig — not supported by this API key
         }),
       }
@@ -122,9 +122,7 @@ export async function POST(req: NextRequest) {
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       console.error("No JSON found in Gemini response:", rawText.slice(0, 500));
-      // Debug: include raw parts info temporarily
-      const partsSummary = parts.map((p, i) => `part[${i}] thought=${p.thought} len=${(p.text||"").length} preview="${(p.text||"").slice(0,80)}"`);
-      return NextResponse.json({ error: "AI response was not valid JSON", rawText: rawText.slice(0, 400), parts: partsSummary }, { status: 500 });
+      return NextResponse.json({ error: "AI response was not valid JSON" }, { status: 500 });
     }
     const aiResult = JSON.parse(jsonMatch[0]);
 

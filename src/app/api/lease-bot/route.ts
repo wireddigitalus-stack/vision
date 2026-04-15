@@ -87,10 +87,10 @@ export async function POST(req: NextRequest) {
       timeline, teamSize, additionalInfo,
     };
 
-    // gemini-2.5-flash on v1 — matches ask-vision (confirmed working).
-    // thinkingBudget:0 suppresses thinking tokens that break JSON.parse.
+    // v1beta required for thinkingConfig. thinkingBudget:0 prevents thinking
+    // tokens from appearing in the output and breaking JSON.parse.
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

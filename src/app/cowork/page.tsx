@@ -113,15 +113,21 @@ export default function CoWorkPage() {
 
           <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-12 items-center pb-16">
             <div>
-              {/* Squircle logo badge */}
-              <div className="mb-6">
+              {/* "Now Open" badge — above the logo+title row */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(250,204,21,0.1)] border border-[rgba(250,204,21,0.2)] text-[#FACC15] text-xs font-bold mb-5 tracking-wider uppercase">
+                Now Open · 620 State Street
+              </div>
+
+              {/* Squircle logo + h1 side by side */}
+              <div className="flex items-center gap-5 sm:gap-7 mb-6">
+                {/* Squircle badge */}
                 <div
-                  className="flex items-center justify-center bg-white p-5 sm:p-6"
+                  className="flex-shrink-0 flex items-center justify-center bg-white p-3 sm:p-4"
                   style={{
                     borderRadius: "28%",
-                    boxShadow: "0 0 0 1px rgba(255,255,255,0.08), 0 8px 40px rgba(0,0,0,0.5)",
-                    width: "clamp(184px, 20vw, 276px)",
-                    height: "clamp(184px, 20vw, 276px)",
+                    boxShadow: "0 0 0 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.5)",
+                    width: "clamp(110px, 13vw, 160px)",
+                    height: "clamp(110px, 13vw, 160px)",
                   }}
                 >
                   <Image
@@ -133,14 +139,12 @@ export default function CoWorkPage() {
                     priority
                   />
                 </div>
+                {/* Title */}
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
+                  Bristol<br />
+                  <span className="text-[#FACC15]">CoWork</span>
+                </h1>
               </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(250,204,21,0.1)] border border-[rgba(250,204,21,0.2)] text-[#FACC15] text-xs font-bold mb-6 tracking-wider uppercase">
-                Now Open · 620 State Street
-              </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-6">
-                Bristol<br />
-                <span className="text-[#FACC15]">CoWork</span>
-              </h1>
               <p className="text-xl text-gray-400 mb-4">
                 Downtown Bristol's premier professional workspace — built for entrepreneurs,
                 remote teams, and growing businesses that need more than a coffee shop.

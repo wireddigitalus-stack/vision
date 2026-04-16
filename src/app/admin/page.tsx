@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabase-browser";
 import {
   Zap, RefreshCw, Phone, Clock, Building2, TrendingUp,
   Users, Filter, AlertCircle, DollarSign, Calendar,
@@ -796,7 +798,7 @@ interface LeadComment {
   id: string; lead_id: string; author: string; body: string; timestamp: string;
 }
 
-function LeadComments({ leadId }: { leadId: string }) {
+function LeadComments({ leadId, currentUserName }: { leadId: string; currentUserName?: string }) {
   const [open, setOpen] = useState(false);
   const [comments, setComments] = useState<LeadComment[]>([]);
   const [loadingCmts, setLoadingCmts] = useState(false);
@@ -806,6 +808,9 @@ function LeadComments({ leadId }: { leadId: string }) {
   );
   const [posting, setPosting] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync Google user name when auth resolves
+  useEffect(() => { if (currentUserName) setAuthorName(currentUserName); }, [currentUserName]);
 
   const loadComments = async () => {
     setLoadingCmts(true);
@@ -1132,6 +1137,9 @@ function AddLeadPanel({ onLeadAdded }: { onLeadAdded: (lead: Lead) => void }) {
 // ─── Main Admin Page ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; avatar?: string } | null>(null);
+  const [authChecking, setAuthChecking] = useState(true);
   const [activeTab, setActiveTab] = useState<"leads" | "archived" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
@@ -1142,6 +1150,25 @@ export default function AdminPage() {
   const [showAskVision, setShowAskVision] = useState(false);
   const seenIdsRef = useRef<Set<string>>(new Set(DEMO_LEADS.map(d => d.id)));
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auth check — redirect to login if no session
+  useEffect(() => {
+    supabaseBrowser.auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        router.replace("/admin/login");
+      } else {
+        const name = data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "Team";
+        setCurrentUser({
+          name,
+          email: data.user.email || "",
+          avatar: data.user.user_metadata?.avatar_url,
+        });
+        // Auto-fill commenter name from Google
+        try { localStorage.setItem("vision_commenter", name); } catch { /**/ }
+      }
+      setAuthChecking(false);
+    });
+  }, [router]);
 
   // Clear stale localStorage on mount — Supabase is now source of truth
   useEffect(() => {
@@ -1225,6 +1252,20 @@ export default function AdminPage() {
   const annualProjection = hotMonthlyPipeline * 12;
   const callList = [...activeLeads].filter(l => l.phone).sort((a, b) => b.score - a.score);
 
+  // Auth loading screen
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-[#080C14] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center mx-auto mb-3 shadow-[0_0_24px_rgba(74,222,128,0.3)] animate-pulse">
+            <Zap size={20} className="text-black" />
+          </div>
+          <p className="text-xs text-gray-600">Loading VISION CRM…</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#080C14] text-white">
       <div className="max-w-6xl mx-auto px-6 pt-20 pb-16">
@@ -1299,6 +1340,26 @@ export default function AdminPage() {
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
                 <span className="hidden sm:inline">Refresh</span>
               </button>
+            )}
+            {/* User avatar + sign-out */}
+            {currentUser && (
+              <div className="flex items-center gap-2">
+                {currentUser.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={currentUser.avatar} alt={currentUser.name} className="w-7 h-7 rounded-full border border-[rgba(74,222,128,0.3)]" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#4ADE80]/30 to-[#22C55E]/20 border border-[rgba(74,222,128,0.3)] flex items-center justify-center text-[10px] font-black text-[#4ADE80]">
+                    {currentUser.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <button
+                  onClick={async () => { await supabaseBrowser.auth.signOut(); router.replace("/admin/login"); }}
+                  className="text-[10px] text-gray-600 hover:text-red-400 transition-colors hidden sm:block"
+                  title="Sign out"
+                >
+                  Sign out
+                </button>
+              </div>
             )}
           </div>
 
@@ -1596,7 +1657,7 @@ export default function AdminPage() {
                         <span className="text-[#4ADE80] font-semibold">AI Analysis: </span>{lead.reasoning}
                       </p>
                       {/* Comments / Activity */}
-                      <LeadComments leadId={lead.id} />
+                      <LeadComments leadId={lead.id} currentUserName={currentUser?.name} />
                       {/* Age bar */}
                     <div className="mt-4 pt-3 border-t border-[rgba(255,255,255,0.05)]">
                       <div className="flex items-center justify-between mb-1.5">

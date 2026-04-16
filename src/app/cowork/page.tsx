@@ -92,16 +92,26 @@ export default function CoWorkPage() {
         {/* Dark spacer behind the fixed nav — keeps the top of the page black */}
         <div className="w-full h-16 sm:h-20 bg-[#080B0F]" />
 
-        {/* Bristol CoWork Logo Strip — pure white, full-width */}
-        <div className="w-full bg-white border-b border-gray-200 flex items-center justify-center py-6 sm:py-8">
-          <Image
-            src="/images/bristol-cowork-logo.svg"
-            alt="Bristol CoWork — 620 State Street, Bristol TN"
-            width={560}
-            height={270}
-            className="h-28 sm:h-36 lg:h-40 w-auto"
-            priority
-          />
+        {/* Bristol CoWork Logo — white squircle badge on dark background */}
+        <div className="w-full bg-[#0D1117] flex items-center justify-center py-10 sm:py-14">
+          <div
+            className="flex items-center justify-center bg-white p-6 sm:p-8"
+            style={{
+              borderRadius: "28%",
+              boxShadow: "0 0 0 1px rgba(255,255,255,0.08), 0 8px 40px rgba(0,0,0,0.4)",
+              width: "clamp(160px, 22vw, 240px)",
+              height: "clamp(160px, 22vw, 240px)",
+            }}
+          >
+            <Image
+              src="/images/bristol-cowork-logo.svg"
+              alt="Bristol CoWork — 620 State Street, Bristol TN"
+              width={560}
+              height={270}
+              className="w-full h-auto"
+              priority
+            />
+          </div>
         </div>
 
         {/* Hero */}

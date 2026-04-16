@@ -64,6 +64,11 @@ function isUrgent(lead: Lead) {
   const hrs = (Date.now() - new Date(lead.timestamp).getTime()) / 36e5;
   return lead.scoreLabel === "Hot Lead" && hrs < 24;
 }
+function nameToSlug(name: string): string {
+  const parts = name.toLowerCase().replace(/[^a-z\s]/g, "").trim().split(/\s+/);
+  return parts.find(p => p.length > 2) ?? parts[0];
+}
+
 function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 }
@@ -269,7 +274,7 @@ function AddAdminModal({ onAdd, onClose }: { onAdd: (a: AdminUser) => void; onCl
 
 // ─── Settings Panel ────────────────────────────────────────────────────────────
 
-function SettingsPanel() {
+function SettingsPanel({ leads }: { leads: Lead[] }) {
   const [admins, setAdmins] = useState<AdminUser[]>(() => {
     if (typeof window === "undefined") return DEFAULT_ADMINS;
     try { return JSON.parse(localStorage.getItem("vision_admins") || "null") ?? DEFAULT_ADMINS; } catch { return DEFAULT_ADMINS; }
@@ -454,6 +459,62 @@ function SettingsPanel() {
               The Monday.com sync endpoint is built and waiting. Enter your API token and Board ID above, click <strong className="text-gray-400">Test Connection</strong>, and every future Ask VISION lead will flow directly into your CRM board automatically.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* ── QR Capture Hub ── */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center">
+            <span className="text-black text-[10px] font-black">QR</span>
+          </div>
+          <div>
+            <h2 className="text-sm font-black text-white uppercase tracking-widest">QR Capture Cards</h2>
+            <p className="text-[10px] text-gray-500">Each team member gets a unique link — scan to capture leads in-person</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {admins.map(admin => {
+            const slug = nameToSlug(admin.name);
+            const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://teamvisionllc.com";
+            const captureUrl = `${baseUrl}/meet/${slug}`;
+            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&bgcolor=080C14&color=4ADE80&margin=10&data=${encodeURIComponent(captureUrl)}`;
+            const qrLeadCount = leads.filter(l => l.source === "qr" && l.campaign === slug).length;
+            return (
+              <div key={admin.id} className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.03)] p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4ADE80]/20 to-[#22C55E]/10 border border-[rgba(74,222,128,0.25)] flex items-center justify-center text-xs font-black text-[#4ADE80]">
+                    {initials(admin.name)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{admin.name}</p>
+                    <p className="text-[10px] text-[#4ADE80] font-bold">{qrLeadCount} QR lead{qrLeadCount !== 1 ? "s" : ""}</p>
+                  </div>
+                </div>
+                <div className="flex justify-center my-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={qrSrc} alt={`QR for ${admin.name}`} width={120} height={120} className="rounded-xl" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-[10px] text-gray-500 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-lg px-2 py-1.5 truncate">
+                    /meet/{slug}
+                  </code>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(captureUrl).catch(() => {}); }}
+                    className="flex-shrink-0 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(74,222,128,0.25)] text-[#4ADE80] hover:bg-[rgba(74,222,128,0.08)] transition-colors"
+                  >
+                    Copy
+                  </button>
+                  <a href={captureUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex-shrink-0 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors"
+                  >
+                    Preview
+                  </a>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -1380,6 +1441,48 @@ export default function AdminPage() {
               setLeads(prev => [lead, ...prev]);
             }} />
 
+            {/* QR Leaderboard */}
+            {(() => {
+              const qrLeads = activeLeads.filter(l => l.source === "qr");
+              if (!qrLeads.length) return null;
+              const byAgent: Record<string, { count: number; pipeline: number; latest: string }> = {};
+              qrLeads.forEach(l => {
+                const slug = l.campaign || "team";
+                if (!byAgent[slug]) byAgent[slug] = { count: 0, pipeline: 0, latest: l.timestamp };
+                byAgent[slug].count++;
+                byAgent[slug].pipeline += l.budget;
+                if (l.timestamp > byAgent[slug].latest) byAgent[slug].latest = l.timestamp;
+              });
+              const ranked = Object.entries(byAgent).sort((a, b) => b[1].count - a[1].count);
+              return (
+                <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.03)] p-5 mb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-base">🏆</span>
+                    <p className="text-xs font-black text-[#4ADE80] uppercase tracking-widest">QR Lead Leaderboard</p>
+                    <span className="text-[10px] text-gray-600 ml-1">— in-person captures</span>
+                  </div>
+                  <div className="space-y-2">
+                    {ranked.map(([slug, stats], i) => (
+                      <div key={slug} className="flex items-center gap-3">
+                        <span className="text-sm font-black w-5 text-center" style={{ color: i === 0 ? "#FACC15" : i === 1 ? "#94A3B8" : "#92400E" }}>#{i + 1}</span>
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4ADE80]/20 to-[#22C55E]/10 border border-[rgba(74,222,128,0.2)] flex items-center justify-center text-[10px] font-black text-[#4ADE80]">
+                          {slug.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-white capitalize">{slug}</p>
+                          <p className="text-[10px] text-gray-600">{timeAgo(stats.latest)}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-black text-[#4ADE80]">{stats.count} lead{stats.count !== 1 ? "s" : ""}</p>
+                          {stats.pipeline > 0 && <p className="text-[10px] text-gray-600">${stats.pipeline.toLocaleString()}/mo</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Filter + Lead Cards */}
             <div id="leads-list" className="flex items-center gap-2 mb-6 flex-wrap">
               <Filter size={13} className="text-gray-500" />
@@ -1590,7 +1693,7 @@ export default function AdminPage() {
         )}
 
         {/* ─ SETTINGS TAB ───────────────────────────────────────────────────── */}
-        {activeTab === "settings" && <SettingsPanel />}
+        {activeTab === "settings" && <SettingsPanel leads={activeLeads} />}
 
         <p className="text-center text-[11px] text-gray-700 mt-10">
           VISION CRM · AI-Powered by Gemini · Auto-refreshes every 30s

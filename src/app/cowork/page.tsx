@@ -126,8 +126,8 @@ export default function CoWorkPage() {
                   style={{
                     borderRadius: "28%",
                     boxShadow: "0 0 0 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.5)",
-                    width: "clamp(110px, 13vw, 160px)",
-                    height: "clamp(110px, 13vw, 160px)",
+                    width: "clamp(127px, 15vw, 184px)",
+                    height: "clamp(127px, 15vw, 184px)",
                   }}
                 >
                   <Image

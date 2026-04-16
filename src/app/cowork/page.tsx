@@ -92,27 +92,6 @@ export default function CoWorkPage() {
         {/* Dark spacer behind the fixed nav — keeps the top of the page black */}
         <div className="w-full h-16 sm:h-20 bg-[#080B0F]" />
 
-        {/* Bristol CoWork Logo — white squircle badge on dark background */}
-        <div className="w-full bg-[#0D1117] flex items-center justify-center py-10 sm:py-14">
-          <div
-            className="flex items-center justify-center bg-white p-6 sm:p-8"
-            style={{
-              borderRadius: "28%",
-              boxShadow: "0 0 0 1px rgba(255,255,255,0.08), 0 8px 40px rgba(0,0,0,0.4)",
-              width: "clamp(160px, 22vw, 240px)",
-              height: "clamp(160px, 22vw, 240px)",
-            }}
-          >
-            <Image
-              src="/images/bristol-cowork-logo.svg"
-              alt="Bristol CoWork — 620 State Street, Bristol TN"
-              width={560}
-              height={270}
-              className="w-full h-auto"
-              priority
-            />
-          </div>
-        </div>
 
         {/* Hero */}
         <section className="pt-12 pb-0 px-4 sm:px-6 lg:px-8 bg-[#0D1117] relative overflow-hidden">
@@ -134,6 +113,27 @@ export default function CoWorkPage() {
 
           <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-12 items-center pb-16">
             <div>
+              {/* Squircle logo badge */}
+              <div className="mb-6">
+                <div
+                  className="flex items-center justify-center bg-white p-5 sm:p-6"
+                  style={{
+                    borderRadius: "28%",
+                    boxShadow: "0 0 0 1px rgba(255,255,255,0.08), 0 8px 40px rgba(0,0,0,0.5)",
+                    width: "clamp(184px, 20vw, 276px)",
+                    height: "clamp(184px, 20vw, 276px)",
+                  }}
+                >
+                  <Image
+                    src="/images/bristol-cowork-logo.svg"
+                    alt="Bristol CoWork — 620 State Street, Bristol TN"
+                    width={560}
+                    height={270}
+                    className="w-full h-auto"
+                    priority
+                  />
+                </div>
+              </div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(250,204,21,0.1)] border border-[rgba(250,204,21,0.2)] text-[#FACC15] text-xs font-bold mb-6 tracking-wider uppercase">
                 Now Open · 620 State Street
               </div>

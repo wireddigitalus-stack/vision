@@ -601,7 +601,7 @@ function AskVisionModal({ leads, onClose }: { leads: Lead[]; onClose: () => void
 
 // ─── Daily Brief Card ──────────────────────────────────────────────────────────
 
-function DailyBriefCard({ leads }: { leads: Lead[] }) {
+function DailyBriefCard({ leads, onBadgeClick }: { leads: Lead[]; onBadgeClick: (filter: string) => void }) {
   const [briefText, setBriefText] = useState("");
   const [briefLoading, setBriefLoading] = useState(false);
 
@@ -650,11 +650,11 @@ function DailyBriefCard({ leads }: { leads: Lead[] }) {
   useEffect(() => { if (leads.length) generateBrief(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stats = [
-    { label: "Hot", value: hot, emoji: "🔥", color: "#4ADE80" },
-    { label: "Warm", value: warm, emoji: "⚡", color: "#FACC15" },
-    { label: "Nurture", value: nurture, emoji: "●", color: "#94A3B8" },
-    { label: "New Today", value: newToday, emoji: "🆕", color: "#60A5FA" },
-    { label: "Whales", value: whales, emoji: "🐳", color: "#FACC15" },
+    { label: "Hot",      value: hot,      emoji: "🔥", color: "#4ADE80", filter: "Hot Lead"  },
+    { label: "Warm",     value: warm,     emoji: "⚡", color: "#FACC15", filter: "Warm Lead" },
+    { label: "Nurture",  value: nurture,  emoji: "●",  color: "#94A3B8", filter: "Nurture"   },
+    { label: "New Today",value: newToday, emoji: "🆕", color: "#60A5FA", filter: "New Today" },
+    { label: "Whales",   value: whales,   emoji: "🐳", color: "#FACC15", filter: "Whale"     },
   ];
 
   return (
@@ -684,20 +684,29 @@ function DailyBriefCard({ leads }: { leads: Lead[] }) {
         </button>
       </div>
 
-      {/* Stats chips */}
+      {/* Stats chips — clickable, filter + scroll to leads */}
       <div className="flex flex-wrap gap-2 mb-4">
         {stats.map(s => (
-          <div key={s.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)]">
+          <button
+            key={s.label}
+            onClick={() => onBadgeClick(s.filter)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] hover:border-[rgba(74,222,128,0.35)] hover:bg-[rgba(74,222,128,0.06)] transition-all cursor-pointer group"
+            title={`Filter: ${s.label}`}
+          >
             <span className="text-sm">{s.emoji}</span>
-            <span className="text-xs text-gray-400">{s.label}</span>
+            <span className="text-xs text-gray-400 group-hover:text-gray-200 transition-colors">{s.label}</span>
             <span className="text-sm font-black tabular-nums" style={{ color: s.color }}>{s.value}</span>
-          </div>
+          </button>
         ))}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)]">
+        <button
+          onClick={() => onBadgeClick("Hot Lead")}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] hover:bg-[rgba(74,222,128,0.14)] hover:border-[rgba(74,222,128,0.4)] transition-all cursor-pointer group"
+          title="Filter: Hot Pipeline"
+        >
           <DollarSign size={12} className="text-[#4ADE80]" />
-          <span className="text-xs text-gray-400">Hot Pipeline</span>
+          <span className="text-xs text-gray-400 group-hover:text-gray-200 transition-colors">Hot Pipeline</span>
           <span className="text-sm font-black text-[#4ADE80] tabular-nums">${pipeline.toLocaleString()}/mo</span>
-        </div>
+        </button>
       </div>
 
       {/* AI Brief text */}
@@ -1064,7 +1073,7 @@ function AddLeadPanel({ onLeadAdded }: { onLeadAdded: (lead: Lead) => void }) {
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<"leads" | "archived" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
-  const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture">("All");
+  const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [newLeadToast, setNewLeadToast] = useState<Lead | null>(null);
@@ -1140,7 +1149,11 @@ export default function AdminPage() {
 
   const activeLeads = leads.filter(l => !isArchived(l.timestamp));
   const archivedLeads = leads.filter(l => isArchived(l.timestamp));
-  const filtered = filter === "All" ? activeLeads : activeLeads.filter(l => l.scoreLabel === filter);
+  const filtered =
+    filter === "All"      ? activeLeads :
+    filter === "Whale"    ? activeLeads.filter(l => l.isWhale) :
+    filter === "New Today" ? activeLeads.filter(l => (Date.now() - new Date(l.timestamp).getTime()) < 864e5) :
+    activeLeads.filter(l => l.scoreLabel === filter);
   const hotLeads = activeLeads.filter(l => l.scoreLabel === "Hot Lead");
   const warmCount = activeLeads.filter(l => l.scoreLabel === "Warm Lead").length;
   const urgentLeads = activeLeads.filter(isUrgent);
@@ -1256,7 +1269,15 @@ export default function AdminPage() {
         {activeTab === "leads" && (
           <>
             {/* Daily Brief — first thing a CEO sees */}
-            <DailyBriefCard leads={leads} />
+            <DailyBriefCard
+              leads={activeLeads}
+              onBadgeClick={(f) => {
+                setFilter(f as typeof filter);
+                setTimeout(() => {
+                  document.getElementById("leads-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 50);
+              }}
+            />
 
             {/* Pipeline Banner */}
             <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-gradient-to-r from-[rgba(74,222,128,0.07)] to-[rgba(74,222,128,0.02)] p-6 mb-6">
@@ -1360,12 +1381,15 @@ export default function AdminPage() {
             }} />
 
             {/* Filter + Lead Cards */}
-            <div className="flex items-center gap-2 mb-6">
+            <div id="leads-list" className="flex items-center gap-2 mb-6 flex-wrap">
               <Filter size={13} className="text-gray-500" />
               <span className="text-xs text-gray-600 mr-1">Filter:</span>
-              {(["All", "Hot Lead", "Warm Lead", "Nurture"] as const).map(f => (
+              {(["All", "Hot Lead", "Warm Lead", "Nurture", "Whale", "New Today"] as const).map(f => (
                 <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${filter === f ? "bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.3)] text-[#4ADE80]" : "border-[rgba(255,255,255,0.06)] text-gray-500 hover:text-gray-300"}`}>
-                  {f} {f !== "All" && `(${leads.filter(l => l.scoreLabel === f).length})`}
+                  {f === "Whale" ? "🐳 Whales" : f === "New Today" ? "🆕 New Today" : f}
+                  {f === "Whale" && ` (${activeLeads.filter(l => l.isWhale).length})`}
+                  {f === "New Today" && ` (${activeLeads.filter(l => (Date.now() - new Date(l.timestamp).getTime()) < 864e5).length})`}
+                  {f !== "All" && f !== "Whale" && f !== "New Today" && ` (${activeLeads.filter(l => l.scoreLabel === f).length})`}
                 </button>
               ))}
             </div>

@@ -6,7 +6,7 @@ import {
   Users, Filter, AlertCircle, DollarSign, Calendar,
   Settings, Plus, Trash2, Save, CheckCircle2, Loader2,
   Bell, Mail, Shield, ExternalLink, Key, Globe, X, Radio,
-  Sparkles, Brain, Send, ChevronRight, ChevronDown, Archive,
+  Sparkles, Brain, Send, ChevronRight, ChevronDown, Archive, MessageSquare,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -720,6 +720,121 @@ function DailyBriefCard({ leads }: { leads: Lead[] }) {
   );
 }
 
+// ─── Lead Comments Component ───────────────────────────────────────────
+
+interface LeadComment {
+  id: string; lead_id: string; author: string; body: string; timestamp: string;
+}
+
+function LeadComments({ leadId }: { leadId: string }) {
+  const [open, setOpen] = useState(false);
+  const [comments, setComments] = useState<LeadComment[]>([]);
+  const [loadingCmts, setLoadingCmts] = useState(false);
+  const [newBody, setNewBody] = useState("");
+  const [authorName, setAuthorName] = useState<string>(() =>
+    typeof window !== "undefined" ? localStorage.getItem("vision_commenter") ?? "" : ""
+  );
+  const [posting, setPosting] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const loadComments = async () => {
+    setLoadingCmts(true);
+    try {
+      const res = await fetch(`/api/lead-comments?lead_id=${encodeURIComponent(leadId)}`);
+      const data = await res.json();
+      setComments(data.comments || []);
+    } catch { /* keep existing */ }
+    finally { setLoadingCmts(false); }
+  };
+
+  useEffect(() => { if (open) loadComments(); }, [open]); // eslint-disable-line
+
+  const postComment = async () => {
+    if (!newBody.trim() || !authorName.trim()) return;
+    setPosting(true);
+    try {
+      await fetch("/api/lead-comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lead_id: leadId, author: authorName.trim(), body: newBody.trim() }),
+      });
+      localStorage.setItem("vision_commenter", authorName.trim());
+      setNewBody("");
+      await loadComments();
+    } finally { setPosting(false); }
+  };
+
+  return (
+    <div className="mt-3 pt-3 border-t border-[rgba(255,255,255,0.05)]">
+      {/* Toggle */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-gray-300 transition-colors font-semibold"
+      >
+        <MessageSquare size={12} />
+        Activity {comments.length > 0 ? `(${comments.length})` : ""}
+        <ChevronDown size={11} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-2">
+          {/* Comment list */}
+          {loadingCmts ? (
+            <div className="flex items-center gap-2 text-[11px] text-gray-600">
+              <Loader2 size={11} className="animate-spin" /> Loading activity…
+            </div>
+          ) : comments.length === 0 ? (
+            <p className="text-[11px] text-gray-700 italic">No activity yet — be the first to add a note.</p>
+          ) : (
+            comments.map(c => (
+              <div key={c.id} className="flex gap-2.5">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#4ADE80]/20 to-[#22C55E]/10 border border-[rgba(74,222,128,0.2)] flex items-center justify-center text-[9px] font-black text-[#4ADE80] flex-shrink-0">
+                  {c.author.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[11px] font-bold text-gray-300">{c.author}</span>
+                    <span className="text-[10px] text-gray-600">{timeAgo(c.timestamp)}</span>
+                  </div>
+                  <p className="text-[12px] text-gray-400 leading-relaxed">{c.body}</p>
+                </div>
+              </div>
+            ))
+          )}
+
+          {/* New comment input */}
+          <div className="mt-3 space-y-2">
+            <input
+              value={authorName}
+              onChange={e => setAuthorName(e.target.value)}
+              placeholder="Your name"
+              className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-lg px-3 py-1.5 text-xs text-white focus:border-[rgba(74,222,128,0.35)] outline-none placeholder:text-gray-700 transition-colors"
+            />
+            <div className="flex gap-2">
+              <textarea
+                ref={inputRef}
+                value={newBody}
+                onChange={e => setNewBody(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); postComment(); } }}
+                placeholder="Add a note… (Enter to post)"
+                rows={2}
+                className="flex-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-lg px-3 py-1.5 text-xs text-white focus:border-[rgba(74,222,128,0.35)] outline-none placeholder:text-gray-700 transition-colors resize-none"
+              />
+              <button
+                onClick={postComment}
+                disabled={posting || !newBody.trim() || !authorName.trim()}
+                className="flex-shrink-0 flex items-center justify-center w-9 h-auto rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.25)] text-[#4ADE80] hover:bg-[rgba(74,222,128,0.18)] disabled:opacity-40 transition-all"
+              >
+                {posting ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Add Lead Panel ───────────────────────────────────────────────────
 
 const SPACE_TYPES = ["Office", "Executive Suite", "CoWork / Flex", "Retail Storefront", "Warehouse / Industrial", "Event Space", "Not sure yet"] as const;
@@ -1353,6 +1468,8 @@ export default function AdminPage() {
                       <p className="text-xs text-gray-500 leading-relaxed mb-3">
                         <span className="text-[#4ADE80] font-semibold">AI Analysis: </span>{lead.reasoning}
                       </p>
+                      {/* Comments / Activity */}
+                      <LeadComments leadId={lead.id} />
                       {/* Age bar */}
                     <div className="mt-4 pt-3 border-t border-[rgba(255,255,255,0.05)]">
                       <div className="flex items-center justify-between mb-1.5">

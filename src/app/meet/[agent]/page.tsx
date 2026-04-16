@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import { Phone, User, Building2, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
 
@@ -30,8 +31,9 @@ function formatPhoneMeet(raw: string): string {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
-export default function MeetPage({ params }: { params: { agent: string } }) {
-  const agent = params.agent.toLowerCase();
+export default function MeetPage() {
+  const params = useParams();
+  const agent = ((params.agent as string) ?? "team").toLowerCase();
   const member = TEAM_MEMBERS[agent] ?? { name: "Vision LLC", title: "Commercial Real Estate" };
 
   const [form, setForm] = useState({
@@ -88,7 +90,7 @@ export default function MeetPage({ params }: { params: { agent: string } }) {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Image
-            src="/images/vision-logo.svg"
+            src="/vision-logo.png"
             alt="Vision LLC"
             width={140}
             height={50}

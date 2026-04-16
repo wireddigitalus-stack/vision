@@ -844,11 +844,15 @@ function LeadComments({ leadId, currentUserName }: { leadId: string; currentUser
       {/* Toggle */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-gray-300 transition-colors font-semibold"
+        className={`flex items-center gap-1.5 text-xs font-bold transition-all ${
+          open || comments.length > 0
+            ? "text-[#4ADE80] drop-shadow-[0_0_6px_rgba(74,222,128,0.5)]"
+            : "text-gray-500 hover:text-[#4ADE80]"
+        }`}
       >
-        <MessageSquare size={12} />
+        <MessageSquare size={14} className={comments.length > 0 ? "fill-[rgba(74,222,128,0.15)]" : ""} />
         Activity {comments.length > 0 ? `(${comments.length})` : ""}
-        <ChevronDown size={11} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={12} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
@@ -893,6 +897,7 @@ function LeadComments({ leadId, currentUserName }: { leadId: string; currentUser
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); postComment(); } }}
                 placeholder="Add a note… (Enter to post)"
                 rows={2}
+                spellCheck={true}
                 className="flex-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-lg px-3 py-1.5 text-xs text-white focus:border-[rgba(74,222,128,0.35)] outline-none placeholder:text-gray-700 transition-colors resize-none"
               />
               <button

@@ -82,6 +82,7 @@ export default function ContactPage() {
               <div>
                 <label htmlFor="contact-message" className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Tell Us More</label>
                 <textarea id="contact-message" name="message" rows={4} placeholder="Square footage needed, timeline, budget, special requirements..."
+                  spellCheck={true}
                   className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(74,222,128,0.15)] rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-[rgba(74,222,128,0.5)] transition-all resize-none" />
               </div>
               <button type="submit" id="contact-submit" className="btn-primary w-full py-4 justify-center text-base">
@@ -134,10 +135,10 @@ export default function ContactPage() {
               <p className="text-xs text-gray-400 mb-3">Get instant answers about our properties, services, and the Tri-Cities CRE market.</p>
               <button
                 id="contact-open-chat"
-                onClick={() => (document.getElementById("ai-chat-toggle") as HTMLButtonElement)?.click()}
+                onClick={() => (document.getElementById("lease-bot-toggle") as HTMLButtonElement)?.click()}
                 className="btn-secondary w-full py-2.5 text-sm justify-center"
               >
-                Start a Chat
+                Ask VISION
               </button>
             </div>
           </div>

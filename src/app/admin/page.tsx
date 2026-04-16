@@ -1140,6 +1140,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string; avatar?: string } | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [activeTab, setActiveTab] = useState<"leads" | "archived" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
@@ -1151,19 +1152,27 @@ export default function AdminPage() {
   const seenIdsRef = useRef<Set<string>>(new Set(DEMO_LEADS.map(d => d.id)));
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auth check — redirect to login if no session
+  // Auth check — redirect to login if no session, block if not on allowlist
   useEffect(() => {
     supabaseBrowser.auth.getUser().then(({ data }) => {
       if (!data.user) {
         router.replace("/admin/login");
       } else {
-        const name = data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "Team";
+        const email = data.user.email || "";
+        // If NEXT_PUBLIC_ADMIN_EMAILS is set, enforce allowlist
+        const rawList = process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "";
+        const allowedEmails = rawList.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+        if (allowedEmails.length > 0 && !allowedEmails.includes(email.toLowerCase())) {
+          setAccessDenied(true);
+          setAuthChecking(false);
+          return;
+        }
+        const name = data.user.user_metadata?.full_name || email.split("@")[0] || "Team";
         setCurrentUser({
           name,
-          email: data.user.email || "",
+          email,
           avatar: data.user.user_metadata?.avatar_url,
         });
-        // Auto-fill commenter name from Google
         try { localStorage.setItem("vision_commenter", name); } catch { /**/ }
       }
       setAuthChecking(false);
@@ -1251,6 +1260,30 @@ export default function AdminPage() {
   const totalMonthlyPipeline = activeLeads.reduce((a, l) => a + l.budget, 0);
   const annualProjection = hotMonthlyPipeline * 12;
   const callList = [...activeLeads].filter(l => l.phone).sort((a, b) => b.score - a.score);
+
+  // Access denied screen
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-[#080C14] flex items-center justify-center px-5">
+        <div className="text-center max-w-sm">
+          <div className="w-14 h-14 rounded-2xl bg-[rgba(239,68,68,0.15)] border border-[rgba(239,68,68,0.3)] flex items-center justify-center mx-auto mb-5">
+            <Shield size={24} className="text-red-400" />
+          </div>
+          <h1 className="text-xl font-black text-white mb-2">Access Denied</h1>
+          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+            Your Google account is not authorized to access Vision CRM.
+            <br />Contact your administrator to request access.
+          </p>
+          <button
+            onClick={async () => { await supabaseBrowser.auth.signOut(); router.replace("/admin/login"); }}
+            className="px-5 py-2.5 rounded-xl bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.25)] text-red-400 text-sm font-bold hover:bg-[rgba(239,68,68,0.18)] transition-colors"
+          >
+            Sign out and try another account
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Auth loading screen
   if (authChecking) {

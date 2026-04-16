@@ -1390,6 +1390,29 @@ export default function AdminPage() {
         {/* ─ LEADS TAB ──────────────────────────────────────────────────────── */}
         {activeTab === "leads" && (
           <>
+            {/* Personalized greeting */}
+            {currentUser && (() => {
+              const hour = new Date().getHours();
+              const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+              const firstName = currentUser.name.split(" ")[0];
+              return (
+                <div className="mb-5 flex items-center gap-3">
+                  {currentUser.avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={currentUser.avatar} alt={currentUser.name} className="w-10 h-10 rounded-full border-2 border-[rgba(74,222,128,0.3)] flex-shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4ADE80]/30 to-[#22C55E]/20 border-2 border-[rgba(74,222,128,0.3)] flex items-center justify-center text-sm font-black text-[#4ADE80] flex-shrink-0">
+                      {currentUser.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-xl font-black text-white">{greeting}, {firstName} 👋</h2>
+                    <p className="text-[11px] text-gray-500">Here&apos;s your pipeline snapshot for today.</p>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Daily Brief — first thing a CEO sees */}
             <DailyBriefCard
               leads={activeLeads}

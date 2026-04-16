@@ -6,7 +6,7 @@ import {
   Users, Filter, AlertCircle, DollarSign, Calendar,
   Settings, Plus, Trash2, Save, CheckCircle2, Loader2,
   Bell, Mail, Shield, ExternalLink, Key, Globe, X, Radio,
-  Sparkles, Brain, Send, ChevronRight, ChevronDown,
+  Sparkles, Brain, Send, ChevronRight, ChevronDown, Archive,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -66,6 +66,28 @@ function isUrgent(lead: Lead) {
 }
 function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+}
+// ── Lead Aging ───────────────────────────────────────────────────────
+
+const MAX_AGE_DAYS = 180;
+
+function daysOld(ts: string): number {
+  return Math.floor((Date.now() - new Date(ts).getTime()) / 864e5);
+}
+function daysRemaining(ts: string): number {
+  return Math.max(0, MAX_AGE_DAYS - daysOld(ts));
+}
+function isArchived(ts: string): boolean {
+  return daysOld(ts) >= MAX_AGE_DAYS;
+}
+function ageBarColor(days: number): string {
+  if (days < 90) return "#4ADE80";   // green — fresh
+  if (days < 140) return "#FACC15";  // yellow — warming
+  if (days < 165) return "#FB923C";  // orange — expiring
+  return "#EF4444";                  // red — critical
+}
+function ageBarPct(days: number): number {
+  return Math.min(100, (days / MAX_AGE_DAYS) * 100);
 }
 
 // ─── Demo Data ────────────────────────────────────────────────────────────────
@@ -925,7 +947,7 @@ function AddLeadPanel({ onLeadAdded }: { onLeadAdded: (lead: Lead) => void }) {
 // ─── Main Admin Page ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<"leads" | "settings">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "archived" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture">("All");
   const [loading, setLoading] = useState(false);
@@ -1001,16 +1023,18 @@ export default function AdminPage() {
     return () => clearTimeout(t);
   }, [recentLiveIds]);
 
-  const filtered = filter === "All" ? leads : leads.filter(l => l.scoreLabel === filter);
-  const hotLeads = leads.filter(l => l.scoreLabel === "Hot Lead");
-  const warmCount = leads.filter(l => l.scoreLabel === "Warm Lead").length;
-  const urgentLeads = leads.filter(isUrgent);
-  const whaleLeads = leads.filter(l => l.isWhale);
-  const avgScore = Math.round(leads.reduce((a, l) => a + l.score, 0) / leads.length);
+  const activeLeads = leads.filter(l => !isArchived(l.timestamp));
+  const archivedLeads = leads.filter(l => isArchived(l.timestamp));
+  const filtered = filter === "All" ? activeLeads : activeLeads.filter(l => l.scoreLabel === filter);
+  const hotLeads = activeLeads.filter(l => l.scoreLabel === "Hot Lead");
+  const warmCount = activeLeads.filter(l => l.scoreLabel === "Warm Lead").length;
+  const urgentLeads = activeLeads.filter(isUrgent);
+  const whaleLeads = activeLeads.filter(l => l.isWhale);
+  const avgScore = Math.round(activeLeads.reduce((a, l) => a + l.score, 0) / (activeLeads.length || 1));
   const hotMonthlyPipeline = hotLeads.reduce((a, l) => a + l.budget, 0);
-  const totalMonthlyPipeline = leads.reduce((a, l) => a + l.budget, 0);
+  const totalMonthlyPipeline = activeLeads.reduce((a, l) => a + l.budget, 0);
   const annualProjection = hotMonthlyPipeline * 12;
-  const callList = [...leads].filter(l => l.phone).sort((a, b) => b.score - a.score);
+  const callList = [...activeLeads].filter(l => l.phone).sort((a, b) => b.score - a.score);
 
   return (
     <div className="min-h-screen bg-[#080C14] text-white">
@@ -1099,8 +1123,9 @@ export default function AdminPage() {
         {/* Tab Nav */}
         <div className="flex items-center gap-1 mb-8 border-b border-[rgba(255,255,255,0.06)] pb-0">
           {([
-            { key: "leads", label: "Leads", icon: TrendingUp },
-            { key: "settings", label: "Settings", icon: Settings },
+            { key: "leads",    label: `Leads (${activeLeads.length})`, icon: TrendingUp },
+            { key: "archived", label: `Archived (${archivedLeads.length})`, icon: Archive },
+            { key: "settings", label: "Settings",  icon: Settings },
           ] as const).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -1288,6 +1313,12 @@ export default function AdminPage() {
                           <div className="flex flex-wrap gap-3 mt-0.5 text-xs text-gray-500">
                             {lead.phone && <span className="flex items-center gap-1"><Phone size={10} /> {lead.phone}</span>}
                             <span className="flex items-center gap-1"><Clock size={10} /> {timeAgo(lead.timestamp)}</span>
+                          {/* Expiring-soon badge */}
+                          {daysRemaining(lead.timestamp) <= 30 && daysRemaining(lead.timestamp) > 0 && (
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-orange-400 animate-pulse">
+                              ⏳ {daysRemaining(lead.timestamp)}d left
+                            </span>
+                          )}
                           </div>
                         </div>
                         {lead.phone && (
@@ -1322,21 +1353,31 @@ export default function AdminPage() {
                       <p className="text-xs text-gray-500 leading-relaxed mb-3">
                         <span className="text-[#4ADE80] font-semibold">AI Analysis: </span>{lead.reasoning}
                       </p>
-                      {lead.matchedProperties.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {lead.matchedProperties.map(prop => (
-                            <div key={prop.id} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[rgba(74,222,128,0.04)] border border-[rgba(74,222,128,0.12)] text-xs">
-                              <Building2 size={10} className="text-[#4ADE80]" />
-                              <span className="text-gray-300">{prop.name}</span>
-                              <span className="text-gray-600">· {prop.sqft}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      {/* Age bar */}
+                    <div className="mt-4 pt-3 border-t border-[rgba(255,255,255,0.05)]">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                          <Clock size={9} /> Lead age: {daysOld(lead.timestamp)} day{daysOld(lead.timestamp) !== 1 ? "s" : ""}
+                        </span>
+                        <span className="text-[10px] font-bold" style={{ color: ageBarColor(daysOld(lead.timestamp)) }}>
+                          {daysRemaining(lead.timestamp)} days remaining
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full bg-[rgba(255,255,255,0.05)] overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${ageBarPct(daysOld(lead.timestamp))}%`,
+                            backgroundColor: ageBarColor(daysOld(lead.timestamp)),
+                            opacity: 0.8,
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-                ); })}
+              </div>
+              ); })}
 
             </div>
 
@@ -1345,6 +1386,63 @@ export default function AdminPage() {
                 <Zap size={32} className="mx-auto mb-3 opacity-30" />
                 <p>No {filter.toLowerCase()}s yet.</p>
                 <p className="text-sm mt-1">Leads appear here as they come in through Ask VISION.</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ─ ARCHIVED TAB ─────────────────────────────────────── */}
+        {activeTab === "archived" && (
+          <>
+            <div className="rounded-2xl border border-[rgba(148,163,184,0.15)] bg-[rgba(148,163,184,0.03)] p-5 mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <Archive size={14} className="text-gray-500" />
+                <p className="text-sm font-bold text-gray-400">Archived Leads</p>
+              </div>
+              <p className="text-xs text-gray-600">Leads that have passed the 180-day window. They are retained for reference and can be reactivated at any time.</p>
+            </div>
+
+            {archivedLeads.length === 0 ? (
+              <div className="text-center py-20 text-gray-700">
+                <Archive size={32} className="mx-auto mb-3 opacity-30" />
+                <p>No archived leads yet.</p>
+                <p className="text-sm mt-1 text-gray-600">Leads automatically move here after 180 days.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {archivedLeads.map(lead => (
+                  <div key={lead.id} className="glass rounded-2xl border border-[rgba(255,255,255,0.04)] p-4 opacity-70 hover:opacity-90 transition-opacity">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl flex flex-col items-center justify-center border border-[rgba(148,163,184,0.2)] bg-[rgba(148,163,184,0.05)] flex-shrink-0">
+                        <span className="text-lg font-black tabular-nums text-gray-500">{lead.score}</span>
+                        <span className="text-[8px] text-gray-700">/ 100</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-bold text-gray-400">{lead.name}</p>
+                          <span className="text-[10px] px-2 py-0.5 rounded-lg border border-[rgba(148,163,184,0.2)] text-gray-600 font-bold">{lead.scoreLabel}</span>
+                          <span className="text-[10px] text-gray-700 flex items-center gap-1"><Archive size={9} /> Archived {daysOld(lead.timestamp) - MAX_AGE_DAYS}d ago</span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-gray-600">
+                          <span>{lead.spaceType}</span>
+                          <span>${lead.budget.toLocaleString()}/mo</span>
+                          {lead.phone && <span>{lead.phone}</span>}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Reset timestamp to now to reactivate
+                          setLeads(prev => prev.map(l =>
+                            l.id === lead.id ? { ...l, timestamp: new Date().toISOString() } : l
+                          ));
+                        }}
+                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-xs font-bold hover:bg-[rgba(74,222,128,0.08)] transition-colors"
+                      >
+                        <RefreshCw size={11} /> Reactivate
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </>

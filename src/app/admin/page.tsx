@@ -6,7 +6,7 @@ import {
   Users, Filter, AlertCircle, DollarSign, Calendar,
   Settings, Plus, Trash2, Save, CheckCircle2, Loader2,
   Bell, Mail, Shield, ExternalLink, Key, Globe, X, Radio,
-  Sparkles, Brain, Send, ChevronRight,
+  Sparkles, Brain, Send, ChevronRight, ChevronDown,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -698,6 +698,230 @@ function DailyBriefCard({ leads }: { leads: Lead[] }) {
   );
 }
 
+// ─── Add Lead Panel ───────────────────────────────────────────────────
+
+const SPACE_TYPES = ["Office", "Executive Suite", "CoWork / Flex", "Retail Storefront", "Warehouse / Industrial", "Event Space", "Not sure yet"] as const;
+const TIMELINES = ["ASAP — under 30 days", "30–60 days", "60–90 days", "3–6 months", "Exploring options"] as const;
+const TEAM_SIZES = ["Solo", "2–4 people", "5–10 people", "10+ people"] as const;
+
+function formatPhoneAdmin(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 10);
+  if (!digits.length) return "";
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+function derivedLabel(score: number): "Hot Lead" | "Warm Lead" | "Nurture" {
+  if (score >= 70) return "Hot Lead";
+  if (score >= 40) return "Warm Lead";
+  return "Nurture";
+}
+
+const FIELD = "w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-600 transition-colors";
+const LABEL = "block text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1";
+
+function AddLeadPanel({ onLeadAdded }: { onLeadAdded: (lead: Lead) => void }) {
+  const [open, setOpen] = useState(false);
+  const [scoreMode, setScoreMode] = useState<"ai" | "manual">("ai");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const [form, setForm] = useState({
+    name: "", phone: "", email: "",
+    spaceType: "Office" as typeof SPACE_TYPES[number],
+    budget: "",
+    timeline: "ASAP — under 30 days" as typeof TIMELINES[number],
+    teamSize: "Solo" as typeof TEAM_SIZES[number],
+    notes: "",
+    manualScore: 70,
+  });
+
+  function reset() {
+    setForm({ name: "", phone: "", email: "", spaceType: "Office", budget: "", timeline: "ASAP — under 30 days", teamSize: "Solo", notes: "", manualScore: 70 });
+    setScoreMode("ai");
+    setError("");
+    setSuccess(false);
+  }
+
+  const label = derivedLabel(form.manualScore);
+  const labelColor = label === "Hot Lead" ? "#4ADE80" : label === "Warm Lead" ? "#FACC15" : "#94A3B8";
+
+  async function submit() {
+    if (!form.name.trim() || !form.budget) { setError("Name and budget are required."); return; }
+    setSubmitting(true); setError("");
+    try {
+      if (scoreMode === "ai") {
+        const res = await fetch("/api/lease-bot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name.trim(), email: form.email.trim(), phone: form.phone,
+            spaceType: form.spaceType, budget: form.budget,
+            timeline: form.timeline, teamSize: form.teamSize,
+            additionalInfo: form.notes, utm_source: "manual", utm_medium: "admin", utm_campaign: "",
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.lead) { setError(data.error || "AI scoring failed."); return; }
+        onLeadAdded(data.lead);
+      } else {
+        const res = await fetch("/api/admin-lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name.trim(), email: form.email.trim(), phone: form.phone,
+            spaceType: form.spaceType, budget: form.budget,
+            timeline: form.timeline, teamSize: form.teamSize,
+            additionalInfo: form.notes,
+            score: form.manualScore, scoreLabel: label,
+            reasoning: "Manually entered and scored by admin.",
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.lead) { setError(data.error || "Save failed."); return; }
+        onLeadAdded(data.lead);
+      }
+      setSuccess(true);
+      reset();
+      setTimeout(() => { setSuccess(false); setOpen(false); }, 1800);
+    } catch (e) {
+      setError(`Network error — ${e instanceof Error ? e.message : "please try again"}.`);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="mb-6">
+      {/* Toggle button */}
+      <button
+        onClick={() => { setOpen(o => !o); if (!open) reset(); }}
+        id="add-lead-toggle"
+        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+          open
+            ? "bg-[rgba(74,222,128,0.12)] border-[rgba(74,222,128,0.4)] text-[#4ADE80]"
+            : "bg-[rgba(74,222,128,0.06)] border-[rgba(74,222,128,0.2)] text-[#4ADE80] hover:bg-[rgba(74,222,128,0.1)]"
+        }`}
+      >
+        <Plus size={15} />
+        Add Lead
+        <ChevronDown size={13} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {/* Collapsible form */}
+      {open && (
+        <div className="mt-3 rounded-2xl border border-[rgba(74,222,128,0.25)] bg-gradient-to-br from-[rgba(74,222,128,0.05)] to-[rgba(74,222,128,0.02)] p-5 shadow-[0_8px_40px_rgba(0,0,0,0.4)] animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-black text-white">New Lead Entry</p>
+            <button onClick={() => setOpen(false)} className="text-gray-600 hover:text-white transition-colors"><X size={15} /></button>
+          </div>
+
+          {/* Grid of fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className={LABEL}>Full Name *</label>
+              <input autoFocus value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Jane Smith" className={FIELD} />
+            </div>
+            <div>
+              <label className={LABEL}>Phone</label>
+              <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: formatPhoneAdmin(e.target.value) })} placeholder="(423) ___-____" className={FIELD} />
+            </div>
+            <div>
+              <label className={LABEL}>Email</label>
+              <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="jane@company.com" className={FIELD} />
+            </div>
+            <div>
+              <label className={LABEL}>Space Type</label>
+              <select value={form.spaceType} onChange={e => setForm({ ...form, spaceType: e.target.value as typeof SPACE_TYPES[number] })} className={FIELD}>
+                {SPACE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL}>Budget ($/mo) *</label>
+              <input type="number" value={form.budget} onChange={e => setForm({ ...form, budget: e.target.value })} placeholder="e.g. 2500" className={FIELD} />
+            </div>
+            <div>
+              <label className={LABEL}>Move-in Timeline</label>
+              <select value={form.timeline} onChange={e => setForm({ ...form, timeline: e.target.value as typeof TIMELINES[number] })} className={FIELD}>
+                {TIMELINES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL}>Team Size</label>
+              <select value={form.teamSize} onChange={e => setForm({ ...form, teamSize: e.target.value as typeof TEAM_SIZES[number] })} className={FIELD}>
+                {TEAM_SIZES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL}>Notes</label>
+              <input value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any context, source, referral..." className={FIELD} />
+            </div>
+          </div>
+
+          {/* Score mode toggle */}
+          <div className="mb-4">
+            <p className={LABEL}>Scoring Method</p>
+            <div className="flex gap-2 mb-3">
+              {(["ai", "manual"] as const).map(m => (
+                <button
+                  key={m}
+                  onClick={() => setScoreMode(m)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                    scoreMode === m
+                      ? "bg-[rgba(74,222,128,0.12)] border-[rgba(74,222,128,0.4)] text-[#4ADE80]"
+                      : "border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-gray-300"
+                  }`}
+                >
+                  {m === "ai" ? <><Brain size={11} /> AI Score It</> : <><CheckCircle2 size={11} /> Set Manually</>}
+                </button>
+              ))}
+            </div>
+
+            {scoreMode === "manual" && (
+              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-xl px-4 py-3 flex items-center gap-4">
+                <div className="flex-1">
+                  <input
+                    type="range" min={0} max={100}
+                    value={form.manualScore}
+                    onChange={e => setForm({ ...form, manualScore: Number(e.target.value) })}
+                    className="w-full accent-[#4ADE80]"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
+                    <span>0</span><span>50</span><span>100</span>
+                  </div>
+                </div>
+                <div className="text-center flex-shrink-0">
+                  <p className="text-2xl font-black tabular-nums" style={{ color: labelColor }}>{form.manualScore}</p>
+                  <p className="text-[10px] font-bold" style={{ color: labelColor }}>{label}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Error / Success */}
+          {error && <p className="text-xs text-red-400 mb-3 flex items-center gap-1.5"><AlertCircle size={12} />{error}</p>}
+          {success && <p className="text-xs text-[#4ADE80] mb-3 flex items-center gap-1.5"><CheckCircle2 size={12} />Lead saved successfully!</p>}
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <button
+              onClick={submit}
+              disabled={submitting || !form.name.trim() || !form.budget}
+              id="save-lead-btn"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-sm font-black hover:opacity-90 disabled:opacity-40 transition-all"
+            >
+              {submitting ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : scoreMode === "ai" ? <><Brain size={14} /> Score with AI</> : <><Save size={14} /> Save Lead</>}
+            </button>
+            <button onClick={() => { setOpen(false); reset(); }} className="px-4 py-2.5 rounded-xl border border-[rgba(255,255,255,0.08)] text-gray-500 text-sm hover:text-white transition-colors">Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Admin Page ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -988,6 +1212,12 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+
+            {/* Add Lead Panel */}
+            <AddLeadPanel onLeadAdded={lead => {
+              seenIdsRef.current.add(lead.id);
+              setLeads(prev => [lead, ...prev]);
+            }} />
 
             {/* Filter + Lead Cards */}
             <div className="flex items-center gap-2 mb-6">

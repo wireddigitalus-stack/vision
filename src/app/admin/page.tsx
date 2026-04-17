@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import TenantsTab from "./TenantsTab";
-import AnalyticsTab from "./AnalyticsTab";
+import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import {
   Zap, RefreshCw, Phone, Clock, Building2, TrendingUp,
@@ -1875,7 +1875,7 @@ export default function AdminPage() {
         {/* ─ ARCHIVED TAB ─────────────────────────────────────── */}
         {/* ─ ANALYTICS TAB ──────────────────────────────────────────────── */}
         {activeTab === "analytics" && (
-          <AnalyticsTab leads={activeLeads} />
+          <AnalyticsTab leads={activeLeads as unknown as AnalyticsLead[]} />
         )}
 
         {/* ─ TENANTS TAB ──────────────────────────────────────────────── */}

@@ -5,8 +5,18 @@ import {
   BarChart3, PieChart, Zap, RefreshCw, AlertTriangle,
   ChevronUp, ChevronDown, Flame, ArrowUpRight,
 } from "lucide-react";
-import type { Lead } from "@/lib/supabase";
 import type { Tenant } from "./TenantsTab";
+
+// Minimal lead shape needed for analytics
+export interface AnalyticsLead {
+  timestamp: string;
+  scoreLabel: string;
+  isWhale: boolean;
+  budget: number;
+  score: number;
+  source: string;
+  spaceType: string;
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -188,7 +198,7 @@ function RevenueForecast({ tenants }: { tenants: Tenant[] }) {
 
 // ─── Main AnalyticsTab ────────────────────────────────────────────────────────
 
-export default function AnalyticsTab({ leads }: { leads: Lead[] }) {
+export default function AnalyticsTab({ leads }: { leads: AnalyticsLead[] }) {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -268,19 +278,19 @@ export default function AnalyticsTab({ leads }: { leads: Lead[] }) {
   const avgScore = activeLeads.length ? Math.round(activeLeads.reduce((s, l) => s + l.score, 0) / activeLeads.length) : 0;
 
   // Lead source breakdown
-  const bySrc = activeLeads.reduce((acc, l) => {
+  const bySrc = activeLeads.reduce<Record<string, number>>((acc, l) => {
     const key = l.source === "qr" ? "QR Scan" : l.source === "facebook" ? "Facebook" : l.source === "instagram" ? "Instagram" : l.source === "google" ? "Google" : "Organic";
     acc[key] = (acc[key] || 0) + 1;
     return acc;
-  }, {} as Record<string, number>);
+  }, {});
   const srcList = Object.entries(bySrc).sort((a, b) => b[1] - a[1]);
   const maxSrc = Math.max(...srcList.map(([, v]) => v), 1);
 
   // Space type breakdown
-  const bySpace = activeLeads.reduce((acc, l) => {
+  const bySpace = activeLeads.reduce<Record<string, number>>((acc, l) => {
     acc[l.spaceType] = (acc[l.spaceType] || 0) + 1;
     return acc;
-  }, {} as Record<string, number>);
+  }, {});
   const spaceList = Object.entries(bySpace).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   const convRate = tenants.length > 0 && activeLeads.length > 0

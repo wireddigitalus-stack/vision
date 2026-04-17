@@ -1176,6 +1176,8 @@ export default function AdminPage() {
   const [authChecking, setAuthChecking] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; email: string; avatar?: string}>>([]);
+  const briefKeyRef = useRef(0);
+  const [briefKey, setBriefKey] = useState(0);
   const [activeTab, setActiveTab] = useState<"leads" | "archived" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
@@ -1245,9 +1247,13 @@ export default function AdminPage() {
       const data = await res.json();
       if (data.leads && Array.isArray(data.leads)) {
         const fetched: Lead[] = data.leads.length > 0 ? data.leads : DEMO_LEADS;
-        // Mark all fetched IDs as seen so localStorage poller won't re-toast them
         fetched.forEach(l => seenIdsRef.current.add(l.id));
         setLeads(fetched);
+        // Bump briefKey once after the first real fetch so the brief regenerates with live data
+        if (briefKeyRef.current === 0 && fetched.some(l => !l.id.startsWith("demo_"))) {
+          briefKeyRef.current = 1;
+          setBriefKey(1);
+        }
       }
     } catch { /* keep existing state on error */ }
     finally { setLoading(false); setLastRefresh(new Date()); }
@@ -1526,6 +1532,7 @@ export default function AdminPage() {
 
             {/* Daily Brief — first thing a CEO sees */}
             <DailyBriefCard
+              key={briefKey}
               leads={activeLeads}
               onBadgeClick={(f) => {
                 setFilter(f as typeof filter);

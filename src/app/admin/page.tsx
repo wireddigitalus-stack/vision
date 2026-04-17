@@ -4,13 +4,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import TenantsTab from "./TenantsTab";
 import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
+import MaintenanceTab from "./MaintenanceTab";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import {
   Zap, RefreshCw, Phone, Clock, Building2, TrendingUp,
   Users, Filter, AlertCircle, DollarSign, Calendar,
   Settings, Plus, Trash2, Save, CheckCircle2, Loader2,
   Bell, Mail, Shield, ExternalLink, Key, Globe, X, Radio,
-  Sparkles, Brain, Send, ChevronRight, ChevronDown, Archive, MessageSquare, BarChart3,
+  Sparkles, Brain, Send, ChevronRight, ChevronDown, Archive, MessageSquare, BarChart3, Wrench,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1180,7 +1181,7 @@ export default function AdminPage() {
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; email: string; avatar?: string}>>([]);
   const briefKeyRef = useRef(0);
   const [briefKey, setBriefKey] = useState(0);
-  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "archived" | "settings">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "archived" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
   const [loading, setLoading] = useState(false);
@@ -1495,9 +1496,10 @@ export default function AdminPage() {
         <div className="flex items-center gap-1 mb-8 border-b border-[rgba(255,255,255,0.06)] pb-0">
           {([
             { key: "leads",     label: `Leads (${activeLeads.length})`, icon: TrendingUp },
-            { key: "tenants",   label: "Tenants", icon: Building2 },
-            { key: "analytics", label: "Analytics", icon: BarChart3 },
-            { key: "archived",  label: `Archived (${archivedLeads.length})`, icon: Archive },
+            { key: "tenants",     label: "Tenants", icon: Building2 },
+            { key: "analytics",   label: "Analytics", icon: BarChart3 },
+            { key: "maintenance", label: "Maintenance", icon: Wrench },
+            { key: "archived",    label: `Archived (${archivedLeads.length})`, icon: Archive },
             { key: "settings",  label: "Settings", icon: Settings },
           ] as const).map(({ key, label, icon: Icon }) => (
             <button
@@ -1878,6 +1880,11 @@ export default function AdminPage() {
         {/* ─ ANALYTICS TAB ──────────────────────────────────────────────── */}
         {activeTab === "analytics" && (
           <AnalyticsTab leads={activeLeads as unknown as AnalyticsLead[]} />
+        )}
+
+        {/* ─ MAINTENANCE TAB ─────────────────────────────────────────── */}
+        {activeTab === "maintenance" && (
+          <MaintenanceTab currentUserName={currentUser?.name} />
         )}
 
         {/* ─ TENANTS TAB ──────────────────────────────────────────────── */}

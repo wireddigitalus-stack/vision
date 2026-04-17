@@ -722,7 +722,7 @@ Use real names and numbers. Be punchy.`,
     { label: "Hot",      value: hot,      emoji: "🔥", color: "#4ADE80", filter: "Hot Lead"  },
     { label: "Warm",     value: warm,     emoji: "⚡", color: "#FACC15", filter: "Warm Lead" },
     { label: "Nurture",  value: nurture,  emoji: "●",  color: "#94A3B8", filter: "Nurture"   },
-    { label: "New Today",value: newToday, emoji: "🆕", color: "#60A5FA", filter: "New Today" },
+    { label: "New Today",value: newToday, emoji: "⚠️", color: "#FACC15", filter: "New Today" },
     { label: "Whales",   value: whales,   emoji: "🐳", color: "#FACC15", filter: "Whale"     },
   ];
 

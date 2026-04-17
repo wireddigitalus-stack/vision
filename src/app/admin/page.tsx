@@ -664,7 +664,11 @@ function AskVisionModal({ leads, onClose }: { leads: Lead[]; onClose: () => void
 
 // ─── Daily Brief Card ──────────────────────────────────────────────────────────
 
-function DailyBriefCard({ leads, onBadgeClick }: { leads: Lead[]; onBadgeClick: (filter: string) => void }) {
+function DailyBriefCard({ leads, onBadgeClick, onLeadClick }: {
+  leads: Lead[];
+  onBadgeClick: (filter: string) => void;
+  onLeadClick: (id: string) => void;
+}) {
   const [briefText, setBriefText] = useState("");
   const [briefLoading, setBriefLoading] = useState(false);
 
@@ -782,7 +786,30 @@ Use real names and numbers. Be punchy.`,
             Generating brief…
           </div>
         ) : briefText ? (
-          <p className="text-sm text-gray-300 leading-relaxed">{briefText}</p>
+          <p className="text-sm text-gray-300 leading-relaxed">
+            {/* Scan for lead names and make them clickable */}
+            {(() => {
+              const sorted = [...leads].sort((a, b) => b.name.length - a.name.length);
+              let parts: (string | React.ReactNode)[] = [briefText];
+              sorted.forEach(lead => {
+                const next: (string | React.ReactNode)[] = [];
+                parts.forEach((part, pi) => {
+                  if (typeof part !== "string") { next.push(part); return; }
+                  const chunks = part.split(lead.name);
+                  chunks.forEach((chunk, ci) => {
+                    next.push(chunk);
+                    if (ci < chunks.length - 1) next.push(
+                      <button key={`${lead.id}-${pi}-${ci}`} onClick={() => onLeadClick(lead.id)}
+                        className="text-[#4ADE80] font-bold underline underline-offset-2 hover:text-white transition-colors cursor-pointer"
+                      >{lead.name}</button>
+                    );
+                  });
+                });
+                parts = next;
+              });
+              return parts;
+            })()}
+          </p>
         ) : topLead ? (
           <p className="text-sm text-gray-500 italic">Top priority: {topLead.name} — {topLead.spaceType} at ${topLead.budget.toLocaleString()}/mo</p>
         ) : null}
@@ -1463,6 +1490,18 @@ export default function AdminPage() {
                   document.getElementById("leads-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }, 50);
               }}
+              onLeadClick={(id) => {
+                setFilter("All");
+                setTimeout(() => {
+                  const el = document.getElementById(`lead-card-${id}`);
+                  if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "center" });
+                    el.style.transition = "box-shadow 0.3s";
+                    el.style.boxShadow = "0 0 0 2px #4ADE80, 0 0 24px rgba(74,222,128,0.35)";
+                    setTimeout(() => { el.style.boxShadow = ""; }, 1800);
+                  }
+                }, 80);
+              }}
             />
 
             {/* Pipeline Banner */}
@@ -1628,6 +1667,7 @@ export default function AdminPage() {
                 return (
                 <div
                   key={lead.id}
+                  id={`lead-card-${lead.id}`}
                   className={`glass rounded-2xl border transition-all p-5 ${
                     lead.isWhale && lead.whaleTier === "gold"
                       ? "border-[rgba(250,204,21,0.45)] shadow-[0_0_28px_rgba(250,204,21,0.07)]"

@@ -1196,24 +1196,26 @@ export default function AdminPage() {
     supabaseBrowser.auth.getUser().then(({ data }) => {
       if (!data.user) {
         router.replace("/admin/login");
-      } else {
-        const email = data.user.email || "";
-        // If NEXT_PUBLIC_ADMIN_EMAILS is set, enforce allowlist
-        const rawList = process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "";
-        const allowedEmails = rawList.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
-        if (allowedEmails.length > 0 && !allowedEmails.includes(email.toLowerCase())) {
-          setAccessDenied(true);
-          setAuthChecking(false);
-          return;
-        }
-        const name = data.user.user_metadata?.full_name || email.split("@")[0] || "Team";
-        setCurrentUser({
-          name,
-          email,
-          avatar: data.user.user_metadata?.avatar_url,
-        });
-        try { localStorage.setItem("vision_commenter", name); } catch { /**/ }
+        // intentionally leave authChecking=true so the loading spinner stays up
+        // while navigation completes — prevents dashboard flash
+        return;
       }
+      const email = data.user.email || "";
+      // If NEXT_PUBLIC_ADMIN_EMAILS is set, enforce allowlist
+      const rawList = process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "";
+      const allowedEmails = rawList.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+      if (allowedEmails.length > 0 && !allowedEmails.includes(email.toLowerCase())) {
+        setAccessDenied(true);
+        setAuthChecking(false);
+        return;
+      }
+      const name = data.user.user_metadata?.full_name || email.split("@")[0] || "Team";
+      setCurrentUser({
+        name,
+        email,
+        avatar: data.user.user_metadata?.avatar_url,
+      });
+      try { localStorage.setItem("vision_commenter", name); } catch { /**/ }
       setAuthChecking(false);
     });
   }, [router]);

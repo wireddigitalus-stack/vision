@@ -17,8 +17,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "name, spaceType, and budget are required" }, { status: 400 });
     }
 
+    const budgetNum = Number(budget);
     const derivedLabel =
       score >= 70 ? "Hot Lead" : score >= 40 ? "Warm Lead" : "Nurture";
+
+    // Whale detection — $4k+/mo = silver, $8k+/mo = gold
+    const isWhale = budgetNum >= 4000;
+    const whaleTier = budgetNum >= 8000 ? "gold" : budgetNum >= 4000 ? "silver" : null;
 
     const lead = {
       id: `manual_${Date.now()}`,
@@ -27,7 +32,7 @@ export async function POST(req: NextRequest) {
       email: email?.trim() || "",
       phone: phone?.trim() || "",
       space_type: spaceType,
-      budget: Number(budget),
+      budget: budgetNum,
       timeline: timeline || "Exploring options",
       team_size: teamSize || "Solo",
       additional_info: additionalInfo?.trim() || "",
@@ -35,9 +40,12 @@ export async function POST(req: NextRequest) {
       score_label: scoreLabel || derivedLabel,
       reasoning: reasoning?.trim() || "Manually entered lead.",
       matched_properties: [],
-      source: "manual",
-      medium: "admin",
-      campaign: "",
+      is_whale: isWhale,
+      whale_tier: whaleTier,
+      whale_keywords: [],
+      source: body.source || "manual",
+      medium: body.medium || "admin",
+      campaign: body.campaign || "",
     };
 
     const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
@@ -68,12 +76,17 @@ export async function POST(req: NextRequest) {
       budget: lead.budget,
       timeline: lead.timeline,
       teamSize: lead.team_size,
+      additionalInfo: lead.additional_info,
       score: lead.score,
       scoreLabel: lead.score_label,
       reasoning: lead.reasoning,
       matchedProperties: [],
+      isWhale: lead.is_whale,
+      whaleTier: lead.whale_tier,
+      whaleKeywords: [],
       source: lead.source,
       medium: lead.medium,
+      campaign: lead.campaign,
     };
 
     return NextResponse.json({ success: true, lead: returned });

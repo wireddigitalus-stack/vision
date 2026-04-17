@@ -171,6 +171,15 @@ body {
   background: rgba(74, 222, 128, 0.6);
 }
 
+/* Hide scrollbar utility — used for swipeable tab bar on mobile */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 /* Button base styles */
 .btn-primary {
   display: inline-flex;

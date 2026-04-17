@@ -1367,7 +1367,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#080C14] text-white">
-      <div className="max-w-6xl mx-auto px-6 pt-20 pb-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 pb-16">
 
         {/* ─ New Lead Toast ──────────────────────────────────────────────── */}
         {newLeadToast && (
@@ -1492,24 +1492,28 @@ export default function AdminPage() {
           <AskVisionModal leads={leads} onClose={() => setShowAskVision(false)} />
         )}
 
-        {/* Tab Nav */}
-        <div className="flex items-center gap-1 mb-8 border-b border-[rgba(255,255,255,0.06)] pb-0">
-          {([
-            { key: "leads",     label: `Leads (${activeLeads.length})`, icon: TrendingUp },
-            { key: "tenants",     label: "Tenants", icon: Building2 },
-            { key: "analytics",   label: "Analytics", icon: BarChart3 },
-            { key: "maintenance", label: "Maintenance", icon: Wrench },
-            { key: "archived",    label: `Archived (${archivedLeads.length})`, icon: Archive },
-            { key: "settings",  label: "Settings", icon: Settings },
-          ] as const).map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all -mb-px ${activeTab === key ? "border-[#4ADE80] text-[#4ADE80]" : "border-transparent text-gray-500 hover:text-gray-300"}`}
-            >
-              <Icon size={14} /> {label}
-            </button>
-          ))}
+        {/* Tab Nav — horizontally scrollable on mobile */}
+        <div className="relative mb-8">
+          <div className="scrollbar-none flex items-center gap-0.5 border-b border-[rgba(255,255,255,0.06)] overflow-x-auto pb-0 -mx-2 px-2 sm:mx-0 sm:px-0" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+            {([
+              { key: "leads",       label: "Leads",    fullLabel: `Leads (${activeLeads.length})`, icon: TrendingUp },
+              { key: "tenants",     label: "Tenants",  fullLabel: "Tenants",     icon: Building2 },
+              { key: "analytics",   label: "Analytic", fullLabel: "Analytics",   icon: BarChart3 },
+              { key: "maintenance", label: "Maint.",   fullLabel: "Maintenance", icon: Wrench },
+              { key: "archived",    label: "Archive",  fullLabel: `Archived (${archivedLeads.length})`, icon: Archive },
+              { key: "settings",    label: "Settings", fullLabel: "Settings",    icon: Settings },
+            ] as const).map(({ key, label, fullLabel, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`flex items-center gap-1.5 px-3 sm:px-5 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all -mb-px whitespace-nowrap flex-shrink-0 ${activeTab === key ? "border-[#4ADE80] text-[#4ADE80]" : "border-transparent text-gray-500 hover:text-gray-300"}`}
+              >
+                <Icon size={13} />
+                <span className="sm:hidden">{label}</span>
+                <span className="hidden sm:inline">{fullLabel}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ─ LEADS TAB ──────────────────────────────────────────────────────── */}

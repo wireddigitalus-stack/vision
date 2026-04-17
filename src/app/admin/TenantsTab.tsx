@@ -537,6 +537,7 @@ function TenantCard({
 export default function TenantsTab({ currentUserName }: { currentUserName?: string }) {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [setupError, setSetupError] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "pending" | "expired">("all");
@@ -549,8 +550,13 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
       const data = await res.json();
       if (Array.isArray(data.tenants)) {
         setTenants(data.tenants.map(rowToTenant));
+        setSetupError(false);
+      } else {
+        setSetupError(true);
       }
-    } catch { /* keep state */ }
+    } catch {
+      setSetupError(true);
+    }
     finally { setLoading(false); }
   }, []);
 
@@ -629,11 +635,11 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
       {/* Revenue Intelligence Banner */}
       <RevenueBanner tenants={tenants} onTenantClick={scrollToTenant} />
 
-      {/* SQL Setup Banner */}
-      {tenants.length === 0 && !loading && (
+      {/* SQL Setup Banner — only shown on actual API error */}
+      {setupError && !loading && (
         <div className="mb-6 p-4 rounded-xl border border-[rgba(250,204,21,0.3)] bg-[rgba(250,204,21,0.05)]">
-          <p className="text-xs font-bold text-[#FACC15] mb-2 flex items-center gap-1.5"><AlertTriangle size={12} />First-time setup required</p>
-          <p className="text-xs text-gray-400 mb-2">Run this SQL in your <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-[#4ADE80] underline">Supabase SQL Editor</a> to create the tenants table:</p>
+          <p className="text-xs font-bold text-[#FACC15] mb-2 flex items-center gap-1.5"><AlertTriangle size={12} />Database table not found — one-time setup required</p>
+          <p className="text-xs text-gray-400 mb-2">Run this SQL in your <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-[#4ADE80] underline">Supabase SQL Editor</a>, then click Refresh:</p>
           <pre className="text-[10px] text-gray-300 bg-[rgba(0,0,0,0.4)] rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">{`CREATE TABLE IF NOT EXISTS tenants (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,

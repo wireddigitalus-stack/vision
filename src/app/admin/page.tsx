@@ -1175,6 +1175,7 @@ export default function AdminPage() {
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string; avatar?: string } | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; email: string; avatar?: string}>>([]);
   const [activeTab, setActiveTab] = useState<"leads" | "archived" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
@@ -1217,6 +1218,25 @@ export default function AdminPage() {
   useEffect(() => {
     try { localStorage.removeItem("vision_live_leads"); } catch { /* ignore */ }
   }, []);
+
+  // Supabase Realtime Presence — show who else is online
+  useEffect(() => {
+    if (!currentUser) return;
+    const channel = supabaseBrowser.channel("admin_presence", {
+      config: { presence: { key: currentUser.email } },
+    });
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState<{ name: string; email: string; avatar?: string }>();
+        setOnlineUsers(Object.values(state).flat());
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ name: currentUser.name, email: currentUser.email, avatar: currentUser.avatar });
+        }
+      });
+    return () => { supabaseBrowser.removeChannel(channel); };
+  }, [currentUser]);
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -1390,6 +1410,29 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="text-[11px] text-gray-600 hidden sm:block">Last refresh: {lastRefresh.toLocaleTimeString()}</span>
+
+            {/* Online presence avatars */}
+            {onlineUsers.length > 0 && (
+              <div className="hidden sm:flex items-center gap-1" title={onlineUsers.map(u => u.name).join(", ") + " online"}>
+                {onlineUsers.map(u => (
+                  <div key={u.email} className="relative" title={`${u.name} — online now`}>
+                    {u.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={u.avatar} alt={u.name} className="w-6 h-6 rounded-full border border-[rgba(74,222,128,0.4)]" />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#4ADE80]/30 to-[#22C55E]/20 border border-[rgba(74,222,128,0.3)] flex items-center justify-center text-[9px] font-black text-[#4ADE80]">
+                        {u.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#4ADE80] border border-[#080C14] animate-pulse" />
+                  </div>
+                ))}
+                {onlineUsers.length > 1 && (
+                  <span className="text-[10px] text-gray-600 ml-1">{onlineUsers.length} online</span>
+                )}
+              </div>
+            )}
+
             <button
               onClick={() => setShowAskVision(true)}
               className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl bg-gradient-to-r from-[rgba(74,222,128,0.12)] to-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.3)] text-[#4ADE80] text-xs font-bold hover:from-[rgba(74,222,128,0.2)] hover:to-[rgba(74,222,128,0.1)] transition-all shadow-[0_0_12px_rgba(74,222,128,0.1)]"

@@ -102,7 +102,7 @@ function ageBarPct(days: number): number {
 const DEMO_LEADS: Lead[] = [
   { id: "demo_1", timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(), name: "Sarah Mitchell", email: "", phone: "423-555-0192", spaceType: "Executive Office", budget: 3000, timeline: "ASAP — under 30 days", teamSize: "2–4 people", score: 91, scoreLabel: "Hot Lead", reasoning: "Strong budget, urgent timeline, and professional office need align perfectly with City Centre availability.", matchedProperties: [{ id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "1,200–3,000 sqft", location: "Downtown Bristol, TN", matchReason: "Premium finishes, immediate availability, fits 2-4 team." }] },
   { id: "demo_2", timestamp: new Date(Date.now() - 1000 * 60 * 34).toISOString(), name: "Mark Delaney", email: "", phone: "", spaceType: "CoWork Membership", budget: 800, timeline: "1–2 months", teamSize: "Solo", score: 58, scoreLabel: "Warm Lead", reasoning: "Solo operator with moderate budget — Bristol CoWork is an excellent fit. Nurture toward dedicated desk.", matchedProperties: [{ id: "bristol-cowork", name: "Bristol CoWork", type: "CoWork", sqft: "Hot desk / Dedicated desk", location: "620 State Street, Bristol, TN", matchReason: "All-inclusive monthly membership, perfect for solo professional." }] },
-  { id: "demo_3", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), name: "Dr. James Patel", email: "", phone: "276-555-0847", spaceType: "Private Office Suite", budget: 6000, timeline: "ASAP — under 30 days", teamSize: "5–10 people", score: 96, scoreLabel: "Hot Lead", reasoning: "Very high budget, urgent timeline, established team — priority contact for today.", matchedProperties: [{ id: "the-executive", name: "The Executive Office Suites", type: "Office", sqft: "2,000–6,000 sqft", location: "Downtown Bristol, TN", matchReason: "Historic prestige building, fits team of 5-10, premium positioning." }, { id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "3,000–8,000 sqft", location: "Downtown Bristol, TN", matchReason: "Larger footprint option with flexible configuration." }], isWhale: true, whaleTier: "gold", whaleKeywords: ["1031 exchange", "triple net"] },
+  { id: "demo_3", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), name: "Dr. James Patel", email: "", phone: "276-555-0847", spaceType: "Private Office Suite", budget: 6000, timeline: "ASAP — under 30 days", teamSize: "5–10 people", score: 96, scoreLabel: "Hot Lead", reasoning: "Very high budget, urgent timeline, established team — priority contact for today.", matchedProperties: [{ id: "the-executive", name: "The Executive Office Suites", type: "Office", sqft: "2,000–6,000 sqft", location: "Downtown Bristol, TN", matchReason: "Historic prestige building, fits team of 5-10, premium positioning." }, { id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "3,000–8,000 sqft", location: "Downtown Bristol, TN", matchReason: "Larger footprint option with flexible configuration." }], isWhale: true, whaleTier: "gold", whaleKeywords: [] },
   { id: "demo_4", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), name: "Blake Thornton", email: "", phone: "", spaceType: "Retail Storefront", budget: 1500, timeline: "3–6 months", teamSize: "2–4 people", score: 42, scoreLabel: "Warm Lead", reasoning: "Retail need with longer timeline. Good candidate for State Street storefront. Follow up in 60 days.", matchedProperties: [{ id: "centre-point", name: "Centre Point Suites", type: "Retail", sqft: "800–2,000 sqft", location: "Downtown Bristol, TN", matchReason: "High foot traffic retail units at budget-friendly rates." }] },
 ];
 
@@ -681,7 +681,7 @@ function DailyBriefCard({ leads, onBadgeClick }: { leads: Lead[]; onBadgeClick: 
     return hrs < 24;
   }).length;
   const pipeline = leads.filter(l => l.scoreLabel === "Hot Lead").reduce((a, l) => a + l.budget, 0);
-  const topLead = [...leads].sort((a, b) => b.score - a.score)[0];
+  const topLead = [...leads].sort((a, b) => (b.budget * b.score) - (a.budget * a.score))[0];
 
   const generateBrief = async () => {
     setBriefLoading(true);
@@ -696,8 +696,10 @@ function DailyBriefCard({ leads, onBadgeClick }: { leads: Lead[]; onBadgeClick: 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: `CEO DAILY BRIEF — write exactly 3 complete sentences, no more: (1) Priority call: name the single highest-score lead, their budget per month, timeline, and why they need a call today. (2) Whale alert: if any lead has a WHALE ALERT flag, name them and the high-intent keywords detected — otherwise skip this sentence and combine into one. (3) Pipeline snapshot: state the number of Hot Leads and total hot pipeline value per month. Be specific, use real names and numbers from the data. No greetings, no headers.`,
-
+          question: `VISION CRM DAILY BRIEF — max 2 short sentences, facts only, no greetings or headers:
+1. Name the top 2 leads by revenue potential (highest budget × score). For each: name, budget/month, timeline.
+2. Hot pipeline total per month. Mention whale count only if above 0.
+Use real names and numbers. Be punchy.`,
           leads: leanLeads,
         }),
       });

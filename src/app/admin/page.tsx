@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import TenantsTab from "./TenantsTab";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import {
   Zap, RefreshCw, Phone, Clock, Building2, TrendingUp,
@@ -1178,7 +1179,7 @@ export default function AdminPage() {
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; email: string; avatar?: string}>>([]);
   const briefKeyRef = useRef(0);
   const [briefKey, setBriefKey] = useState(0);
-  const [activeTab, setActiveTab] = useState<"leads" | "archived" | "settings">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "archived" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
   const [loading, setLoading] = useState(false);
@@ -1491,6 +1492,7 @@ export default function AdminPage() {
         <div className="flex items-center gap-1 mb-8 border-b border-[rgba(255,255,255,0.06)] pb-0">
           {([
             { key: "leads",    label: `Leads (${activeLeads.length})`, icon: TrendingUp },
+            { key: "tenants",  label: "Tenants", icon: Building2 },
             { key: "archived", label: `Archived (${archivedLeads.length})`, icon: Archive },
             { key: "settings", label: "Settings",  icon: Settings },
           ] as const).map(({ key, label, icon: Icon }) => (
@@ -1869,6 +1871,11 @@ export default function AdminPage() {
         )}
 
         {/* ─ ARCHIVED TAB ─────────────────────────────────────── */}
+        {/* ─ TENANTS TAB ──────────────────────────────────────────────── */}
+        {activeTab === "tenants" && (
+          <TenantsTab currentUserName={currentUser?.name} />
+        )}
+
         {activeTab === "archived" && (
           <>
             <div className="rounded-2xl border border-[rgba(148,163,184,0.15)] bg-[rgba(148,163,184,0.03)] p-5 mb-6">

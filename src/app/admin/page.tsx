@@ -1767,9 +1767,20 @@ export default function AdminPage() {
                               </span>
                             )}
                           </div>
-                          <div className="flex flex-wrap gap-3 mt-0.5 text-xs text-gray-500">
-                            {lead.phone && <span className="flex items-center gap-1"><Phone size={10} /> {lead.phone}</span>}
-                            <span className="flex items-center gap-1"><Clock size={10} /> {timeAgo(lead.timestamp)}</span>
+                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-xs">
+                            {lead.phone && (
+                              <a href={`tel:${lead.phone}`} className="flex items-center gap-1 text-gray-400 hover:text-[#4ADE80] transition-colors font-mono" title="Click to call or copy">
+                                <Phone size={10} className="flex-shrink-0" />
+                                {lead.phone}
+                              </a>
+                            )}
+                            {lead.email && (
+                              <a href={`mailto:${lead.email}`} className="flex items-center gap-1 text-gray-400 hover:text-[#60A5FA] transition-colors" title="Send email">
+                                <Mail size={10} className="flex-shrink-0" />
+                                {lead.email}
+                              </a>
+                            )}
+                            <span className="flex items-center gap-1 text-gray-600"><Clock size={10} /> {timeAgo(lead.timestamp)}</span>
                           {/* Expiring-soon badge */}
                           {daysRemaining(lead.timestamp) <= 30 && daysRemaining(lead.timestamp) > 0 && (
                             <span className="flex items-center gap-1 text-[10px] font-bold text-orange-400 animate-pulse">
@@ -1778,11 +1789,18 @@ export default function AdminPage() {
                           )}
                           </div>
                         </div>
-                        {lead.phone && (
-                          <a href={`tel:${lead.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-xs font-bold hover:bg-[rgba(74,222,128,0.14)] transition-colors">
-                            <Phone size={11} /> Call Now
-                          </a>
-                        )}
+                        <div className="flex flex-wrap gap-2">
+                          {lead.phone && (
+                            <a href={`tel:${lead.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-xs font-bold hover:bg-[rgba(74,222,128,0.14)] transition-colors">
+                              <Phone size={11} /> Call Now
+                            </a>
+                          )}
+                          {lead.email && (
+                            <a href={`mailto:${lead.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(96,165,250,0.08)] border border-[rgba(96,165,250,0.2)] text-[#60A5FA] text-xs font-bold hover:bg-[rgba(96,165,250,0.14)] transition-colors">
+                              <Mail size={11} /> Email
+                            </a>
+                          )}
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-2 mb-3">
                         {[`🏢 ${lead.spaceType}`, `💰 $${lead.budget.toLocaleString()}/mo`, `📅 ${lead.timeline}`, `👥 ${lead.teamSize}`].map(chip => (

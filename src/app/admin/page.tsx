@@ -1264,7 +1264,8 @@ export default function AdminPage() {
   const hotMonthlyPipeline = hotLeads.reduce((a, l) => a + l.budget, 0);
   const totalMonthlyPipeline = activeLeads.reduce((a, l) => a + l.budget, 0);
   const annualProjection = hotMonthlyPipeline * 12;
-  const callList = [...activeLeads].filter(l => l.phone).sort((a, b) => b.score - a.score);
+  // Call list sorted by revenue potential: budget × (score/100) — highest $/mo first
+  const callList = [...activeLeads].filter(l => l.phone).sort((a, b) => (b.budget * b.score) - (a.budget * a.score));
 
   // Access denied screen
   if (accessDenied) {

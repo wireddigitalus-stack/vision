@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+
 import { useRouter } from "next/navigation";
 import TenantsTab from "./TenantsTab";
 import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
@@ -56,7 +57,7 @@ interface MondaySettings {
 
 function Tooltip({ text, children, wide }: { text: string; children: React.ReactNode; wide?: boolean }) {
   const [visible, setVisible] = useState(false);
-  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const show = () => setVisible(true);
   const hide = () => { setVisible(false); if (timerRef.current) clearTimeout(timerRef.current); };

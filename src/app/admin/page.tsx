@@ -1876,7 +1876,12 @@ export default function AdminPage() {
                             🎯 {lead.whaleKeywords.slice(0, 2).join(" · ")}
                           </span>
                         )}
-                        {lead.source && lead.source !== "organic" && (
+                        {lead.source === "qr" && (
+                          <span className="text-xs px-2.5 py-1 rounded-lg font-bold border bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.35)] text-[#4ADE80] flex items-center gap-1">
+                            📲 QR Capture{lead.campaign ? ` · ${lead.campaign.charAt(0).toUpperCase() + lead.campaign.slice(1)}` : ""}
+                          </span>
+                        )}
+                        {lead.source && lead.source !== "organic" && lead.source !== "qr" && (
                           <span className={`text-xs px-2.5 py-1 rounded-lg font-semibold border ${
                             lead.source === "facebook"
                               ? "bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.25)] text-[#60A5FA]"

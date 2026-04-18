@@ -4,7 +4,6 @@ import {
   CheckCircle2, Clock, Plus, X, Send, Loader2,
   MapPin, User, AlertTriangle, Sparkles, ChevronRight,
 } from "lucide-react";
-import StaffAskVision from "../StaffAskVision";
 
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -329,11 +328,6 @@ export default function CleaningStaffPage() {
           setTimeout(() => setSubmitted(false), 3000);
         }} />
       )}
-
-      <StaffAskVision
-        role="cleaning"
-        context={assignments.map(a => `${a.property} — ${a.area} (${a.status})`).join("\n")}
-      />
     </div>
   );
 }

@@ -4,7 +4,6 @@ import {
   Wrench, CheckCircle2, Clock, AlertTriangle, ChevronRight,
   Loader2, Plus, X, Send, ArrowLeft, User, Building2, Flame,
 } from "lucide-react";
-import StaffAskVision from "../StaffAskVision";
 
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -426,11 +425,6 @@ export default function MaintenanceStaffPage() {
           fetchTickets();
         }} />
       )}
-
-      <StaffAskVision
-        role="maintenance"
-        context={open.slice(0, 5).map(t => `${t.title} (${t.building || "?"}, ${t.category}, CAT ${t.priority})`).join("\n")}
-      />
     </div>
   );
 }

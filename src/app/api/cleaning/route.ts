@@ -9,10 +9,19 @@ const H = {
 };
 
 export async function GET(req: NextRequest) {
-  const date = req.nextUrl.searchParams.get("date") || new Date().toISOString().split("T")[0];
+  const from = req.nextUrl.searchParams.get("from");
+  const to   = req.nextUrl.searchParams.get("to");
+  const date = req.nextUrl.searchParams.get("date");
   const worker = req.nextUrl.searchParams.get("worker");
-  let url = `${SUPABASE_URL}/rest/v1/cleaning_assignments?scheduled_date=eq.${date}&order=property.asc,area.asc`;
+
+  let url = `${SUPABASE_URL}/rest/v1/cleaning_assignments?order=scheduled_date.asc,property.asc,area.asc`;
+  if (from && to) {
+    url += `&scheduled_date=gte.${from}&scheduled_date=lte.${to}`;
+  } else if (date) {
+    url += `&scheduled_date=eq.${date}`;
+  }
   if (worker) url += `&worker_name=eq.${encodeURIComponent(worker)}`;
+
   const res = await fetch(url, { headers: H });
   if (!res.ok) return NextResponse.json({ assignments: [] });
   return NextResponse.json({ assignments: await res.json() });

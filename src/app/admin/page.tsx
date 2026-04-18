@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import TenantsTab from "./TenantsTab";
 import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
 import MaintenanceTab from "./MaintenanceTab";
+import CleaningTab from "./CleaningTab";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import {
   Zap, RefreshCw, Phone, Clock, Building2, TrendingUp,
@@ -1181,7 +1182,7 @@ export default function AdminPage() {
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; email: string; avatar?: string}>>([]);
   const briefKeyRef = useRef(0);
   const [briefKey, setBriefKey] = useState(0);
-  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "archived" | "settings">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "cleaning" | "archived" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
   const [loading, setLoading] = useState(false);
@@ -1500,6 +1501,7 @@ export default function AdminPage() {
               { key: "tenants",     label: "Tenants",  fullLabel: "Tenants",     icon: Building2 },
               { key: "analytics",   label: "Analytic", fullLabel: "Analytics",   icon: BarChart3 },
               { key: "maintenance", label: "Maint.",   fullLabel: "Maintenance", icon: Wrench },
+              { key: "cleaning",    label: "Cleaning", fullLabel: "Cleaning",    icon: Sparkles },
               { key: "archived",    label: "Archive",  fullLabel: `Archived (${archivedLeads.length})`, icon: Archive },
               { key: "settings",    label: "Settings", fullLabel: "Settings",    icon: Settings },
             ] as const).map(({ key, label, fullLabel, icon: Icon }) => (
@@ -1890,6 +1892,9 @@ export default function AdminPage() {
         {activeTab === "maintenance" && (
           <MaintenanceTab currentUserName={currentUser?.name} />
         )}
+
+        {/* ─ CLEANING TAB ──────────────────────────────────────────── */}
+        {activeTab === "cleaning" && <CleaningTab />}
 
         {/* ─ TENANTS TAB ──────────────────────────────────────────────── */}
         {activeTab === "tenants" && (

@@ -2087,15 +2087,15 @@ export default function AdminPage() {
                           <span className="text-[9px] text-gray-600 mt-0.5">/ 100</span>
                         </div>
                       </Tooltip>
-                      <Tooltip text={lead.scoreLabel === "Hot Lead" ? "Hot Lead: Score 70+. Call today — high close probability." : lead.scoreLabel === "Warm Lead" ? "Warm Lead: Score 40–69. Nurture with follow-up emails or a call this week." : "Nurture: Score below 40. Keep warm — long-term prospect."}>
-                        <div className={`mt-2 text-[10px] px-2 py-0.5 rounded-lg border font-bold text-center cursor-help ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</div>
-                      </Tooltip>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="text-white font-bold text-base">{lead.name}</h3>
+                            <Tooltip text={lead.scoreLabel === "Hot Lead" ? "Hot Lead: Score 70+. Call today — high close probability." : lead.scoreLabel === "Warm Lead" ? "Warm Lead: Score 40–69. Nurture with follow-up emails or a call this week." : "Nurture: Score below 40. Keep warm — long-term prospect."}>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold cursor-help ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</span>
+                            </Tooltip>
                             {lead.isWhale && lead.whaleTier === "gold" && (
                               <Tooltip text="Whale Alert: Budget $8k+/mo. Top-priority prospect — escalate immediately and offer a personal showing." wide>
                                 <span className="flex items-center gap-1 text-[10px] font-black text-[#FACC15] bg-[rgba(250,204,21,0.12)] border border-[rgba(250,204,21,0.4)] px-2 py-0.5 rounded-lg cursor-help">

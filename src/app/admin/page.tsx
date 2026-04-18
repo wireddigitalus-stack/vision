@@ -445,6 +445,11 @@ function SettingsPanel({ leads }: { leads: Lead[] }) {
   const [cleanUsers,  setCleanUsers]  = useState<AllowedUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [setupSQL, setSetupSQL] = useState(false);
+  const [editingQR, setEditingQR] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [deletingQR, setDeletingQR] = useState<string | null>(null);
+  const [savingQR, setSavingQR] = useState(false);
+
   const loadUsers = useCallback(async () => {
     setUsersLoading(true);
     try {
@@ -609,17 +614,114 @@ ON CONFLICT (email) DO NOTHING;`}</pre>
             const captureUrl = `${baseUrl}/meet/${slug}`;
             const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&bgcolor=080C14&color=4ADE80&margin=10&data=${encodeURIComponent(captureUrl)}`;
             const qrLeadCount = leads.filter(l => l.source === "qr" && l.campaign === slug).length;
+            const isEditing = editingQR === admin.id;
+            const isDeleting = deletingQR === admin.id;
+
+            async function saveEdit() {
+              if (!editName.trim()) return;
+              setSavingQR(true);
+              await fetch(`/api/allowed-users?id=${admin.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: editName.trim() }),
+              });
+              setSavingQR(false);
+              setEditingQR(null);
+              loadUsers();
+            }
+
+            async function deleteUser() {
+              setSavingQR(true);
+              await fetch(`/api/allowed-users?id=${admin.id}`, { method: "DELETE" });
+              setSavingQR(false);
+              setDeletingQR(null);
+              loadUsers();
+            }
+
             return (
               <div key={admin.id} className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.03)] p-4">
+                {/* Header row */}
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4ADE80]/20 to-[#22C55E]/10 border border-[rgba(74,222,128,0.25)] flex items-center justify-center text-xs font-black text-[#4ADE80]">
                     {initials(admin.name || admin.email)}
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-white">{admin.name || admin.email}</p>
+                  <div className="flex-1 min-w-0">
+                    {isEditing ? (
+                      <input
+                        autoFocus
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingQR(null); }}
+                        className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(74,222,128,0.4)] rounded-lg px-2 py-1 text-sm text-white outline-none"
+                      />
+                    ) : (
+                      <p className="text-sm font-bold text-white truncate">{admin.name || admin.email}</p>
+                    )}
                     <p className="text-[10px] text-[#4ADE80] font-bold">{qrLeadCount} QR lead{qrLeadCount !== 1 ? "s" : ""}</p>
                   </div>
+                  {/* Edit / Delete controls */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {isEditing ? (
+                      <>
+                        <button
+                          onClick={saveEdit}
+                          disabled={savingQR}
+                          className="px-2 py-1 rounded-lg text-[10px] font-black bg-[rgba(74,222,128,0.15)] border border-[rgba(74,222,128,0.4)] text-[#4ADE80] hover:bg-[rgba(74,222,128,0.25)] disabled:opacity-50 transition-colors"
+                        >
+                          {savingQR ? <Loader2 size={10} className="animate-spin" /> : "Save"}
+                        </button>
+                        <button
+                          onClick={() => setEditingQR(null)}
+                          className="px-2 py-1 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-gray-300 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : isDeleting ? (
+                      <>
+                        <button
+                          onClick={deleteUser}
+                          disabled={savingQR}
+                          className="px-2 py-1 rounded-lg text-[10px] font-black bg-[rgba(239,68,68,0.15)] border border-[rgba(239,68,68,0.4)] text-red-400 hover:bg-[rgba(239,68,68,0.25)] disabled:opacity-50 transition-colors"
+                        >
+                          {savingQR ? <Loader2 size={10} className="animate-spin" /> : "Confirm"}
+                        </button>
+                        <button
+                          onClick={() => setDeletingQR(null)}
+                          className="px-2 py-1 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-gray-300 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Tooltip text="Edit name">
+                          <button
+                            onClick={() => { setEditingQR(admin.id); setEditName(admin.name || ""); setDeletingQR(null); }}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center border border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-white hover:border-[rgba(74,222,128,0.3)] transition-colors"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                        </Tooltip>
+                        <Tooltip text="Remove this QR card">
+                          <button
+                            onClick={() => { setDeletingQR(admin.id); setEditingQR(null); }}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center border border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-red-400 hover:border-[rgba(239,68,68,0.3)] transition-colors"
+                          >
+                            <Trash2 size={11} />
+                          </button>
+                        </Tooltip>
+                      </>
+                    )}
+                  </div>
                 </div>
+
+                {isDeleting && (
+                  <p className="text-[11px] text-red-400 bg-[rgba(239,68,68,0.06)] border border-[rgba(239,68,68,0.15)] rounded-xl px-3 py-2 mb-3">
+                    ⚠️ Remove <strong>{admin.name || admin.email}</strong> from admin access? Their QR link will stop working.
+                  </p>
+                )}
+
                 <div className="flex justify-center my-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={qrSrc} alt={`QR for ${admin.name}`} width={120} height={120} className="rounded-xl" />

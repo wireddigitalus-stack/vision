@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
       score, scoreLabel, reasoning,
     } = body;
 
-    if (!name || !spaceType || !budget) {
-      return NextResponse.json({ error: "name, spaceType, and budget are required" }, { status: 400 });
+    if (!name || !spaceType || budget === undefined || budget === null) {
+      return NextResponse.json({ error: "name and spaceType are required" }, { status: 400 });
     }
 
     const budgetNum = Number(budget);

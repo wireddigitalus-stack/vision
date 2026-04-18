@@ -121,6 +121,7 @@ export default function MeetPage() {
                 <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
                 <input
                   autoFocus
+                  autoComplete="name"
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="Your full name *"
@@ -133,6 +134,7 @@ export default function MeetPage() {
                 <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
                 <input
                   type="tel"
+                  autoComplete="tel"
                   value={form.phone}
                   onChange={e => setForm({ ...form, phone: formatPhoneMeet(e.target.value) })}
                   placeholder="(423) ___-____ *"
@@ -143,6 +145,7 @@ export default function MeetPage() {
               {/* Email */}
               <input
                 type="email"
+                autoComplete="email"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
                 placeholder="Email (optional)"

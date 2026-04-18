@@ -5,7 +5,11 @@ import AIChatWidget from "./AIChatWidget";
 
 export default function AIChatWidgetConditional() {
   const pathname = usePathname();
-  // Hide chatbot on admin pages — it's a prospect tool, not a CRM tool
-  if (pathname?.startsWith("/admin")) return null;
+  // Hide on admin (CRM tool, not prospect), QR landing pages, and staff portals
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/meet") ||
+    pathname?.startsWith("/staff")
+  ) return null;
   return <AIChatWidget />;
 }

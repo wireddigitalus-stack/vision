@@ -36,8 +36,9 @@ function rowToAssignment(r: Record<string, unknown>): Assignment {
   };
 }
 
-const KNOWN_CLEANERS = ["Sarah M.", "Linda K.", "Priya R.", "Jess T.", "Other"];
+const FALLBACK_CLEANERS = ["Sarah M.", "Linda K.", "Priya R.", "Jess T.", "Other"];
 const ISSUE_TYPES = ["Damage", "Biohazard", "Equipment", "Pest", "Plumbing", "Other"];
+
 
 // ─── Report Issue Modal ───────────────────────────────────────────────────────
 
@@ -158,8 +159,19 @@ function AssignmentCard({ a, onComplete }: { a: Assignment; onComplete: (id: str
 // ─── Name Selector ────────────────────────────────────────────────────────────
 
 function NameSelector({ onSelect }: { onSelect: (name: string) => void }) {
+  const [cleaners, setCleaners] = useState<string[]>(FALLBACK_CLEANERS);
   const [custom, setCustom] = useState("");
   const [showCustom, setShowCustom] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/allowed-users?role=cleaning")
+      .then(r => r.json())
+      .then(d => {
+        const names = (d.users || []).map((u: { name: string }) => u.name).filter(Boolean) as string[];
+        if (names.length > 0) setCleaners([...names, "Other"]);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#080C14] flex flex-col items-center justify-center px-6 py-12">
@@ -167,7 +179,7 @@ function NameSelector({ onSelect }: { onSelect: (name: string) => void }) {
       <h1 className="text-3xl font-black text-white text-center mb-2">Cleaning Portal</h1>
       <p className="text-gray-500 text-center mb-10">Who are you?</p>
       <div className="w-full max-w-sm space-y-3">
-        {KNOWN_CLEANERS.map(w => (
+        {cleaners.map(w => (
           <button key={w} onClick={() => w === "Other" ? setShowCustom(true) : onSelect(w)}
             className="w-full py-5 rounded-2xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.09)] text-white text-lg font-bold text-left px-6 flex items-center gap-3 hover:bg-[rgba(255,255,255,0.09)] transition-all active:scale-95">
             <User size={20} className="text-[#4ADE80]" /> {w}

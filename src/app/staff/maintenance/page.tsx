@@ -227,11 +227,23 @@ function FieldTicketCard({ ticket, onUpdate }: { ticket: Ticket; onUpdate: (id: 
 
 // ─── Name Selector ────────────────────────────────────────────────────────────
 
-const KNOWN_WORKERS = ["Mike D.", "James R.", "Carlos M.", "Tom B.", "Other"];
+const FALLBACK_WORKERS = ["Mike D.", "James R.", "Carlos M.", "Tom B.", "Other"];
+
 
 function NameSelector({ onSelect }: { onSelect: (name: string) => void }) {
+  const [workers, setWorkers] = useState<string[]>(FALLBACK_WORKERS);
   const [custom, setCustom] = useState("");
   const [showCustom, setShowCustom] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/allowed-users?role=maintenance")
+      .then(r => r.json())
+      .then(d => {
+        const names = (d.users || []).map((u: { name: string }) => u.name).filter(Boolean) as string[];
+        if (names.length > 0) setWorkers([...names, "Other"]);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#080C14] flex flex-col items-center justify-center px-6 py-12">
@@ -239,7 +251,7 @@ function NameSelector({ onSelect }: { onSelect: (name: string) => void }) {
       <h1 className="text-3xl font-black text-white text-center mb-2">Maintenance Portal</h1>
       <p className="text-gray-500 text-center mb-10">Who are you?</p>
       <div className="w-full max-w-sm space-y-3">
-        {KNOWN_WORKERS.map(w => (
+        {workers.map(w => (
           <button key={w} onClick={() => w === "Other" ? setShowCustom(true) : onSelect(w)}
             className="w-full py-5 rounded-2xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.09)] text-white text-lg font-bold text-left px-6 flex items-center gap-3 hover:bg-[rgba(255,255,255,0.09)] transition-all active:scale-95">
             <User size={20} className="text-[#FACC15]" /> {w}

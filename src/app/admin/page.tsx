@@ -36,16 +36,20 @@ interface Lead {
   campaign?: string;
 }
 
-interface AdminUser {
-  id: string; name: string; email: string; phone: string;
-  role: "Owner" | "Manager" | "Viewer";
-  notify: { hotLeads: boolean; warmLeads: boolean; dailySummary: boolean; urgentAlerts: boolean; };
+interface AllowedUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "admin" | "maintenance" | "cleaning";
+  active: boolean;
+  created_at?: string;
 }
 
 interface MondaySettings {
   apiToken: string; boardId: string; workspaceUrl: string;
   status: "idle" | "testing" | "connected" | "error";
 }
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -107,162 +111,141 @@ const DEMO_LEADS: Lead[] = [
   { id: "demo_1", timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(), name: "Sarah Mitchell", email: "", phone: "423-555-0192", spaceType: "Executive Office", budget: 3000, timeline: "ASAP — under 30 days", teamSize: "2–4 people", score: 91, scoreLabel: "Hot Lead", reasoning: "Strong budget, urgent timeline, and professional office need align perfectly with City Centre availability.", matchedProperties: [{ id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "1,200–3,000 sqft", location: "Downtown Bristol, TN", matchReason: "Premium finishes, immediate availability, fits 2-4 team." }] },
   { id: "demo_2", timestamp: new Date(Date.now() - 1000 * 60 * 34).toISOString(), name: "Mark Delaney", email: "", phone: "", spaceType: "CoWork Membership", budget: 800, timeline: "1–2 months", teamSize: "Solo", score: 58, scoreLabel: "Warm Lead", reasoning: "Solo operator with moderate budget — Bristol CoWork is an excellent fit. Nurture toward dedicated desk.", matchedProperties: [{ id: "bristol-cowork", name: "Bristol CoWork", type: "CoWork", sqft: "Hot desk / Dedicated desk", location: "620 State Street, Bristol, TN", matchReason: "All-inclusive monthly membership, perfect for solo professional." }] },
   { id: "demo_3", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), name: "Dr. James Patel", email: "", phone: "276-555-0847", spaceType: "Private Office Suite", budget: 6000, timeline: "ASAP — under 30 days", teamSize: "5–10 people", score: 96, scoreLabel: "Hot Lead", reasoning: "Very high budget, urgent timeline, established team — priority contact for today.", matchedProperties: [{ id: "the-executive", name: "The Executive Office Suites", type: "Office", sqft: "2,000–6,000 sqft", location: "Downtown Bristol, TN", matchReason: "Historic prestige building, fits team of 5-10, premium positioning." }, { id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "3,000–8,000 sqft", location: "Downtown Bristol, TN", matchReason: "Larger footprint option with flexible configuration." }], isWhale: true, whaleTier: "gold", whaleKeywords: [] },
-  { id: "demo_4", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), name: "Blake Thornton", email: "", phone: "", spaceType: "Retail Storefront", budget: 1500, timeline: "3–6 months", teamSize: "2–4 people", score: 42, scoreLabel: "Warm Lead", reasoning: "Retail need with longer timeline. Good candidate for State Street storefront. Follow up in 60 days.", matchedProperties: [{ id: "centre-point", name: "Centre Point Suites", type: "Retail", sqft: "800–2,000 sqft", location: "Downtown Bristol, TN", matchReason: "High foot traffic retail units at budget-friendly rates." }] },
-];
+  { id: "demo_4", timestamp: new Date(Date.now(// ─── User Section Component ──────────────────────────────────────────────────
 
-const DEFAULT_ADMINS: AdminUser[] = [
-  { id: "admin_1", name: "J. Allen Hurley II", email: "allen@teamvisionllc.com", phone: "423-573-1022", role: "Owner", notify: { hotLeads: true, warmLeads: true, dailySummary: true, urgentAlerts: true } },
-  { id: "admin_2", name: "Vision LLC Team", email: "leasing@teamvisionllc.com", phone: "", role: "Manager", notify: { hotLeads: true, warmLeads: false, dailySummary: true, urgentAlerts: true } },
-];
+function UserSection({ title, role, icon, color, users, onRefresh }: {
+  title: string; role: string; icon: React.ReactNode; color: string;
+  users: AllowedUser[]; onRefresh: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
 
-// ─── Admin Row Component ───────────────────────────────────────────────────────
+  const FIELD = "w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-600";
 
-function AdminRow({ admin, onUpdate, onDelete }: { admin: AdminUser; onUpdate: (a: AdminUser) => void; onDelete: (id: string) => void }) {
-  const [expanded, setExpanded] = useState(false);
-  const [draft, setDraft] = useState(admin);
-
-  const roleColors: Record<string, string> = {
-    Owner: "text-[#FACC15] border-[rgba(250,204,21,0.3)] bg-[rgba(250,204,21,0.08)]",
-    Manager: "text-[#60A5FA] border-[rgba(96,165,250,0.3)] bg-[rgba(96,165,250,0.08)]",
-    Viewer: "text-[#94A3B8] border-[rgba(148,163,184,0.2)] bg-[rgba(148,163,184,0.06)]",
+  const addUser = async () => {
+    if (!email.trim()) { setError("Email is required."); return; }
+    setSaving(true); setError("");
+    try {
+      const res = await fetch("/api/allowed-users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), name: name.trim(), role }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setError(d.error || "Failed — email may already exist."); }
+      else { setEmail(""); setName(""); setShowAdd(false); onRefresh(); }
+    } catch { setError("Network error."); }
+    finally { setSaving(false); }
   };
 
-  const notifyLabels = [
-    { key: "hotLeads", label: "Hot Leads", icon: "🔥" },
-    { key: "warmLeads", label: "Warm Leads", icon: "⚡" },
-    { key: "dailySummary", label: "Daily Summary", icon: "📊" },
-    { key: "urgentAlerts", label: "Urgent Alerts", icon: "🚨" },
-  ] as const;
+  const removeUser = async (id: string) => {
+    await fetch(`/api/allowed-users?id=${id}`, { method: "DELETE" });
+    onRefresh();
+  };
 
-  function save() {
-    onUpdate(draft);
-    setExpanded(false);
-  }
+  const toggleActive = async (id: string, active: boolean) => {
+    await fetch(`/api/allowed-users?id=${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active: !active }),
+    });
+    onRefresh();
+  };
 
   return (
-    <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] overflow-hidden">
-      <div className="flex items-center gap-4 p-4">
-        {/* Avatar */}
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4ADE80]/20 to-[#22C55E]/10 border border-[rgba(74,222,128,0.2)] flex items-center justify-center text-sm font-black text-[#4ADE80] flex-shrink-0">
-          {initials(admin.name)}
-        </div>
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-bold text-white">{admin.name}</p>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${roleColors[admin.role]}`}>{admin.role}</span>
-          </div>
-          <p className="text-xs text-gray-500 mt-0.5 truncate">{admin.email}</p>
-        </div>
-        {/* Notification indicators */}
-        <div className="hidden sm:flex items-center gap-1">
-          {notifyLabels.map(n => (
-            <span key={n.key} className={`text-sm ${admin.notify[n.key] ? "opacity-100" : "opacity-20"}`} title={n.label}>{n.icon}</span>
-          ))}
-        </div>
-        {/* Actions */}
+    <div className="rounded-2xl border bg-[rgba(255,255,255,0.02)] p-5" style={{ borderColor: `${color}22` }}>
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <button onClick={() => setExpanded(!expanded)} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white hover:border-[rgba(74,222,128,0.3)] transition-all">
-            {expanded ? "Close" : "Edit"}
-          </button>
-          {admin.role !== "Owner" && (
-            <button onClick={() => onDelete(admin.id)} className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-[rgba(239,68,68,0.08)] transition-all">
-              <Trash2 size={13} />
-            </button>
-          )}
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}18`, border: `1px solid ${color}35` }}>
+            {icon}
+          </div>
+          <div>
+            <h3 className="text-sm font-black text-white">{title}</h3>
+            <p className="text-[10px] text-gray-600">{users.length} user{users.length !== 1 ? "s" : ""} · instant access control</p>
+          </div>
         </div>
+        <button onClick={() => setShowAdd(s => !s)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all"
+          style={{ color, borderColor: `${color}40`, backgroundColor: showAdd ? `${color}15` : "transparent" }}>
+          <Plus size={11} /> Add
+        </button>
       </div>
 
-      {/* Expanded edit panel */}
-      {expanded && (
-        <div className="border-t border-[rgba(255,255,255,0.05)] p-4 space-y-4 bg-[rgba(0,0,0,0.15)]">
-          <div className="grid sm:grid-cols-3 gap-3">
+      {/* Add form */}
+      {showAdd && (
+        <div className="mb-4 p-3 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(0,0,0,0.2)] space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Name</label>
-              <input value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none" />
-            </div>
-            <div>
-              <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Email</label>
-              <input value={draft.email} onChange={e => setDraft({ ...draft, email: e.target.value })} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none" />
+              <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Full Name</label>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="Mike D." className={FIELD} />
             </div>
             <div>
-              <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Phone</label>
-              <input value={draft.phone} onChange={e => setDraft({ ...draft, phone: e.target.value })} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none" />
+              <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Gmail Address *</label>
+              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="mike@gmail.com" type="email" className={FIELD}
+                onKeyDown={e => { if (e.key === "Enter") addUser(); }} />
             </div>
           </div>
-          <div>
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">Role</label>
-            <div className="flex gap-2">
-              {(["Owner", "Manager", "Viewer"] as const).map(r => (
-                <button key={r} onClick={() => setDraft({ ...draft, role: r })} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${draft.role === r ? roleColors[r] : "border-[rgba(255,255,255,0.06)] text-gray-500"}`}>{r}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">
-              <Bell size={10} className="inline mr-1" />Notifications
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {notifyLabels.map(n => (
-                <label key={n.key} className="flex items-center gap-2 cursor-pointer group">
-                  <div onClick={() => setDraft({ ...draft, notify: { ...draft.notify, [n.key]: !draft.notify[n.key] } })} className={`w-8 h-4 rounded-full transition-colors relative ${draft.notify[n.key] ? "bg-[#4ADE80]" : "bg-[rgba(255,255,255,0.08)]"}`}>
-                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${draft.notify[n.key] ? "left-4.5" : "left-0.5"}`} style={{ left: draft.notify[n.key] ? "18px" : "2px" }} />
-                  </div>
-                  <span className="text-xs text-gray-400 group-hover:text-white transition-colors">{n.icon} {n.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-2 pt-1">
-            <button onClick={save} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity">
-              <Save size={11} /> Save Changes
+          {error && <p className="text-xs text-red-400">{error}</p>}
+          <div className="flex gap-2">
+            <button onClick={addUser} disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-black transition-all disabled:opacity-50"
+              style={{ background: `linear-gradient(135deg, ${color}, ${color}99)`, color: "#000" }}>
+              {saving ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
+              {saving ? "Adding…" : "Add User"}
             </button>
-            <button onClick={() => { setDraft(admin); setExpanded(false); }} className="px-4 py-2 rounded-lg border border-[rgba(255,255,255,0.08)] text-gray-500 text-xs hover:text-white transition-colors">
+            <button onClick={() => { setShowAdd(false); setError(""); setEmail(""); setName(""); }}
+              className="px-3 py-1.5 rounded-lg border border-[rgba(255,255,255,0.08)] text-gray-500 text-xs hover:text-white transition-colors">
               Cancel
             </button>
           </div>
         </div>
       )}
+
+      {/* User list */}
+      <div className="space-y-2">
+        {users.length === 0 && (
+          <p className="text-xs text-gray-600 text-center py-4">No users yet — add a Gmail address above.</p>
+        )}
+        {users.map(u => (
+          <div key={u.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${u.active ? "border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)]" : "border-[rgba(255,255,255,0.03)] opacity-40"}`}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-black flex-shrink-0"
+              style={{ backgroundColor: `${color}15`, color, border: `1px solid ${color}30` }}>
+              {initials(u.name || u.email)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">{u.name || "(no name)"}</p>
+              <p className="text-[11px] text-gray-500 truncate">{u.email}</p>
+            </div>
+            <button onClick={() => toggleActive(u.id, u.active)}
+              title={u.active ? "Suspend access" : "Re-enable access"}
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border transition-all ${
+                u.active ? "text-[#4ADE80] border-[rgba(74,222,128,0.3)] bg-[rgba(74,222,128,0.08)] hover:bg-[rgba(239,68,68,0.08)] hover:text-red-400 hover:border-[rgba(239,68,68,0.3)]"
+                : "text-gray-600 border-[rgba(255,255,255,0.08)] hover:text-[#4ADE80]"
+              }`}>
+              {u.active ? "Active" : "Off"}
+            </button>
+            <button onClick={() => removeUser(u.id)} className="flex-shrink-0 text-gray-700 hover:text-red-400 transition-colors">
+              <Trash2 size={13} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Setup hint (shown only if table doesn't exist yet) */}
+      {role === "admin" && users.length === 0 && (
+        <p className="text-[10px] text-gray-700 mt-3">
+          💡 First time? Run the SQL setup in the Supabase SQL Editor, then add users here.
+        </p>
+      )}
     </div>
   );
 }
 
-// ─── Add Admin Modal ───────────────────────────────────────────────────────────
-
-function AddAdminModal({ onAdd, onClose }: { onAdd: (a: AdminUser) => void; onClose: () => void }) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", role: "Manager" as AdminUser["role"] });
-
-  function submit() {
-    if (!form.name || !form.email) return;
-    onAdd({ id: `admin_${Date.now()}`, ...form, notify: { hotLeads: true, warmLeads: false, dailySummary: true, urgentAlerts: true } });
-    onClose();
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#0D1117] border border-[rgba(74,222,128,0.2)] rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-white font-black text-lg">Add Admin User</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><X size={18} /></button>
-        </div>
-        <div className="space-y-3">
-          <div>
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Full Name *</label>
-            <input autoFocus value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Jane Smith" className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-600" />
-          </div>
-          <div>
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Email *</label>
-            <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="jane@teamvisionllc.com" className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-600" />
-          </div>
-          <div>
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Phone</label>
-            <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="423-555-0000" className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-600" />
-          </div>
-          <div>
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">Access Level</label>
-            <div className="flex gap-2">
-              {(["Manager", "Viewer"] as const).map(r => (
-                <button key={r} onClick={() => setForm({ ...form, role: r })} className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all ${form.role === r ? "bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.3)] text-[#4ADE80]" : "border-[rgba(255,255,255,0.06)] text-gray-500 hover:text-white"}`}>{r}</button>
+// ─── Settings Panel ─────────────────────────────────────────────────────
+255,255,0.06)] text-gray-500 hover:text-white"}`}>{r}</button>
               ))}
             </div>
           </div>
@@ -281,21 +264,34 @@ function AddAdminModal({ onAdd, onClose }: { onAdd: (a: AdminUser) => void; onCl
 // ─── Settings Panel ────────────────────────────────────────────────────────────
 
 function SettingsPanel({ leads }: { leads: Lead[] }) {
-  const [admins, setAdmins] = useState<AdminUser[]>(() => {
-    if (typeof window === "undefined") return DEFAULT_ADMINS;
-    try { return JSON.parse(localStorage.getItem("vision_admins") || "null") ?? DEFAULT_ADMINS; } catch { return DEFAULT_ADMINS; }
-  });
+  const [adminUsers,  setAdminUsers]  = useState<AllowedUser[]>([]);
+  const [maintUsers,  setMaintUsers]  = useState<AllowedUser[]>([]);
+  const [cleanUsers,  setCleanUsers]  = useState<AllowedUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [setupSQL, setSetupSQL] = useState(false);
   const [monday, setMonday] = useState<MondaySettings>(() => {
     if (typeof window === "undefined") return { apiToken: "", boardId: "", workspaceUrl: "", status: "idle" };
     try { return JSON.parse(localStorage.getItem("vision_monday") || "null") ?? { apiToken: "", boardId: "", workspaceUrl: "", status: "idle" }; } catch { return { apiToken: "", boardId: "", workspaceUrl: "", status: "idle" }; }
   });
-  const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [mondaySaved, setMondaySaved] = useState(false);
 
-  function saveAdmins(updated: AdminUser[]) {
-    setAdmins(updated);
-    localStorage.setItem("vision_admins", JSON.stringify(updated));
-  }
+  const loadUsers = useCallback(async () => {
+    setUsersLoading(true);
+    try {
+      const [ar, mr, cr] = await Promise.all([
+        fetch("/api/allowed-users?role=admin").then(r => r.json()),
+        fetch("/api/allowed-users?role=maintenance").then(r => r.json()),
+        fetch("/api/allowed-users?role=cleaning").then(r => r.json()),
+      ]);
+      setAdminUsers(ar.users || []);
+      setMaintUsers(mr.users || []);
+      setCleanUsers(cr.users || []);
+      setSetupSQL(false);
+    } catch { setSetupSQL(true); }
+    finally { setUsersLoading(false); }
+  }, []);
+
+  useEffect(() => { loadUsers(); }, [loadUsers]);
 
   async function testMonday() {
     setMonday(m => ({ ...m, status: "testing" }));
@@ -313,44 +309,79 @@ function SettingsPanel({ leads }: { leads: Lead[] }) {
 
   return (
     <div className="space-y-8">
-      {showAddAdmin && (
-        <AddAdminModal
-          onAdd={a => saveAdmins([...admins, a])}
-          onClose={() => setShowAddAdmin(false)}
-        />
-      )}
-
-      {/* ── Admin Team ── */}
+      {/* ─ Portal Access ───────────────────────────────────────── */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Shield size={16} className="text-[#4ADE80]" />
-            <h2 className="text-sm font-black text-white uppercase tracking-widest">Admin Team</h2>
-            <span className="text-xs text-gray-600">({admins.length} users)</span>
-          </div>
-          <button onClick={() => setShowAddAdmin(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.25)] text-[#4ADE80] text-xs font-bold hover:bg-[rgba(74,222,128,0.15)] transition-colors">
-            <Plus size={12} /> Add Admin
-          </button>
+        <div className="flex items-center gap-2 mb-1">
+          <Shield size={15} className="text-[#4ADE80]" />
+          <h2 className="text-sm font-black text-white uppercase tracking-widest">Portal Access</h2>
         </div>
-
-        <div className="space-y-3">
-          {admins.map(admin => (
-            <AdminRow
-              key={admin.id}
-              admin={admin}
-              onUpdate={updated => saveAdmins(admins.map(a => a.id === updated.id ? updated : a))}
-              onDelete={id => saveAdmins(admins.filter(a => a.id !== id))}
-            />
-          ))}
-        </div>
-
-        <p className="text-xs text-gray-600 mt-4 flex items-start gap-1.5">
-          <Bell size={11} className="mt-0.5 flex-shrink-0" />
-          Notification preferences control which alerts each admin receives when leads come in through Ask VISION.
+        <p className="text-[11px] text-gray-500 mb-5">
+          Add Gmail addresses to grant instant access to each portal. Changes take effect immediately — no redeployment required.
         </p>
+
+        {/* Setup SQL banner */}
+        {setupSQL && (
+          <div className="mb-5 p-4 rounded-xl border border-[rgba(74,222,128,0.3)] bg-[rgba(74,222,128,0.05)]">
+            <p className="text-xs font-bold text-[#4ADE80] mb-2">One-time Supabase setup required</p>
+            <p className="text-[11px] text-gray-400 mb-2">Run this SQL in your <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-[#4ADE80] underline">Supabase SQL Editor</a>, then click Refresh:</p>
+            <pre className="text-[10px] text-gray-300 bg-[rgba(0,0,0,0.5)] rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">{`CREATE TABLE IF NOT EXISTS allowed_users (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  name TEXT DEFAULT '',
+  role TEXT DEFAULT 'admin',
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE allowed_users ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anon_all_allowed_users" ON allowed_users
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+
+-- Seed your own email as first admin:
+INSERT INTO allowed_users (id, email, name, role, active)
+VALUES ('user_owner', 'allen@teamvisionllc.com', 'Allen Hurley', 'admin', true)
+ON CONFLICT (email) DO NOTHING;`}</pre>
+            <button onClick={loadUsers} className="mt-3 flex items-center gap-1.5 text-xs font-bold text-[#4ADE80] hover:underline">
+              <RefreshCw size={11} /> Refresh after running SQL
+            </button>
+          </div>
+        )}
+
+        {usersLoading ? (
+          <div className="flex items-center gap-2 py-8 justify-center">
+            <Loader2 size={16} className="animate-spin text-[#4ADE80]" />
+            <span className="text-sm text-gray-500">Loading users…</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <UserSection
+              title="Admin Dashboard"
+              role="admin"
+              icon={<Shield size={13} className="text-[#4ADE80]" />}
+              color="#4ADE80"
+              users={adminUsers}
+              onRefresh={loadUsers}
+            />
+            <UserSection
+              title="Maintenance Staff"
+              role="maintenance"
+              icon={<Wrench size={13} className="text-[#FACC15]" />}
+              color="#FACC15"
+              users={maintUsers}
+              onRefresh={loadUsers}
+            />
+            <UserSection
+              title="Cleaning Staff"
+              role="cleaning"
+              icon={<Sparkles size={13} className="text-[#4ADE80]" />}
+              color="#34D399"
+              users={cleanUsers}
+              onRefresh={loadUsers}
+            />
+          </div>
+        )}
       </div>
 
-      {/* ── Divider ── */}
+      {/* ─ Divider */}
       <div className="border-t border-[rgba(255,255,255,0.05)]" />
 
       {/* ── Monday.com CRM Integration ── */}
@@ -468,7 +499,7 @@ function SettingsPanel({ leads }: { leads: Lead[] }) {
         </div>
       </div>
 
-      {/* ── QR Capture Hub ── */}
+      {/* ─ QR Capture Hub ───────────────────────────────────────── */}
       <div>
         <div className="flex items-center gap-2 mb-4">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center">
@@ -476,13 +507,13 @@ function SettingsPanel({ leads }: { leads: Lead[] }) {
           </div>
           <div>
             <h2 className="text-sm font-black text-white uppercase tracking-widest">QR Capture Cards</h2>
-            <p className="text-[10px] text-gray-500">Each team member gets a unique link — scan to capture leads in-person</p>
+            <p className="text-[10px] text-gray-500">Each admin user gets a unique link — scan to capture leads in-person</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {admins.map(admin => {
-            const slug = nameToSlug(admin.name);
+          {adminUsers.map(admin => {
+            const slug = nameToSlug(admin.name || admin.email);
             const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://teamvisionllc.com";
             const captureUrl = `${baseUrl}/meet/${slug}`;
             const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&bgcolor=080C14&color=4ADE80&margin=10&data=${encodeURIComponent(captureUrl)}`;
@@ -491,10 +522,10 @@ function SettingsPanel({ leads }: { leads: Lead[] }) {
               <div key={admin.id} className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.03)] p-4">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4ADE80]/20 to-[#22C55E]/10 border border-[rgba(74,222,128,0.25)] flex items-center justify-center text-xs font-black text-[#4ADE80]">
-                    {initials(admin.name)}
+                    {initials(admin.name || admin.email)}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-white">{admin.name}</p>
+                    <p className="text-sm font-bold text-white">{admin.name || admin.email}</p>
                     <p className="text-[10px] text-[#4ADE80] font-bold">{qrLeadCount} QR lead{qrLeadCount !== 1 ? "s" : ""}</p>
                   </div>
                 </div>
@@ -521,6 +552,9 @@ function SettingsPanel({ leads }: { leads: Lead[] }) {
               </div>
             );
           })}
+          {adminUsers.length === 0 && (
+            <p className="text-xs text-gray-600 col-span-2 text-center py-6">Add admin users above to generate QR capture cards.</p>
+          )}
         </div>
       </div>
     </div>
@@ -1203,13 +1237,29 @@ export default function AdminPage() {
         return;
       }
       const email = data.user.email || "";
-      // If NEXT_PUBLIC_ADMIN_EMAILS is set, enforce allowlist
-      const rawList = process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "";
-      const allowedEmails = rawList.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
-      if (allowedEmails.length > 0 && !allowedEmails.includes(email.toLowerCase())) {
-        setAccessDenied(true);
-        setAuthChecking(false);
-        return;
+      // Check allowed_users table in Supabase (instant, no redeployment needed)
+      try {
+        const { data: access } = await supabaseBrowser
+          .from("allowed_users")
+          .select("id")
+          .eq("email", email.toLowerCase())
+          .eq("role", "admin")
+          .eq("active", true)
+          .maybeSingle();
+
+        // Fallback: also honour the old NEXT_PUBLIC_ADMIN_EMAILS env var during transition
+        const rawList = process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "";
+        const envAllowed = rawList.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+        const isEnvAllowed = envAllowed.length > 0 && envAllowed.includes(email.toLowerCase());
+
+        if (!access && !isEnvAllowed) {
+          setAccessDenied(true);
+          setAuthChecking(false);
+          return;
+        }
+      } catch {
+        // If table doesn't exist yet, fall through and allow access
+        // (prevents lockout before first DB setup)
       }
       const name = data.user.user_metadata?.full_name || email.split("@")[0] || "Team";
       setCurrentUser({

@@ -1411,14 +1411,13 @@ export default function AdminPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-white font-black text-xl">VISION</h1>
-                <p className="text-[10px] text-gray-500 -mt-0.5 tracking-widest uppercase">Property Intelligence Platform</p>
+                <h1 className="text-white font-black text-xl tracking-tight">VISION</h1>
                 <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#4ADE80] bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.25)] px-2 py-0.5 rounded-lg">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
                   LIVE
                 </span>
               </div>
-              <p className="text-[11px] text-gray-500">AI Lead Intelligence Dashboard</p>
+              <p className="text-[10px] font-semibold text-gray-500 tracking-widest uppercase -mt-0.5">Property Intelligence Platform</p>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">

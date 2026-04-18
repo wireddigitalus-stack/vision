@@ -8,12 +8,14 @@ import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
 import MaintenanceTab from "./MaintenanceTab";
 import CleaningTab from "./CleaningTab";
 import { supabaseBrowser } from "@/lib/supabase-browser";
+import * as XLSX from "xlsx";
 import {
   Zap, RefreshCw, Phone, Clock, Building2, TrendingUp,
   Users, Filter, AlertCircle, DollarSign, Calendar,
   Settings, Plus, Trash2, Save, CheckCircle2, Loader2,
-  Bell, Mail, Shield, ExternalLink, Key, Globe, X, Radio,
+  Bell, Mail, Shield, X, Radio,
   Sparkles, Brain, Send, ChevronRight, ChevronDown, Archive, MessageSquare, BarChart3, Wrench,
+  FileSpreadsheet, Download, Upload,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -35,6 +37,7 @@ interface Lead {
   source?: string;
   medium?: string;
   campaign?: string;
+  additionalInfo?: string;
 }
 
 interface AllowedUser {
@@ -46,11 +49,162 @@ interface AllowedUser {
   created_at?: string;
 }
 
-interface MondaySettings {
-  apiToken: string; boardId: string; workspaceUrl: string;
-  status: "idle" | "testing" | "connected" | "error";
+
+
+// ─── Export Button ───────────────────────────────────────────────────────────
+
+function ExportButton({ leads }: { leads: Lead[] }) {
+  const [exporting, setExporting] = useState(false);
+
+  function doExport() {
+    setExporting(true);
+    try {
+      const rows = leads.map(l => ({
+        "Name":       l.name,
+        "Phone":      l.phone,
+        "Email":      l.email,
+        "Space Type": l.spaceType,
+        "Budget/mo":  l.budget,
+        "Timeline":   l.timeline,
+        "Team Size":  l.teamSize,
+        "AI Score":   l.score,
+        "Label":      l.scoreLabel,
+        "Source":     l.source || "organic",
+        "Notes":      l.additionalInfo || "",
+        "Submitted":  new Date(l.timestamp).toLocaleString(),
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Leads");
+      XLSX.writeFile(wb, `vision-leads-${new Date().toISOString().slice(0,10)}.xlsx`);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={doExport}
+      disabled={exporting || leads.length === 0}
+      className="mt-auto flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-sm font-black hover:opacity-90 disabled:opacity-40 transition-all"
+    >
+      {exporting ? <><Loader2 size={13} className="animate-spin" /> Exporting…</> : <><Download size={13} /> Download Excel</>}
+    </button>
+  );
 }
 
+// ─── Import Panel ─────────────────────────────────────────────────────────────
+
+type ImportRow = Record<string, string | number>;
+
+function ImportPanel() {
+  const [rows, setRows] = useState<ImportRow[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [done, setDone] = useState(0);
+  const [err, setErr] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function handleFile(file: File) {
+    setErr(""); setDone(0); setRows([]); setHeaders([]);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const wb = XLSX.read(data, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const parsed: ImportRow[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        if (!parsed.length) { setErr("No rows found in file."); return; }
+        setHeaders(Object.keys(parsed[0]));
+        setRows(parsed.slice(0, 5)); // preview first 5
+      } catch { setErr("Could not read file. Make sure it's .xlsx or .csv."); }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function doImport() {
+    if (!inputRef.current?.files?.[0]) return;
+    setImporting(true); setErr(""); setDone(0);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const wb = XLSX.read(data, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const allRows: ImportRow[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        let count = 0;
+        for (const row of allRows) {
+          const name = String(row["Name"] || row["name"] || row["Contact"] || row["Lead Name"] || "").trim();
+          if (!name) continue;
+          const body = {
+            name,
+            phone:          String(row["Phone"] || row["phone"] || ""),
+            email:          String(row["Email"] || row["email"] || ""),
+            spaceType:      String(row["Space Type"] || row["spaceType"] || row["Type"] || "Office Space"),
+            budget:         Number(row["Budget/mo"] || row["Budget"] || row["budget"] || 0),
+            timeline:       String(row["Timeline"] || row["timeline"] || "Exploring options"),
+            teamSize:       String(row["Team Size"] || row["teamSize"] || "Solo"),
+            additionalInfo: String(row["Notes"] || row["notes"] || row["Additional Info"] || ""),
+            score:          Number(row["AI Score"] || row["Score"] || row["score"] || 50),
+            scoreLabel:     String(row["Label"] || row["scoreLabel"] || "Warm Lead"),
+            reasoning:      `Imported from spreadsheet on ${new Date().toLocaleDateString()}.`,
+            source:         "import",
+            medium:         "excel",
+          };
+          await fetch("/api/admin-lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+          count++;
+        }
+        setDone(count); setImporting(false);
+      };
+      reader.readAsArrayBuffer(inputRef.current.files[0]);
+    } catch { setErr("Import failed. Please try again."); setImporting(false); }
+  }
+
+  return (
+    <div className="flex flex-col gap-3 flex-1">
+      {/* Drop zone */}
+      <label
+        className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[rgba(96,165,250,0.25)] bg-[rgba(96,165,250,0.04)] p-5 cursor-pointer hover:border-[rgba(96,165,250,0.5)] hover:bg-[rgba(96,165,250,0.07)] transition-all"
+        onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+        onDragOver={e => e.preventDefault()}
+      >
+        <input ref={inputRef} type="file" accept=".xlsx,.csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+        <Upload size={20} className="text-[#60A5FA] opacity-60" />
+        <p className="text-[11px] text-gray-500 text-center">Drag & drop your <strong className="text-gray-400">.xlsx</strong> or <strong className="text-gray-400">.csv</strong> here<br />or click to browse</p>
+      </label>
+
+      {/* Preview */}
+      {rows.length > 0 && (
+        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] overflow-auto max-h-40">
+          <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider px-3 pt-2 pb-1">Preview — first {rows.length} rows</p>
+          <table className="w-full text-[10px] text-gray-400">
+            <thead><tr className="border-b border-[rgba(255,255,255,0.05)]">
+              {headers.slice(0,5).map(h => <th key={h} className="px-3 py-1 text-left text-[9px] text-gray-600 font-bold uppercase">{h}</th>)}
+            </tr></thead>
+            <tbody>{rows.map((r,i) => (
+              <tr key={i} className="border-b border-[rgba(255,255,255,0.03)]">
+                {headers.slice(0,5).map(h => <td key={h} className="px-3 py-1.5 truncate max-w-[80px]">{String(r[h]).slice(0,30)}</td>)}
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
+
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {done > 0 && <p className="text-xs text-[#4ADE80] font-bold">✓ {done} leads imported successfully!</p>}
+
+      {rows.length > 0 && (
+        <button
+          onClick={doImport}
+          disabled={importing}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#60A5FA] to-[#3B82F6] text-white text-sm font-black hover:opacity-90 disabled:opacity-40 transition-all"
+        >
+          {importing ? <><Loader2 size={13} className="animate-spin" /> Importing…</> : <><Upload size={13} /> Import All Rows</>}
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ─── Tooltip ─────────────────────────────────────────────────────────────────
 // Hover on desktop · long-press on mobile · zero external deps
@@ -291,13 +445,6 @@ function SettingsPanel({ leads }: { leads: Lead[] }) {
   const [cleanUsers,  setCleanUsers]  = useState<AllowedUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [setupSQL, setSetupSQL] = useState(false);
-  const [monday, setMonday] = useState<MondaySettings>(() => {
-    if (typeof window === "undefined") return { apiToken: "", boardId: "", workspaceUrl: "", status: "idle" };
-    try { return JSON.parse(localStorage.getItem("vision_monday") || "null") ?? { apiToken: "", boardId: "", workspaceUrl: "", status: "idle" }; } catch { return { apiToken: "", boardId: "", workspaceUrl: "", status: "idle" }; }
-  });
-  const [mondaySaved, setMondaySaved] = useState(false);
-  const [mondayOpen, setMondayOpen] = useState(false);
-
   const loadUsers = useCallback(async () => {
     setUsersLoading(true);
     try {
@@ -315,20 +462,6 @@ function SettingsPanel({ leads }: { leads: Lead[] }) {
   }, []);
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
-
-  async function testMonday() {
-    setMonday(m => ({ ...m, status: "testing" }));
-    await new Promise(r => setTimeout(r, 2000));
-    const ok = monday.apiToken.length > 10;
-    setMonday(m => ({ ...m, status: ok ? "connected" : "error" }));
-    if (ok) localStorage.setItem("vision_monday", JSON.stringify({ ...monday, status: "connected" }));
-  }
-
-  function saveMonday() {
-    localStorage.setItem("vision_monday", JSON.stringify(monday));
-    setMondaySaved(true);
-    setTimeout(() => setMondaySaved(false), 2500);
-  }
 
   return (
     <div className="space-y-8">
@@ -407,133 +540,55 @@ ON CONFLICT (email) DO NOTHING;`}</pre>
       {/* ─ Divider */}
       <div className="border-t border-[rgba(255,255,255,0.05)]" />
 
-      {/* ── Monday.com CRM Integration ── */}
+      {/* ── Data Import / Export ── */}
       <div>
-        {/* Collapsible header */}
-        <button
-          onClick={() => setMondayOpen(o => !o)}
-          className="w-full flex items-center gap-2 mb-2 group"
-        >
-          <div className="w-6 h-6 rounded-md bg-[#FF3D57] flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-[10px] font-black">M</span>
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#60A5FA] to-[#3B82F6] flex items-center justify-center flex-shrink-0">
+            <FileSpreadsheet size={13} className="text-white" />
           </div>
-          <h2 className="text-sm font-black text-white uppercase tracking-widest">Monday.com CRM</h2>
-          {monday.status === "connected" && (
-            <span className="flex items-center gap-1 text-[10px] font-bold text-[#4ADE80] bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.3)] px-2 py-0.5 rounded-lg">
-              <CheckCircle2 size={9} /> Connected
-            </span>
-          )}
-          {monday.status === "error" && (
-            <span className="flex items-center gap-1 text-[10px] font-bold text-red-400 bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.25)] px-2 py-0.5 rounded-lg">
-              <AlertCircle size={9} /> Invalid Key
-            </span>
-          )}
-          <ChevronDown
-            size={14}
-            className={`ml-auto text-gray-600 group-hover:text-gray-400 transition-transform duration-200 ${mondayOpen ? "rotate-180" : ""}`}
-          />
-        </button>
+          <h2 className="text-sm font-black text-white uppercase tracking-widest">Data Import / Export</h2>
+        </div>
+        <p className="text-xs text-gray-500 mb-5">
+          Bring in historical leads from Excel, or export your full dashboard data for backup, sharing, or analysis.
+        </p>
 
-        {mondayOpen && (
-          <>
-            <p className="text-xs text-gray-500 mb-5">
-              When connected, every Ask VISION lead is automatically pushed to your Monday.com board as a new item — complete with AI score, budget, timeline, and matched properties.
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          {/* ── EXPORT ── */}
+          <div className="rounded-2xl border border-[rgba(74,222,128,0.15)] bg-[rgba(74,222,128,0.03)] p-5 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <Download size={15} className="text-[#4ADE80]" />
+              <p className="text-xs font-black text-white uppercase tracking-widest">Export Leads</p>
+            </div>
+            <p className="text-[11px] text-gray-500 leading-relaxed">
+              Download all active leads as a formatted Excel spreadsheet — names, phones, scores, budgets, timelines and more.
             </p>
-
-            <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5 space-y-4">
-              {/* API Token */}
-              <div>
-                <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mb-1.5">
-                  <Key size={10} /> API Token
-                </label>
-                <div className="relative">
-                  <input
-                    type="password"
-                    value={monday.apiToken}
-                    onChange={e => setMonday(m => ({ ...m, apiToken: e.target.value, status: "idle" }))}
-                    placeholder="eyJhbGciOiJIUzI1NiJ9..."
-                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg pl-3 pr-32 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none font-mono placeholder:text-gray-700 placeholder:font-sans"
-                  />
-                  <a href="https://monday.com/l/personalization/tokens" target="_blank" rel="noopener noreferrer" className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-gray-500 hover:text-[#4ADE80] transition-colors">
-                    Get token <ExternalLink size={9} />
-                  </a>
-                </div>
-              </div>
-
-              {/* Board ID */}
-              <div>
-                <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mb-1.5">
-                  <Building2 size={10} /> Board ID
-                </label>
-                <input
-                  value={monday.boardId}
-                  onChange={e => setMonday(m => ({ ...m, boardId: e.target.value, status: "idle" }))}
-                  placeholder="e.g. 1234567890"
-                  className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-700 font-mono"
-                />
-                <p className="text-[10px] text-gray-600 mt-1">Found in the URL of your Monday.com board: monday.com/boards/<strong className="text-gray-500">1234567890</strong></p>
-              </div>
-
-              {/* Workspace URL */}
-              <div>
-                <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mb-1.5">
-                  <Globe size={10} /> Workspace URL
-                </label>
-                <input
-                  value={monday.workspaceUrl}
-                  onChange={e => setMonday(m => ({ ...m, workspaceUrl: e.target.value }))}
-                  placeholder="https://your-team.monday.com"
-                  className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-700"
-                />
-              </div>
-
-              {/* What gets synced */}
-              <div className="rounded-xl border border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.02)] p-3">
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Fields synced per lead</p>
-                <div className="flex flex-wrap gap-2">
-                  {["Lead Name", "Email", "Phone", "Space Type", "Budget/mo", "Timeline", "Team Size", "AI Score", "Score Label", "Matched Properties", "AI Reasoning", "Submitted At"].map(f => (
-                    <span key={f} className="text-[10px] px-2 py-0.5 rounded-md bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.12)] text-gray-400">{f}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  onClick={testMonday}
-                  disabled={!monday.apiToken || monday.status === "testing"}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[rgba(255,255,255,0.1)] text-sm font-bold text-gray-300 hover:text-white hover:border-[rgba(74,222,128,0.3)] disabled:opacity-40 transition-all"
-                >
-                  {monday.status === "testing" ? (
-                    <><Loader2 size={13} className="animate-spin" /> Testing…</>
-                  ) : monday.status === "connected" ? (
-                    <><CheckCircle2 size={13} className="text-[#4ADE80]" /> Re-test Connection</>
-                  ) : (
-                    <><Zap size={13} /> Test Connection</>
-                  )}
-                </button>
-                <button
-                  onClick={saveMonday}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-sm font-black hover:opacity-90 transition-opacity"
-                >
-                  {mondaySaved ? <><CheckCircle2 size={13} /> Saved!</> : <><Save size={13} /> Save Settings</>}
-                </button>
+            <div className="rounded-xl border border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.02)] p-3">
+              <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider mb-2">Columns included</p>
+              <div className="flex flex-wrap gap-1.5">
+                {["Name","Phone","Email","Space Type","Budget/mo","Timeline","Team Size","AI Score","Label","Source","Submitted"].map(c => (
+                  <span key={c} className="text-[10px] px-1.5 py-0.5 rounded bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.12)] text-gray-500">{c}</span>
+                ))}
               </div>
             </div>
+            <ExportButton leads={leads} />
+          </div>
 
-            {/* Integration note */}
-            <div className="mt-4 rounded-xl border border-[rgba(96,165,250,0.15)] bg-[rgba(96,165,250,0.04)] p-3 flex gap-2.5">
-              <Mail size={13} className="text-[#60A5FA] flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-semibold text-[#60A5FA] mb-0.5">Ready to activate</p>
-                <p className="text-[11px] text-gray-500 leading-relaxed">
-                  The Monday.com sync endpoint is built and waiting. Enter your API token and Board ID above, click <strong className="text-gray-400">Test Connection</strong>, and every future Ask VISION lead will flow directly into your CRM board automatically.
-                </p>
-              </div>
+          {/* ── IMPORT ── */}
+          <div className="rounded-2xl border border-[rgba(96,165,250,0.15)] bg-[rgba(96,165,250,0.03)] p-5 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <Upload size={15} className="text-[#60A5FA]" />
+              <p className="text-xs font-black text-white uppercase tracking-widest">Import Leads</p>
             </div>
-          </>
-        )}
+            <p className="text-[11px] text-gray-500 leading-relaxed">
+              Upload an Excel (.xlsx) or CSV file from Monday.com, your old CRM, or any spreadsheet. We'll map the columns automatically.
+            </p>
+            <ImportPanel />
+          </div>
+
+        </div>
       </div>
+
 
       {/* ─ QR Capture Hub ───────────────────────────────────────── */}
       <div>

@@ -21,7 +21,8 @@
     "puppeteer": "^22.15.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwindcss": "^4.2.2"
+    "tailwindcss": "^4.2.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^20",

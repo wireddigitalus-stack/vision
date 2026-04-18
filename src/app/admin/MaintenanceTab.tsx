@@ -96,6 +96,28 @@ const BLANK_TICKET = (): Partial<Ticket> => ({
   estimatedHours: 0, scheduledDate: "", completedDate: "", notes: "",
 });
 
+// ─── DEMO DATA — remove before go-live ───────────────────────────────────────
+// To remove: delete the DEMO_TICKETS array and the `if (data.tickets.length === 0)` block in fetch_
+
+function demoDates() {
+  const t = (n: number) => new Date(Date.now() + n * 86400000).toISOString().split("T")[0];
+  return { yesterday: t(-1), today: t(0), tomorrow: t(1), nextWeek: t(7), twoWks: t(14) };
+}
+
+function getDemoTickets(): Ticket[] {
+  const d = demoDates();
+  return [
+    { id: "demo_1", title: "HVAC not cooling — Suite 301", description: "Tenant reports unit blowing warm air. Thermostat set to 68°F but room holds at 78°F.", building: "The Executive", unit: "Suite 301", category: "HVAC", priority: 1, status: "in_progress", assignedTo: "Mike D.", reportedBy: "Allen Hurley", estimatedCost: 650, actualCost: 0, estimatedHours: 4, scheduledDate: d.today, completedDate: null, notes: "[Apr 17 — Mike D.] Compressor cycling on and off. Ordered capacitor. Parts arrive tomorrow.", source: "admin", createdAt: new Date(Date.now() - 3600000 * 6).toISOString() },
+    { id: "demo_2", title: "Water leak under sink — Unit 112", description: "Tenant reported active drip pooling under kitchen sink cabinet. Possible P-trap failure.", building: "City Centre", unit: "Unit 112", category: "Plumbing", priority: 1, status: "open", assignedTo: "Carlos M.", reportedBy: "Tenant", estimatedCost: 180, actualCost: 0, estimatedHours: 2, scheduledDate: d.today, completedDate: null, notes: "", source: "staff", createdAt: new Date(Date.now() - 3600000 * 2).toISOString() },
+    { id: "demo_3", title: "Electrical outlet sparking — Boardroom", description: "Receptionist noticed sparking from outlet near window. Outlet taken offline. Licensed electrician needed.", building: "Bristol Commons", unit: "Boardroom", category: "Electrical", priority: 2, status: "scheduled", assignedTo: "James R.", reportedBy: "Allen Hurley", estimatedCost: 320, actualCost: 0, estimatedHours: 3, scheduledDate: d.tomorrow, completedDate: null, notes: "[Apr 17 — Allen Hurley] Contacted Tri-Cities Electric. Coming tomorrow 9am.", source: "admin", createdAt: new Date(Date.now() - 3600000 * 14).toISOString() },
+    { id: "demo_4", title: "Lobby door lock not responding", description: "Main entrance keypad intermittently fails. Tenants having to use side entrance.", building: "The Executive", unit: "Main Lobby", category: "Door/Lock", priority: 2, status: "in_progress", assignedTo: "Mike D.", reportedBy: "Front Desk", estimatedCost: 220, actualCost: 0, estimatedHours: 1.5, scheduledDate: d.today, completedDate: null, notes: "", source: "admin", createdAt: new Date(Date.now() - 3600000 * 28).toISOString() },
+    { id: "demo_5", title: "Parking lot light out — Section B", description: "Three LED fixtures in Section B are dark. Likely a tripped breaker or ballast issue.", building: "City Centre", unit: "Parking Lot", category: "Electrical", priority: 3, status: "scheduled", assignedTo: "Carlos M.", reportedBy: "Allen Hurley", estimatedCost: 140, actualCost: 0, estimatedHours: 2, scheduledDate: d.nextWeek, completedDate: null, notes: "", source: "admin", createdAt: new Date(Date.now() - 86400000 * 3).toISOString() },
+    { id: "demo_6", title: "Refrigerator not cooling — Break Room", description: "Staff fridge holding at 52°F. Contents may be unsafe. Needs service call or replacement.", building: "Bristol Commons", unit: "Break Room", category: "Appliance", priority: 3, status: "open", assignedTo: "", reportedBy: "Staff", estimatedCost: 280, actualCost: 0, estimatedHours: 2, scheduledDate: d.nextWeek, completedDate: null, notes: "", source: "staff", createdAt: new Date(Date.now() - 86400000 * 1).toISOString() },
+    { id: "demo_7", title: "Paint scuff in hallway — 2nd floor", description: "5-ft scuff along north wall. Low priority. Touch-up paint on hand in maintenance closet.", building: "The Executive", unit: "2nd Floor Hallway", category: "Damage", priority: 4, status: "open", assignedTo: "James R.", reportedBy: "Cleaning Staff", estimatedCost: 40, actualCost: 0, estimatedHours: 1, scheduledDate: d.twoWks, completedDate: null, notes: "", source: "cleaning", createdAt: new Date(Date.now() - 86400000 * 5).toISOString() },
+    { id: "demo_8", title: "HVAC filter replacement — Suite 105", description: "Quarterly filter swap completed. New MERV-11 filters installed. Next due in 90 days.", building: "City Centre", unit: "Suite 105", category: "HVAC", priority: 4, status: "complete", assignedTo: "Mike D.", reportedBy: "Allen Hurley", estimatedCost: 60, actualCost: 55, estimatedHours: 0.5, scheduledDate: d.yesterday, completedDate: d.yesterday, notes: "[Apr 16 — Mike D.] Done. Used two 16x20x1 MERV-11s. Disposed of old filters.", source: "admin", createdAt: new Date(Date.now() - 86400000 * 7).toISOString() },
+  ];
+}
+
 // ─── Summary Banner ───────────────────────────────────────────────────────────
 
 function SummaryBanner({ tickets }: { tickets: Ticket[] }) {
@@ -488,13 +510,22 @@ export default function MaintenanceTab({ currentUserName }: { currentUserName?: 
   const [priorityFilter, setPriorityFilter] = useState<"all" | 1 | 2 | 3 | 4>("all");
   const [sortBy, setSortBy] = useState<"priority" | "date" | "building">("priority");
 
+  const [showingDemo, setShowingDemo] = useState(false);
+  const [demoDismissed, setDemoDismissed] = useState(false);
+
   const fetch_ = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/maintenance");
       const data = await res.json();
       if (Array.isArray(data.tickets)) {
-        setTickets(data.tickets.map(rowToTicket));
+        if (data.tickets.length === 0) {
+          setTickets(getDemoTickets());
+          setShowingDemo(true);
+        } else {
+          setTickets(data.tickets.map(rowToTicket));
+          setShowingDemo(false);
+        }
         setSetupError(false);
       } else { setSetupError(true); }
     } catch { setSetupError(true); }
@@ -562,6 +593,17 @@ export default function MaintenanceTab({ currentUserName }: { currentUserName?: 
 
   return (
     <div className="mt-6">
+      {/* Demo mode banner */}
+      {showingDemo && !demoDismissed && (
+        <div className="flex items-start justify-between gap-3 mb-4 px-4 py-3 rounded-xl border border-[rgba(250,204,21,0.4)] bg-[rgba(250,204,21,0.08)]">
+          <div>
+            <p className="text-xs font-black text-[#FACC15] flex items-center gap-1.5">📊 Demo Mode — sample data only</p>
+            <p className="text-[11px] text-gray-400 mt-0.5">Add your first real ticket to replace this. Nothing shown here is saved to your database.</p>
+          </div>
+          <button onClick={() => setDemoDismissed(true)} className="flex-shrink-0 text-gray-600 hover:text-white transition-colors mt-0.5"><X size={14} /></button>
+        </div>
+      )}
+
       <SummaryBanner tickets={tickets} />
 
       {/* Setup error */}

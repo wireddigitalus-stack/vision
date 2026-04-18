@@ -21,6 +21,38 @@ interface Assignment {
   status: "pending" | "in_progress" | "done";
 }
 
+// ─── DEMO DATA — remove before go-live ───────────────────────────────────────
+// To remove: delete getDemoAssignments() and the `if (data.assignments.length === 0)` block in fetchAssignments
+
+function weekDay(offset: number): string {
+  const d = new Date();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  mon.setDate(mon.getDate() + offset);
+  return mon.toISOString().split("T")[0];
+}
+
+function getDemoAssignments(): Assignment[] {
+  const mon = weekDay(0), tue = weekDay(1), wed = weekDay(2),
+        thu = weekDay(3), fri = weekDay(4);
+  return [
+    { id: "dc_1",  workerName: "Sarah M.", property: "The Executive",  area: "Common Areas & Lobby",    scheduledDate: mon, startTime: "08:00", endTime: "10:00", completedAt: new Date().toISOString(), notes: "", status: "done" },
+    { id: "dc_2",  workerName: "Sarah M.", property: "The Executive",  area: "Suites 101-110",          scheduledDate: mon, startTime: "10:00", endTime: "13:00", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_3",  workerName: "Sarah M.", property: "The Executive",  area: "Common Areas & Lobby",    scheduledDate: wed, startTime: "08:00", endTime: "10:00", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_4",  workerName: "Sarah M.", property: "The Executive",  area: "Suites 201-210",          scheduledDate: wed, startTime: "10:00", endTime: "13:00", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_5",  workerName: "Sarah M.", property: "The Executive",  area: "Full Building Deep Clean", scheduledDate: fri, startTime: "08:00", endTime: "14:00", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_6",  workerName: "Linda K.", property: "City Centre",    area: "Lobby & Reception",       scheduledDate: tue, startTime: "09:00", endTime: "11:00", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_7",  workerName: "Linda K.", property: "City Centre",    area: "Suites 101-112",          scheduledDate: tue, startTime: "11:00", endTime: "15:00", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_8",  workerName: "Linda K.", property: "City Centre",    area: "Restrooms & Corridors",   scheduledDate: thu, startTime: "09:00", endTime: "12:00", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_9",  workerName: "Priya R.", property: "Bristol Commons", area: "Restrooms (All Floors)",  scheduledDate: mon, startTime: "07:30", endTime: "10:30", completedAt: new Date().toISOString(), notes: "", status: "done" },
+    { id: "dc_10", workerName: "Priya R.", property: "Bristol Commons", area: "Restrooms (All Floors)",  scheduledDate: tue, startTime: "07:30", endTime: "10:30", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_11", workerName: "Priya R.", property: "Bristol Commons", area: "Lobby & Break Room",      scheduledDate: wed, startTime: "07:30", endTime: "10:00", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_12", workerName: "Priya R.", property: "Bristol Commons", area: "Restrooms (All Floors)",  scheduledDate: thu, startTime: "07:30", endTime: "10:30", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_13", workerName: "Priya R.", property: "Bristol Commons", area: "Full Building Clean",     scheduledDate: fri, startTime: "07:30", endTime: "13:00", completedAt: null, notes: "", status: "pending" },
+    { id: "dc_14", workerName: "Jess T.",  property: "City Centre",    area: "Executive Suites 201-205",scheduledDate: mon, startTime: "10:00", endTime: "13:00", completedAt: null, notes: "", status: "pending" },
+  ];
+}
+
 // ─── Worker color palette ─────────────────────────────────────────────────────
 
 const PALETTE = [
@@ -540,6 +572,8 @@ export default function CleaningTab() {
   const [viewMode, setViewMode] = useState<"today" | "week">("today");
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()));
   const [showForm, setShowForm] = useState(false);
+  const [showingDemo, setShowingDemo] = useState(false);
+  const [demoDismissed, setDemoDismissed] = useState(false);
   const today = toISO(new Date());
 
   // Stable worker color index — persists across re-renders
@@ -554,7 +588,13 @@ export default function CleaningTab() {
       const res = await fetch(`/api/cleaning?from=${from}&to=${to}`);
       const data = await res.json();
       if (Array.isArray(data.assignments)) {
-        setAssignments(data.assignments.map(rowToAssignment));
+        if (data.assignments.length === 0) {
+          setAssignments(getDemoAssignments());
+          setShowingDemo(true);
+        } else {
+          setAssignments(data.assignments.map(rowToAssignment));
+          setShowingDemo(false);
+        }
         setSetupError(false);
       } else { setSetupError(true); }
     } catch { setSetupError(true); }
@@ -574,6 +614,17 @@ export default function CleaningTab() {
 
   return (
     <div className="mt-6">
+      {/* Demo mode banner */}
+      {showingDemo && !demoDismissed && (
+        <div className="flex items-start justify-between gap-3 mb-4 px-4 py-3 rounded-xl border border-[rgba(74,222,128,0.4)] bg-[rgba(74,222,128,0.07)]">
+          <div>
+            <p className="text-xs font-black text-[#4ADE80] flex items-center gap-1.5">📊 Demo Mode — sample schedule only</p>
+            <p className="text-[11px] text-gray-400 mt-0.5">Create your first real assignment to replace this. Nothing shown here is saved to your database.</p>
+          </div>
+          <button onClick={() => setDemoDismissed(true)} className="flex-shrink-0 text-gray-600 hover:text-white transition-colors mt-0.5"><X size={14} /></button>
+        </div>
+      )}
+
       <SummaryBanner assignments={assignments} today={today} />
 
       {/* Setup error */}

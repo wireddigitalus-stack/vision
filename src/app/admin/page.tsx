@@ -51,6 +51,40 @@ interface MondaySettings {
 }
 
 
+// ─── Tooltip ─────────────────────────────────────────────────────────────────
+// Hover on desktop · long-press on mobile · zero external deps
+
+function Tooltip({ text, children, wide }: { text: string; children: React.ReactNode; wide?: boolean }) {
+  const [visible, setVisible] = useState(false);
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const show = () => setVisible(true);
+  const hide = () => { setVisible(false); if (timerRef.current) clearTimeout(timerRef.current); };
+  const startLong = () => { timerRef.current = setTimeout(() => setVisible(true), 500); };
+
+  return (
+    <span
+      className="relative inline-flex items-center"
+      onMouseEnter={show} onMouseLeave={hide}
+      onTouchStart={startLong} onTouchEnd={hide} onTouchCancel={hide}
+    >
+      {children}
+      {visible && (
+        <span
+          className={`pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-[999] ${wide ? "w-56" : "w-44"} text-center`}
+          role="tooltip"
+        >
+          <span className="block px-3 py-2 rounded-xl text-[11px] leading-snug font-medium text-gray-200 bg-[rgba(10,16,26,0.97)] border border-[rgba(255,255,255,0.1)] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md">
+            {text}
+          </span>
+          {/* Caret */}
+          <span className="block w-2 h-2 mx-auto -mt-1 rotate-45 bg-[rgba(10,16,26,0.97)] border-r border-b border-[rgba(255,255,255,0.1)]" />
+        </span>
+      )}
+    </span>
+  );
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function scoreColor(score: number) {
@@ -1790,14 +1824,25 @@ export default function AdminPage() {
             <div id="leads-list" className="flex items-center gap-2 mb-6 flex-wrap">
               <Filter size={13} className="text-gray-500" />
               <span className="text-xs text-gray-600 mr-1">Filter:</span>
-              {(["All", "Hot Lead", "Warm Lead", "Nurture", "Whale", "New Today"] as const).map(f => (
-                <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${filter === f ? "bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.3)] text-[#4ADE80]" : "border-[rgba(255,255,255,0.06)] text-gray-500 hover:text-gray-300"}`}>
-                  {f === "Whale" ? "🐳 Whales" : f === "New Today" ? "🆕 New Today" : f}
-                  {f === "Whale" && ` (${activeLeads.filter(l => l.isWhale).length})`}
-                  {f === "New Today" && ` (${activeLeads.filter(l => (Date.now() - new Date(l.timestamp).getTime()) < 864e5).length})`}
-                  {f !== "All" && f !== "Whale" && f !== "New Today" && ` (${activeLeads.filter(l => l.scoreLabel === f).length})`}
-                </button>
-              ))}
+              {(["All", "Hot Lead", "Warm Lead", "Nurture", "Whale", "New Today"] as const).map(f => {
+                const tip =
+                  f === "All"      ? "Show all active leads" :
+                  f === "Hot Lead" ? "Score 70+. High urgency, strong budget. Call today." :
+                  f === "Warm Lead"? "Score 40–69. Interested but needs nurturing." :
+                  f === "Nurture"  ? "Score below 40. Long-term potential — keep warm." :
+                  f === "Whale"    ? "Budget $4,000+/mo. High-value prospects — prioritize." :
+                                    "Leads that arrived in the last 24 hours.";
+                return (
+                  <Tooltip key={f} text={tip}>
+                    <button onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${filter === f ? "bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.3)] text-[#4ADE80]" : "border-[rgba(255,255,255,0.06)] text-gray-500 hover:text-gray-300"}`}>
+                      {f === "Whale" ? "🐳 Whales" : f === "New Today" ? "🆕 New Today" : f}
+                      {f === "Whale" && ` (${activeLeads.filter(l => l.isWhale).length})`}
+                      {f === "New Today" && ` (${activeLeads.filter(l => (Date.now() - new Date(l.timestamp).getTime()) < 864e5).length})`}
+                      {f !== "All" && f !== "Whale" && f !== "New Today" && ` (${activeLeads.filter(l => l.scoreLabel === f).length})`}
+                    </button>
+                  </Tooltip>
+                );
+              })}
             </div>
 
             <div className="space-y-4">
@@ -1828,11 +1873,15 @@ export default function AdminPage() {
                   )}
                   <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                     <div className="flex-shrink-0 text-center">
-                      <div className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center border" style={{ borderColor: `${scoreColor(lead.score)}40`, backgroundColor: `${scoreColor(lead.score)}0A` }}>
-                        <span className="text-2xl font-black tabular-nums leading-none" style={{ color: scoreColor(lead.score) }}>{lead.score}</span>
-                        <span className="text-[9px] text-gray-600 mt-0.5">/ 100</span>
-                      </div>
-                      <div className={`mt-2 text-[10px] px-2 py-0.5 rounded-lg border font-bold text-center ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</div>
+                      <Tooltip text={`AI Lead Score: ${lead.score}/100 — calculated from budget, urgency, timeline, and space type signals.`} wide>
+                        <div className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center border cursor-help" style={{ borderColor: `${scoreColor(lead.score)}40`, backgroundColor: `${scoreColor(lead.score)}0A` }}>
+                          <span className="text-2xl font-black tabular-nums leading-none" style={{ color: scoreColor(lead.score) }}>{lead.score}</span>
+                          <span className="text-[9px] text-gray-600 mt-0.5">/ 100</span>
+                        </div>
+                      </Tooltip>
+                      <Tooltip text={lead.scoreLabel === "Hot Lead" ? "Hot Lead: Score 70+. Call today — high close probability." : lead.scoreLabel === "Warm Lead" ? "Warm Lead: Score 40–69. Nurture with follow-up emails or a call this week." : "Nurture: Score below 40. Keep warm — long-term prospect."}>
+                        <div className={`mt-2 text-[10px] px-2 py-0.5 rounded-lg border font-bold text-center cursor-help ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</div>
+                      </Tooltip>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
@@ -1840,20 +1889,26 @@ export default function AdminPage() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="text-white font-bold text-base">{lead.name}</h3>
                             {lead.isWhale && lead.whaleTier === "gold" && (
-                              <span className="flex items-center gap-1 text-[10px] font-black text-[#FACC15] bg-[rgba(250,204,21,0.12)] border border-[rgba(250,204,21,0.4)] px-2 py-0.5 rounded-lg">
-                                ⭐ Whale Alert
-                              </span>
+                              <Tooltip text="Whale Alert: Budget $8k+/mo. Top-priority prospect — escalate immediately and offer a personal showing." wide>
+                                <span className="flex items-center gap-1 text-[10px] font-black text-[#FACC15] bg-[rgba(250,204,21,0.12)] border border-[rgba(250,204,21,0.4)] px-2 py-0.5 rounded-lg cursor-help">
+                                  ⭐ Whale Alert
+                                </span>
+                              </Tooltip>
                             )}
                             {lead.isWhale && lead.whaleTier === "silver" && (
-                              <span className="flex items-center gap-1 text-[10px] font-black text-[#C4B5FD] bg-[rgba(196,181,253,0.08)] border border-[rgba(196,181,253,0.25)] px-2 py-0.5 rounded-lg">
-                                🐳 High Intent
-                              </span>
+                              <Tooltip text="High-Intent Whale: Budget $4–8k/mo. High-value prospect — prioritize follow-up within 24 hours." wide>
+                                <span className="flex items-center gap-1 text-[10px] font-black text-[#C4B5FD] bg-[rgba(196,181,253,0.08)] border border-[rgba(196,181,253,0.25)] px-2 py-0.5 rounded-lg cursor-help">
+                                  🐳 High Intent
+                                </span>
+                              </Tooltip>
                             )}
                             {isLive && (
-                              <span className="flex items-center gap-1 text-[10px] font-black text-[#4ADE80] bg-[rgba(74,222,128,0.12)] border border-[rgba(74,222,128,0.35)] px-2 py-0.5 rounded-lg">
-                                <span className="w-1 h-1 rounded-full bg-[#4ADE80] animate-pulse" />
-                                NEW
-                              </span>
+                              <Tooltip text="New lead — just arrived in real time from the AI chat widget.">
+                                <span className="flex items-center gap-1 text-[10px] font-black text-[#4ADE80] bg-[rgba(74,222,128,0.12)] border border-[rgba(74,222,128,0.35)] px-2 py-0.5 rounded-lg cursor-help">
+                                  <span className="w-1 h-1 rounded-full bg-[#4ADE80] animate-pulse" />
+                                  NEW
+                                </span>
+                              </Tooltip>
                             )}
                           </div>
                           <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-xs">
@@ -1872,9 +1927,11 @@ export default function AdminPage() {
                             <span className="flex items-center gap-1 text-gray-600"><Clock size={10} /> {timeAgo(lead.timestamp)}</span>
                           {/* Expiring-soon badge */}
                           {daysRemaining(lead.timestamp) <= 30 && daysRemaining(lead.timestamp) > 0 && (
-                            <span className="flex items-center gap-1 text-[10px] font-bold text-orange-400 animate-pulse">
-                              ⏳ {daysRemaining(lead.timestamp)}d left
-                            </span>
+                            <Tooltip text={`This lead auto-archives in ${daysRemaining(lead.timestamp)} days if no action is taken. Follow up soon!`} wide>
+                              <span className="flex items-center gap-1 text-[10px] font-bold text-orange-400 animate-pulse cursor-help">
+                                ⏳ {daysRemaining(lead.timestamp)}d left
+                              </span>
+                            </Tooltip>
                           )}
                           </div>
                         </div>
@@ -1901,9 +1958,11 @@ export default function AdminPage() {
                           </span>
                         )}
                         {lead.source === "qr" && (
-                          <span className="text-xs px-2.5 py-1 rounded-lg font-bold border bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.35)] text-[#4ADE80] flex items-center gap-1">
-                            📲 QR Capture{lead.campaign ? ` · ${lead.campaign.charAt(0).toUpperCase() + lead.campaign.slice(1)}` : ""}
-                          </span>
+                          <Tooltip text={`Captured in person via ${lead.campaign ? lead.campaign.charAt(0).toUpperCase() + lead.campaign.slice(1) + "'s" : "a"} QR code — direct referral, high conversion potential.`} wide>
+                            <span className="text-xs px-2.5 py-1 rounded-lg font-bold border bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.35)] text-[#4ADE80] flex items-center gap-1 cursor-help">
+                              📲 QR Capture{lead.campaign ? ` · ${lead.campaign.charAt(0).toUpperCase() + lead.campaign.slice(1)}` : ""}
+                            </span>
+                          </Tooltip>
                         )}
                         {lead.source && lead.source !== "organic" && lead.source !== "qr" && (
                           <span className={`text-xs px-2.5 py-1 rounded-lg font-semibold border ${

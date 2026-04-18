@@ -305,8 +305,11 @@ const DEMO_LEADS: Lead[] = [
 
 // ─── User Section Component ──────────────────────────────────────────────────
 
-// ─── Owner lock — this email can never be deleted from the dashboard
-const OWNER_EMAIL = "ahurley1474@gmail.com";
+// ─── Owner lock — these emails can never be deleted from the dashboard
+const OWNER_EMAILS = new Set([
+  "ahurley1474@gmail.com",   // Allen Hurley — owner
+  "wireddigitalus@gmail.com", // Robert Neilson — developer
+]);
 
 function UserSection({ title, role, icon, color, users, onRefresh }: {
   title: string; role: string; icon: React.ReactNode; color: string;
@@ -405,7 +408,7 @@ function UserSection({ title, role, icon, color, users, onRefresh }: {
           <p className="text-xs text-gray-600 text-center py-4">No users yet — add a Gmail address above.</p>
         )}
         {users.map(u => {
-            const isOwner = u.email.toLowerCase() === OWNER_EMAIL.toLowerCase();
+            const isOwner = OWNER_EMAILS.has(u.email.toLowerCase());
             return (
           <div key={u.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${u.active ? "border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)]" : "border-[rgba(255,255,255,0.03)] opacity-40"}`}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-black flex-shrink-0"

@@ -325,7 +325,7 @@ CREATE POLICY "anon_all_allowed_users" ON allowed_users
 
 -- Seed your own email as first admin:
 INSERT INTO allowed_users (id, email, name, role, active)
-VALUES ('user_owner', 'allen@teamvisionllc.com', 'Allen Hurley', 'admin', true)
+VALUES ('user_owner', 'ahurley1474@gmail.com', 'Allen Hurley', 'admin', true)
 ON CONFLICT (email) DO NOTHING;`}</pre>
             <button onClick={loadUsers} className="mt-3 flex items-center gap-1.5 text-xs font-bold text-[#4ADE80] hover:underline">
               <RefreshCw size={11} /> Refresh after running SQL

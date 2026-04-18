@@ -704,7 +704,7 @@ function DailyBriefCard({ leads, onBadgeClick, onLeadClick }: {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: `VISION CRM DAILY BRIEF — max 2 short sentences, facts only, no greetings or headers:
+          question: `VISION PROPERTY INTELLIGENCE DAILY BRIEF — max 2 short sentences, facts only, no greetings or headers:
 1. Name the top 2 leads by revenue potential (highest budget × score). For each: name, budget/month, timeline.
 2. Hot pipeline total per month. Mention whale count only if above 0.
 Use real names and numbers. Be punchy.`,
@@ -1338,7 +1338,7 @@ export default function AdminPage() {
           </div>
           <h1 className="text-xl font-black text-white mb-2">Access Denied</h1>
           <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-            Your Google account is not authorized to access Vision CRM.
+            Your Google account is not authorized to access VISION.
             <br />Contact your administrator to request access.
           </p>
           <button
@@ -1360,7 +1360,7 @@ export default function AdminPage() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center mx-auto mb-3 shadow-[0_0_24px_rgba(74,222,128,0.3)] animate-pulse">
             <Zap size={20} className="text-black" />
           </div>
-          <p className="text-xs text-gray-600">Loading VISION CRM…</p>
+          <p className="text-xs text-gray-600">Loading VISION…</p>
         </div>
       </div>
     );
@@ -1411,7 +1411,8 @@ export default function AdminPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-white font-black text-xl">VISION CRM</h1>
+                <h1 className="text-white font-black text-xl">VISION</h1>
+                <p className="text-[10px] text-gray-500 -mt-0.5 tracking-widest uppercase">Property Intelligence Platform</p>
                 <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#4ADE80] bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.25)] px-2 py-0.5 rounded-lg">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
                   LIVE
@@ -1961,7 +1962,7 @@ export default function AdminPage() {
         {activeTab === "settings" && <SettingsPanel leads={activeLeads} />}
 
         <p className="text-center text-[11px] text-gray-700 mt-10">
-          VISION CRM · AI-Powered by Gemini · Auto-refreshes every 30s
+          VISION Property Intelligence Platform · AI-Powered by Gemini · Auto-refreshes every 30s
           <br />
           <span className="text-gray-600">🟢 Supabase connected · </span>
           <span className="text-gray-800">Monday.com sync — ready to activate on API connection</span>

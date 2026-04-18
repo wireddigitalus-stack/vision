@@ -58,8 +58,9 @@ export default function AdminLoginPage() {
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center mx-auto mb-4 shadow-[0_0_24px_rgba(74,222,128,0.25)]">
               <Shield size={22} className="text-black" />
             </div>
-            <h1 className="text-xl font-black text-white mb-2">VISION CRM</h1>
-            <p className="text-sm text-gray-500">Sign in to access your lead dashboard</p>
+            <h1 className="text-xl font-black text-white mb-1">VISION</h1>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Property Intelligence Platform</p>
+            <p className="text-sm text-gray-500">Sign in to access your dashboard</p>
           </div>
 
           {/* Google sign-in button */}
@@ -91,14 +92,14 @@ export default function AdminLoginPage() {
           {/* Security note */}
           <div className="mt-6 pt-5 border-t border-[rgba(255,255,255,0.06)]">
             <p className="text-[11px] text-gray-600 text-center leading-relaxed">
-              🔐 Access restricted to authorized Vision LLC team members only.
+              🔐 Access restricted to authorized team members only.
               <br />Your Google account must be approved for access.
             </p>
           </div>
         </div>
 
         <p className="text-center text-[11px] text-gray-700 mt-6">
-          VISION CRM · AI-Powered Lead Intelligence
+          VISION · Property Intelligence Platform
         </p>
       </div>
     </div>

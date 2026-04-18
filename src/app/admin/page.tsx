@@ -305,6 +305,9 @@ const DEMO_LEADS: Lead[] = [
 
 // ─── User Section Component ──────────────────────────────────────────────────
 
+// ─── Owner lock — this email can never be deleted from the dashboard
+const OWNER_EMAIL = "ahurley1474@gmail.com";
+
 function UserSection({ title, role, icon, color, users, onRefresh }: {
   title: string; role: string; icon: React.ReactNode; color: string;
   users: AllowedUser[]; onRefresh: () => void;
@@ -401,29 +404,45 @@ function UserSection({ title, role, icon, color, users, onRefresh }: {
         {users.length === 0 && (
           <p className="text-xs text-gray-600 text-center py-4">No users yet — add a Gmail address above.</p>
         )}
-        {users.map(u => (
+        {users.map(u => {
+            const isOwner = u.email.toLowerCase() === OWNER_EMAIL.toLowerCase();
+            return (
           <div key={u.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${u.active ? "border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)]" : "border-[rgba(255,255,255,0.03)] opacity-40"}`}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-black flex-shrink-0"
               style={{ backgroundColor: `${color}15`, color, border: `1px solid ${color}30` }}>
               {initials(u.name || u.email)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">{u.name || "(no name)"}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-bold text-white truncate">{u.name || "(no name)"}</p>
+                {isOwner && (
+                  <Tooltip text="Owner account — protected. Can only be removed via Supabase directly.">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[rgba(250,204,21,0.1)] border border-[rgba(250,204,21,0.25)] text-[#FACC15] font-black cursor-help">🔒 Owner</span>
+                  </Tooltip>
+                )}
+              </div>
               <p className="text-[11px] text-gray-500 truncate">{u.email}</p>
             </div>
-            <button onClick={() => toggleActive(u.id, u.active)}
-              title={u.active ? "Suspend access" : "Re-enable access"}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border transition-all ${
-                u.active ? "text-[#4ADE80] border-[rgba(74,222,128,0.3)] bg-[rgba(74,222,128,0.08)] hover:bg-[rgba(239,68,68,0.08)] hover:text-red-400 hover:border-[rgba(239,68,68,0.3)]"
-                : "text-gray-600 border-[rgba(255,255,255,0.08)] hover:text-[#4ADE80]"
-              }`}>
-              {u.active ? "Active" : "Off"}
-            </button>
-            <button onClick={() => removeUser(u.id)} className="flex-shrink-0 text-gray-700 hover:text-red-400 transition-colors">
-              <Trash2 size={13} />
-            </button>
+            {!isOwner && (
+              <button onClick={() => toggleActive(u.id, u.active)}
+                title={u.active ? "Suspend access" : "Re-enable access"}
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border transition-all ${
+                  u.active ? "text-[#4ADE80] border-[rgba(74,222,128,0.3)] bg-[rgba(74,222,128,0.08)] hover:bg-[rgba(239,68,68,0.08)] hover:text-red-400 hover:border-[rgba(239,68,68,0.3)]"
+                  : "text-gray-600 border-[rgba(255,255,255,0.08)] hover:text-[#4ADE80]"
+                }`}>
+                {u.active ? "Active" : "Off"}
+              </button>
+            )}
+            {isOwner ? (
+              <span className="text-[10px] text-[#4ADE80] font-bold px-2 py-0.5 rounded-lg border border-[rgba(74,222,128,0.25)] bg-[rgba(74,222,128,0.06)]">Active</span>
+            ) : (
+              <button onClick={() => removeUser(u.id)} className="flex-shrink-0 text-gray-700 hover:text-red-400 transition-colors">
+                <Trash2 size={13} />
+              </button>
+            )}
           </div>
-        ))}
+            );
+          })}
       </div>
 
       {/* Setup hint (shown only if table doesn't exist yet) */}

@@ -111,7 +111,10 @@ const DEMO_LEADS: Lead[] = [
   { id: "demo_1", timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(), name: "Sarah Mitchell", email: "", phone: "423-555-0192", spaceType: "Executive Office", budget: 3000, timeline: "ASAP — under 30 days", teamSize: "2–4 people", score: 91, scoreLabel: "Hot Lead", reasoning: "Strong budget, urgent timeline, and professional office need align perfectly with City Centre availability.", matchedProperties: [{ id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "1,200–3,000 sqft", location: "Downtown Bristol, TN", matchReason: "Premium finishes, immediate availability, fits 2-4 team." }] },
   { id: "demo_2", timestamp: new Date(Date.now() - 1000 * 60 * 34).toISOString(), name: "Mark Delaney", email: "", phone: "", spaceType: "CoWork Membership", budget: 800, timeline: "1–2 months", teamSize: "Solo", score: 58, scoreLabel: "Warm Lead", reasoning: "Solo operator with moderate budget — Bristol CoWork is an excellent fit. Nurture toward dedicated desk.", matchedProperties: [{ id: "bristol-cowork", name: "Bristol CoWork", type: "CoWork", sqft: "Hot desk / Dedicated desk", location: "620 State Street, Bristol, TN", matchReason: "All-inclusive monthly membership, perfect for solo professional." }] },
   { id: "demo_3", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), name: "Dr. James Patel", email: "", phone: "276-555-0847", spaceType: "Private Office Suite", budget: 6000, timeline: "ASAP — under 30 days", teamSize: "5–10 people", score: 96, scoreLabel: "Hot Lead", reasoning: "Very high budget, urgent timeline, established team — priority contact for today.", matchedProperties: [{ id: "the-executive", name: "The Executive Office Suites", type: "Office", sqft: "2,000–6,000 sqft", location: "Downtown Bristol, TN", matchReason: "Historic prestige building, fits team of 5-10, premium positioning." }, { id: "city-centre", name: "City Centre Professional Suites", type: "Office", sqft: "3,000–8,000 sqft", location: "Downtown Bristol, TN", matchReason: "Larger footprint option with flexible configuration." }], isWhale: true, whaleTier: "gold", whaleKeywords: [] },
-  { id: "demo_4", timestamp: new Date(Date.now(// ─── User Section Component ──────────────────────────────────────────────────
+  { id: "demo_4", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), name: "Blake Thornton", email: "", phone: "", spaceType: "Retail Storefront", budget: 1500, timeline: "3–6 months", teamSize: "2–4 people", score: 42, scoreLabel: "Warm Lead", reasoning: "Retail need with longer timeline. Good candidate for State Street storefront. Follow up in 60 days.", matchedProperties: [{ id: "centre-point", name: "Centre Point Suites", type: "Retail", sqft: "800–2,000 sqft", location: "Downtown Bristol, TN", matchReason: "High foot traffic retail units at budget-friendly rates." }] },
+];
+
+// ─── User Section Component ──────────────────────────────────────────────────
 
 function UserSection({ title, role, icon, color, users, onRefresh }: {
   title: string; role: string; icon: React.ReactNode; color: string;
@@ -244,22 +247,6 @@ function UserSection({ title, role, icon, color, users, onRefresh }: {
   );
 }
 
-// ─── Settings Panel ─────────────────────────────────────────────────────
-255,255,0.06)] text-gray-500 hover:text-white"}`}>{r}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2 mt-5">
-          <button onClick={submit} disabled={!form.name || !form.email} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-sm font-black hover:opacity-90 disabled:opacity-40 transition-all">
-            <Plus size={14} /> Add Admin
-          </button>
-          <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-[rgba(255,255,255,0.08)] text-gray-500 text-sm hover:text-white transition-colors">Cancel</button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Settings Panel ────────────────────────────────────────────────────────────
 
@@ -1229,7 +1216,7 @@ export default function AdminPage() {
 
   // Auth check — redirect to login if no session, block if not on allowlist
   useEffect(() => {
-    supabaseBrowser.auth.getUser().then(({ data }) => {
+    supabaseBrowser.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         router.replace("/admin/login");
         // intentionally leave authChecking=true so the loading spinner stays up

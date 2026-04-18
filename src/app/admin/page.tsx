@@ -1225,6 +1225,7 @@ export default function AdminPage() {
   const [newLeadToast, setNewLeadToast] = useState<Lead | null>(null);
   const [recentLiveIds, setRecentLiveIds] = useState<Set<string>>(new Set());
   const [showAskVision, setShowAskVision] = useState(false);
+  const [callListOpen, setCallListOpen] = useState(true);
   const seenIdsRef = useRef<Set<string>>(new Set(DEMO_LEADS.map(d => d.id)));
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -1682,35 +1683,58 @@ export default function AdminPage() {
               ))}
             </div>
 
-            {/* Call List */}
+            {/* Call List — collapsible */}
             {callList.length > 0 && (
-              <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5 mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <Phone size={14} className="text-[#4ADE80]" />
-                  <h2 className="text-sm font-bold text-white uppercase tracking-widest">Priority Call List</h2>
-                  <span className="text-xs text-gray-600 ml-1">— sorted by AI score</span>
-                </div>
-                <div className="space-y-2">
-                  {callList.map((lead, i) => (
-                    <div key={lead.id} className="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] hover:border-[rgba(74,222,128,0.2)] transition-all">
-                      <span className="text-xs font-black w-4 text-center flex-shrink-0" style={{ color: scoreColor(lead.score) }}>#{i + 1}</span>
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 text-xs sm:text-sm font-black" style={{ backgroundColor: `${scoreColor(lead.score)}12`, color: scoreColor(lead.score) }}>{lead.score}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white truncate">{lead.name}</p>
-                        <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-gray-500 mt-0.5">
-                          <span className="truncate max-w-[90px] sm:max-w-none">{lead.spaceType}</span>
-                          <span className="text-[#4ADE80] font-semibold">${lead.budget.toLocaleString()}/mo</span>
-                        </div>
-                      </div>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold hidden sm:block flex-shrink-0 ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</span>
-                      <a href={`tel:${lead.phone}`} className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity flex-shrink-0">
-                        <Phone size={11} />
-                        <span className="hidden sm:inline">{lead.phone}</span>
-                        <span className="sm:hidden">Call</span>
-                      </a>
+              <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] mb-8 overflow-hidden">
+                {/* Toggle header */}
+                <button
+                  onClick={() => setCallListOpen(o => !o)}
+                  className="w-full flex items-center gap-3 px-5 py-4 hover:bg-[rgba(255,255,255,0.03)] transition-colors group"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-[rgba(74,222,128,0.12)] border border-[rgba(74,222,128,0.25)] flex items-center justify-center flex-shrink-0">
+                    <Phone size={13} className="text-[#4ADE80]" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-black text-white uppercase tracking-widest">Priority Call List</h2>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(74,222,128,0.12)] border border-[rgba(74,222,128,0.25)] text-[#4ADE80] font-bold">
+                        {callList.length} lead{callList.length !== 1 ? "s" : ""}
+                      </span>
                     </div>
-                  ))}
-                </div>
+                    <p className="text-[10px] text-gray-600 mt-0.5">
+                      {callListOpen ? "▲ Tap to collapse" : "▼ Tap to expand · sorted by score × budget"}
+                    </p>
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`text-gray-600 group-hover:text-gray-400 flex-shrink-0 transition-transform duration-200 ${callListOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {/* Body */}
+                {callListOpen && (
+                  <div className="px-5 pb-5 space-y-2 border-t border-[rgba(255,255,255,0.04)] pt-4">
+                    {callList.map((lead, i) => (
+                      <div key={lead.id} className="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] hover:border-[rgba(74,222,128,0.2)] transition-all">
+                        <span className="text-xs font-black w-4 text-center flex-shrink-0" style={{ color: scoreColor(lead.score) }}>#{i + 1}</span>
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 text-xs sm:text-sm font-black" style={{ backgroundColor: `${scoreColor(lead.score)}12`, color: scoreColor(lead.score) }}>{lead.score}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{lead.name}</p>
+                          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-gray-500 mt-0.5">
+                            <span className="truncate max-w-[90px] sm:max-w-none">{lead.spaceType}</span>
+                            <span className="text-[#4ADE80] font-semibold">${lead.budget.toLocaleString()}/mo</span>
+                          </div>
+                        </div>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold hidden sm:block flex-shrink-0 ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</span>
+                        <a href={`tel:${lead.phone}`} className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity flex-shrink-0">
+                          <Phone size={11} />
+                          <span className="hidden sm:inline">{lead.phone}</span>
+                          <span className="sm:hidden">Call</span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

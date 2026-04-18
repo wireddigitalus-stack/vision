@@ -261,6 +261,7 @@ function SettingsPanel({ leads }: { leads: Lead[] }) {
     try { return JSON.parse(localStorage.getItem("vision_monday") || "null") ?? { apiToken: "", boardId: "", workspaceUrl: "", status: "idle" }; } catch { return { apiToken: "", boardId: "", workspaceUrl: "", status: "idle" }; }
   });
   const [mondaySaved, setMondaySaved] = useState(false);
+  const [mondayOpen, setMondayOpen] = useState(false);
 
   const loadUsers = useCallback(async () => {
     setUsersLoading(true);
@@ -373,7 +374,11 @@ ON CONFLICT (email) DO NOTHING;`}</pre>
 
       {/* ── Monday.com CRM Integration ── */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
+        {/* Collapsible header */}
+        <button
+          onClick={() => setMondayOpen(o => !o)}
+          className="w-full flex items-center gap-2 mb-2 group"
+        >
           <div className="w-6 h-6 rounded-md bg-[#FF3D57] flex items-center justify-center flex-shrink-0">
             <span className="text-white text-[10px] font-black">M</span>
           </div>
@@ -388,102 +393,111 @@ ON CONFLICT (email) DO NOTHING;`}</pre>
               <AlertCircle size={9} /> Invalid Key
             </span>
           )}
-        </div>
-        <p className="text-xs text-gray-500 mb-5">
-          When connected, every Ask VISION lead is automatically pushed to your Monday.com board as a new item — complete with AI score, budget, timeline, and matched properties.
-        </p>
+          <ChevronDown
+            size={14}
+            className={`ml-auto text-gray-600 group-hover:text-gray-400 transition-transform duration-200 ${mondayOpen ? "rotate-180" : ""}`}
+          />
+        </button>
 
-        <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5 space-y-4">
-          {/* API Token */}
-          <div>
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mb-1.5">
-              <Key size={10} /> API Token
-            </label>
-            <div className="relative">
-              <input
-                type="password"
-                value={monday.apiToken}
-                onChange={e => setMonday(m => ({ ...m, apiToken: e.target.value, status: "idle" }))}
-                placeholder="eyJhbGciOiJIUzI1NiJ9..."
-                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg pl-3 pr-32 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none font-mono placeholder:text-gray-700 placeholder:font-sans"
-              />
-              <a href="https://monday.com/l/personalization/tokens" target="_blank" rel="noopener noreferrer" className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-gray-500 hover:text-[#4ADE80] transition-colors">
-                Get token <ExternalLink size={9} />
-              </a>
-            </div>
-          </div>
-
-          {/* Board ID */}
-          <div>
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mb-1.5">
-              <Building2 size={10} /> Board ID
-            </label>
-            <input
-              value={monday.boardId}
-              onChange={e => setMonday(m => ({ ...m, boardId: e.target.value, status: "idle" }))}
-              placeholder="e.g. 1234567890"
-              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-700 font-mono"
-            />
-            <p className="text-[10px] text-gray-600 mt-1">Found in the URL of your Monday.com board: monday.com/boards/<strong className="text-gray-500">1234567890</strong></p>
-          </div>
-
-          {/* Workspace URL */}
-          <div>
-            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mb-1.5">
-              <Globe size={10} /> Workspace URL
-            </label>
-            <input
-              value={monday.workspaceUrl}
-              onChange={e => setMonday(m => ({ ...m, workspaceUrl: e.target.value }))}
-              placeholder="https://your-team.monday.com"
-              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-700"
-            />
-          </div>
-
-          {/* What gets synced */}
-          <div className="rounded-xl border border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.02)] p-3">
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Fields synced per lead</p>
-            <div className="flex flex-wrap gap-2">
-              {["Lead Name", "Email", "Phone", "Space Type", "Budget/mo", "Timeline", "Team Size", "AI Score", "Score Label", "Matched Properties", "AI Reasoning", "Submitted At"].map(f => (
-                <span key={f} className="text-[10px] px-2 py-0.5 rounded-md bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.12)] text-gray-400">{f}</span>
-              ))}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-3 pt-1">
-            <button
-              onClick={testMonday}
-              disabled={!monday.apiToken || monday.status === "testing"}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[rgba(255,255,255,0.1)] text-sm font-bold text-gray-300 hover:text-white hover:border-[rgba(74,222,128,0.3)] disabled:opacity-40 transition-all"
-            >
-              {monday.status === "testing" ? (
-                <><Loader2 size={13} className="animate-spin" /> Testing…</>
-              ) : monday.status === "connected" ? (
-                <><CheckCircle2 size={13} className="text-[#4ADE80]" /> Re-test Connection</>
-              ) : (
-                <><Zap size={13} /> Test Connection</>
-              )}
-            </button>
-            <button
-              onClick={saveMonday}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-sm font-black hover:opacity-90 transition-opacity"
-            >
-              {mondaySaved ? <><CheckCircle2 size={13} /> Saved!</> : <><Save size={13} /> Save Settings</>}
-            </button>
-          </div>
-        </div>
-
-        {/* Integration note */}
-        <div className="mt-4 rounded-xl border border-[rgba(96,165,250,0.15)] bg-[rgba(96,165,250,0.04)] p-3 flex gap-2.5">
-          <Mail size={13} className="text-[#60A5FA] flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-semibold text-[#60A5FA] mb-0.5">Ready to activate</p>
-            <p className="text-[11px] text-gray-500 leading-relaxed">
-              The Monday.com sync endpoint is built and waiting. Enter your API token and Board ID above, click <strong className="text-gray-400">Test Connection</strong>, and every future Ask VISION lead will flow directly into your CRM board automatically.
+        {mondayOpen && (
+          <>
+            <p className="text-xs text-gray-500 mb-5">
+              When connected, every Ask VISION lead is automatically pushed to your Monday.com board as a new item — complete with AI score, budget, timeline, and matched properties.
             </p>
-          </div>
-        </div>
+
+            <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5 space-y-4">
+              {/* API Token */}
+              <div>
+                <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                  <Key size={10} /> API Token
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={monday.apiToken}
+                    onChange={e => setMonday(m => ({ ...m, apiToken: e.target.value, status: "idle" }))}
+                    placeholder="eyJhbGciOiJIUzI1NiJ9..."
+                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg pl-3 pr-32 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none font-mono placeholder:text-gray-700 placeholder:font-sans"
+                  />
+                  <a href="https://monday.com/l/personalization/tokens" target="_blank" rel="noopener noreferrer" className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-gray-500 hover:text-[#4ADE80] transition-colors">
+                    Get token <ExternalLink size={9} />
+                  </a>
+                </div>
+              </div>
+
+              {/* Board ID */}
+              <div>
+                <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                  <Building2 size={10} /> Board ID
+                </label>
+                <input
+                  value={monday.boardId}
+                  onChange={e => setMonday(m => ({ ...m, boardId: e.target.value, status: "idle" }))}
+                  placeholder="e.g. 1234567890"
+                  className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-700 font-mono"
+                />
+                <p className="text-[10px] text-gray-600 mt-1">Found in the URL of your Monday.com board: monday.com/boards/<strong className="text-gray-500">1234567890</strong></p>
+              </div>
+
+              {/* Workspace URL */}
+              <div>
+                <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                  <Globe size={10} /> Workspace URL
+                </label>
+                <input
+                  value={monday.workspaceUrl}
+                  onChange={e => setMonday(m => ({ ...m, workspaceUrl: e.target.value }))}
+                  placeholder="https://your-team.monday.com"
+                  className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[rgba(74,222,128,0.4)] outline-none placeholder:text-gray-700"
+                />
+              </div>
+
+              {/* What gets synced */}
+              <div className="rounded-xl border border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.02)] p-3">
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Fields synced per lead</p>
+                <div className="flex flex-wrap gap-2">
+                  {["Lead Name", "Email", "Phone", "Space Type", "Budget/mo", "Timeline", "Team Size", "AI Score", "Score Label", "Matched Properties", "AI Reasoning", "Submitted At"].map(f => (
+                    <span key={f} className="text-[10px] px-2 py-0.5 rounded-md bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.12)] text-gray-400">{f}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  onClick={testMonday}
+                  disabled={!monday.apiToken || monday.status === "testing"}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[rgba(255,255,255,0.1)] text-sm font-bold text-gray-300 hover:text-white hover:border-[rgba(74,222,128,0.3)] disabled:opacity-40 transition-all"
+                >
+                  {monday.status === "testing" ? (
+                    <><Loader2 size={13} className="animate-spin" /> Testing…</>
+                  ) : monday.status === "connected" ? (
+                    <><CheckCircle2 size={13} className="text-[#4ADE80]" /> Re-test Connection</>
+                  ) : (
+                    <><Zap size={13} /> Test Connection</>
+                  )}
+                </button>
+                <button
+                  onClick={saveMonday}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-sm font-black hover:opacity-90 transition-opacity"
+                >
+                  {mondaySaved ? <><CheckCircle2 size={13} /> Saved!</> : <><Save size={13} /> Save Settings</>}
+                </button>
+              </div>
+            </div>
+
+            {/* Integration note */}
+            <div className="mt-4 rounded-xl border border-[rgba(96,165,250,0.15)] bg-[rgba(96,165,250,0.04)] p-3 flex gap-2.5">
+              <Mail size={13} className="text-[#60A5FA] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-[#60A5FA] mb-0.5">Ready to activate</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">
+                  The Monday.com sync endpoint is built and waiting. Enter your API token and Board ID above, click <strong className="text-gray-400">Test Connection</strong>, and every future Ask VISION lead will flow directly into your CRM board automatically.
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ─ QR Capture Hub ───────────────────────────────────────── */}

@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { type, topic, details } = await req.json();
-
     if (!topic?.trim()) {
       return NextResponse.json({ error: "Topic is required." }, { status: 400 });
     }
@@ -27,39 +26,36 @@ export async function POST(req: NextRequest) {
     const typeLabel = TYPE_LABELS[type] || "Press Release";
     const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
-    const prompt = `You are a professional commercial real estate PR copywriter.
+    // Compact prompt — fewer tokens needed from the model
+    const prompt = `Write a short professional press release. Be concise — 3 paragraphs max.
 
-Write a polished, professional press release for Vision LLC, a commercial real estate firm based in Bristol, Tennessee.
+Company: Vision LLC (commercial real estate, Bristol, Tennessee, Tri-Cities region)
+Type: ${typeLabel}
+Topic: ${topic}
+${details ? `Details: ${details}` : ""}
+Today's date: ${today}
 
-Release Type: ${typeLabel}
-Topic / Property: ${topic}
-${details ? `Additional Details: ${details}` : ""}
+Format:
+Line 1: HEADLINE: [headline text]
+Line 2: (blank)
+Line 3: BRISTOL, Tenn. — ${today} — [body paragraph 1]
+Line 4: (blank)
+[body paragraph 2]
+Line 5: (blank)
+[body paragraph 3]
+Line 6: (blank)
+About Vision LLC: Vision LLC is a commercial real estate firm specializing in office, retail, and industrial space in the Tri-Cities region of Tennessee and Virginia. For more information, visit teamvisionllc.com. Contact: ahurley1474@gmail.com
 
-REQUIREMENTS:
-- Write in AP Style (standard press release format)
-- First line must be: HEADLINE: [your headline here]
-- Then a blank line
-- Then the dateline: BRISTOL, Tenn. — ${today} —
-- Include 3–5 paragraphs of professional body copy
-- End with this boilerplate paragraph: "About Vision LLC: Vision LLC is a commercial real estate firm specializing in office, retail, and industrial space in the Tri-Cities region of Tennessee and Virginia. Powered by AI-driven property intelligence, Vision LLC connects businesses with premium commercial spaces and delivers exceptional client service. For more information, visit teamvisionllc.com."
-- Final line: ###
-- Tone: confident, professional, newsworthy — avoid filler phrases
-- Contact: ahurley1474@gmail.com | Vision LLC | Bristol, TN
-
-Write the full press release now.`;
+Write it now, no preamble:`;
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 4096,
-            thinkingConfig: { thinkingBudget: 0 },
-          },
+          generationConfig: { temperature: 0.6, maxOutputTokens: 8192 },
         }),
       }
     );
@@ -71,7 +67,8 @@ Write the full press release now.`;
     }
 
     const geminiData = await geminiRes.json();
-    // gemini-1.5-flash returns all text in parts; join them all
+
+    // Collect ALL parts in case the model splits the response
     const parts = geminiData.candidates?.[0]?.content?.parts || [];
     const text = parts.map((p: { text?: string }) => p.text || "").join("").trim();
 
@@ -79,7 +76,7 @@ Write the full press release now.`;
       return NextResponse.json({ error: "No content generated. Please try again." }, { status: 500 });
     }
 
-    // Extract headline
+    // Extract headline if present
     const headlineMatch = text.match(/^HEADLINE:\s*(.+)$/m);
     const title = headlineMatch ? headlineMatch[1].trim() : topic;
     const content = text.replace(/^HEADLINE:\s*.+\n?/m, "").trim();

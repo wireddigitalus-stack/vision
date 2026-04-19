@@ -1,11 +1,17 @@
 User-agent: *
 Allow: /
 
-# Disallow private routes
+# ── Private routes — do not index ─────────────────────────────────────────────
 Disallow: /api/
 Disallow: /admin
+Disallow: /admin/
+Disallow: /staff/
+Disallow: /meet/
+Disallow: /auth/
+Disallow: /l/
 
-# Primary sitemap (production domain — update DNS when domain is live)
+# ── Sitemaps ───────────────────────────────────────────────────────────────────
+# Primary (permanent domain — activate when DNS is live)
 Sitemap: https://teamvisionllc.com/sitemap.xml
 
 # Current live deployment

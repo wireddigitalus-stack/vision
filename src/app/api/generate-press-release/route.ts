@@ -49,13 +49,13 @@ REQUIREMENTS:
 Write the full press release now.`;
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
         }),
       }
     );
@@ -67,7 +67,9 @@ Write the full press release now.`;
     }
 
     const geminiData = await geminiRes.json();
-    const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    // gemini-1.5-flash returns all text in parts; join them all
+    const parts = geminiData.candidates?.[0]?.content?.parts || [];
+    const text = parts.map((p: { text?: string }) => p.text || "").join("").trim();
 
     if (!text) {
       return NextResponse.json({ error: "No content generated. Please try again." }, { status: 500 });

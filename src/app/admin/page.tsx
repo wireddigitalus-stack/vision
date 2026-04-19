@@ -1742,7 +1742,7 @@ export default function AdminPage() {
 
             <button
               onClick={() => setShowAskVision(true)}
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-xl bg-gradient-to-r from-[rgba(74,222,128,0.12)] to-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.3)] text-[#4ADE80] text-xs font-bold hover:from-[rgba(74,222,128,0.2)] hover:to-[rgba(74,222,128,0.1)] transition-all shadow-[0_0_12px_rgba(74,222,128,0.1)]"
+              className="btn-ask-vision px-3 sm:px-4 py-2"
               title="Ask VISION"
             >
               <Brain size={13} />

@@ -32,6 +32,26 @@
   animation: border-spin 3s linear infinite;
 }
 
+/* Compact animated border for Ask VISION buttons in the admin dashboard */
+.btn-ask-vision {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: conic-gradient(from var(--border-angle), #080C14, #080C14) padding-box,
+    conic-gradient(from var(--border-angle), #FACC15 0%, #4ADE80 40%, #60A5FA 70%, #FACC15 100%) border-box;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  color: #4ADE80;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  animation: border-spin 3s linear infinite;
+  transition: opacity 0.2s ease;
+}
+.btn-ask-vision:hover { opacity: 0.85; }
+
+
 .btn-primary-cta:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 32px rgba(250, 204, 21, 0.25);

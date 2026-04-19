@@ -7,6 +7,7 @@ import TenantsTab from "./TenantsTab";
 import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
 import MaintenanceTab from "./MaintenanceTab";
 import CleaningTab from "./CleaningTab";
+import MarketingTab from "./MarketingTab";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import * as XLSX from "xlsx";
 import {
@@ -15,7 +16,7 @@ import {
   Settings, Plus, Trash2, Save, CheckCircle2, Loader2,
   Bell, Mail, Shield, X, Radio,
   Sparkles, Brain, Send, ChevronRight, ChevronDown, Archive, MessageSquare, BarChart3, Wrench,
-  FileSpreadsheet, Download, Upload,
+  FileSpreadsheet, Download, Upload, FileText,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1459,7 +1460,7 @@ export default function AdminPage() {
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; email: string; avatar?: string}>>([]);
   const briefKeyRef = useRef(0);
   const [briefKey, setBriefKey] = useState(0);
-  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "cleaning" | "archived" | "settings">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "cleaning" | "archived" | "marketing" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
   const [loading, setLoading] = useState(false);
@@ -1794,6 +1795,7 @@ export default function AdminPage() {
               { key: "leads",       label: "Leads",    fullLabel: `Leads (${activeLeads.length})`, icon: TrendingUp },
               { key: "tenants",     label: "Tenants",  fullLabel: "Tenants",     icon: Building2 },
               { key: "analytics",   label: "Analytic", fullLabel: "Analytics",   icon: BarChart3 },
+              { key: "marketing",   label: "Market",   fullLabel: "Marketing",   icon: FileText },
               { key: "maintenance", label: "Maint.",   fullLabel: "Maintenance", icon: Wrench },
               { key: "cleaning",    label: "Cleaning", fullLabel: "Cleaning",    icon: Sparkles },
               { key: "archived",    label: "Archive",  fullLabel: `Archived (${archivedLeads.length})`, icon: Archive },
@@ -2305,6 +2307,11 @@ export default function AdminPage() {
         )}
 
         {/* ─ SETTINGS TAB ───────────────────────────────────────────────────── */}
+        {activeTab === "marketing" && (
+          <div className="glass rounded-2xl border border-[rgba(255,255,255,0.06)] p-6 sm:p-8">
+            <MarketingTab />
+          </div>
+        )}
         {activeTab === "settings" && <SettingsPanel leads={activeLeads} />}
 
         <p className="text-center text-[11px] text-gray-700 mt-10">

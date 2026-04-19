@@ -1794,10 +1794,10 @@ export default function AdminPage() {
             {([
               { key: "leads",       label: "Leads",    fullLabel: `Leads (${activeLeads.length})`, icon: TrendingUp },
               { key: "tenants",     label: "Tenants",  fullLabel: "Tenants",     icon: Building2 },
-              { key: "analytics",   label: "Analytic", fullLabel: "Analytics",   icon: BarChart3 },
-              { key: "marketing",   label: "Market",   fullLabel: "Marketing",   icon: FileText },
               { key: "maintenance", label: "Maint.",   fullLabel: "Maintenance", icon: Wrench },
               { key: "cleaning",    label: "Cleaning", fullLabel: "Cleaning",    icon: Sparkles },
+              { key: "analytics",   label: "Analytic", fullLabel: "Analytics",   icon: BarChart3 },
+              { key: "marketing",   label: "Market",   fullLabel: "Marketing",   icon: FileText },
               { key: "archived",    label: "Archive",  fullLabel: `Archived (${archivedLeads.length})`, icon: Archive },
               { key: "settings",    label: "Settings", fullLabel: "Settings",    icon: Settings },
             ] as const).map(({ key, label, fullLabel, icon: Icon }) => (

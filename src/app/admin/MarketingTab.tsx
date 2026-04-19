@@ -140,7 +140,7 @@ export default function MarketingTab() {
       {/* ── Header ── */}
       <div>
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C084FC] to-[#9333EA] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#60A5FA] to-[#3B82F6] flex items-center justify-center">
             <FileText size={15} className="text-white" />
           </div>
           <div>
@@ -164,7 +164,7 @@ export default function MarketingTab() {
               <select
                 value={prType}
                 onChange={e => setPrType(e.target.value)}
-                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(196,132,252,0.5)] outline-none appearance-none cursor-pointer"
+                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(96,165,250,0.5)] outline-none appearance-none cursor-pointer"
               >
                 {PR_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
@@ -179,7 +179,7 @@ export default function MarketingTab() {
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
                 placeholder="e.g. 2,400 sqft Office Suite — Downtown Bristol"
-                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(196,132,252,0.5)] outline-none placeholder:text-gray-700"
+                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(96,165,250,0.5)] outline-none placeholder:text-gray-700"
               />
             </div>
 
@@ -193,7 +193,7 @@ export default function MarketingTab() {
                 onChange={e => setDetails(e.target.value)}
                 rows={5}
                 placeholder={"Location, square footage, amenities, lease terms, notable features, target tenant type, contact info..."}
-                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(196,132,252,0.5)] outline-none resize-none placeholder:text-gray-700 leading-relaxed"
+                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(96,165,250,0.5)] outline-none resize-none placeholder:text-gray-700 leading-relaxed"
               />
             </div>
 
@@ -202,7 +202,7 @@ export default function MarketingTab() {
             <button
               onClick={generate}
               disabled={generating}
-              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#C084FC] to-[#9333EA] text-white font-black text-sm hover:opacity-90 disabled:opacity-50 transition-all"
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#60A5FA] to-[#3B82F6] text-white font-black text-sm hover:opacity-90 disabled:opacity-50 transition-all"
             >
               {generating ? (
                 <><Loader2 size={14} className="animate-spin" /> Generating…</>
@@ -256,7 +256,7 @@ export default function MarketingTab() {
               <input
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm font-bold text-white focus:border-[rgba(196,132,252,0.5)] outline-none"
+                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm font-bold text-white focus:border-[rgba(96,165,250,0.5)] outline-none"
                 placeholder="Press release headline…"
               />
               {/* Body */}
@@ -264,7 +264,7 @@ export default function MarketingTab() {
                 value={draft}
                 onChange={e => setDraft(e.target.value)}
                 rows={18}
-                className="flex-1 w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-xl px-4 py-3 text-sm text-gray-200 focus:border-[rgba(196,132,252,0.4)] outline-none resize-none leading-relaxed font-mono"
+                className="flex-1 w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-xl px-4 py-3 text-sm text-gray-200 focus:border-[rgba(96,165,250,0.4)] outline-none resize-none leading-relaxed font-mono"
               />
               {/* Save */}
               <button
@@ -277,7 +277,7 @@ export default function MarketingTab() {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[rgba(255,255,255,0.05)] text-gray-700 py-16">
               <Sparkles size={28} className="opacity-30" />
-              <p className="text-sm text-center">AI-generated press release<br />will appear here</p>
+              <p className="text-sm text-center">AI-generated press release<br />will appear here for review</p>
             </div>
           )}
         </div>

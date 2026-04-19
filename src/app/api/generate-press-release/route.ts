@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     const typeLabel = TYPE_LABELS[type] || "Press Release";
+    const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
     const prompt = `You are a professional commercial real estate PR copywriter.
 
@@ -38,7 +39,7 @@ REQUIREMENTS:
 - Write in AP Style (standard press release format)
 - First line must be: HEADLINE: [your headline here]
 - Then a blank line
-- Then the dateline: BRISTOL, Tenn. — [write today's approximate date] —
+- Then the dateline: BRISTOL, Tenn. — ${today} —
 - Include 3–5 paragraphs of professional body copy
 - End with this boilerplate paragraph: "About Vision LLC: Vision LLC is a commercial real estate firm specializing in office, retail, and industrial space in the Tri-Cities region of Tennessee and Virginia. Powered by AI-driven property intelligence, Vision LLC connects businesses with premium commercial spaces and delivers exceptional client service. For more information, visit teamvisionllc.com."
 - Final line: ###

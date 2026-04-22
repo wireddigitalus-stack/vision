@@ -141,19 +141,64 @@ export default function MarketingTab() {
     <div className="space-y-8">
 
       {/* ── Sub-nav ── */}
-      <div className="flex gap-1 border-b border-[rgba(255,255,255,0.06)] pb-0 -mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {([
-          { key: "press",  label: "Press Releases", icon: FileText },
-          { key: "blog",   label: "Blog Articles",  icon: BookOpen },
-          { key: "photos", label: "Property Photos", icon: ImageIcon },
-        ] as const).map(({ key, label, icon: Icon }) => (
+          {
+            key:   "press",
+            label: "Press Releases",
+            desc:  "AI-generated press copy, review & distribute",
+            icon:  FileText,
+            grad:  "from-[#60A5FA] to-[#3B82F6]",
+            glow:  "rgba(96,165,250,0.2)",
+            border:"rgba(96,165,250,0.4)",
+            tag:   "Generator",
+          },
+          {
+            key:   "blog",
+            label: "Blog Articles",
+            desc:  "SEO articles published straight to the website",
+            icon:  BookOpen,
+            grad:  "from-[#A78BFA] to-[#7C3AED]",
+            glow:  "rgba(167,139,250,0.2)",
+            border:"rgba(167,139,250,0.4)",
+            tag:   "AI + Live",
+          },
+          {
+            key:   "photos",
+            label: "Property Photos",
+            desc:  "Upload & swap images for any listing",
+            icon:  ImageIcon,
+            grad:  "from-[#4ADE80] to-[#22C55E]",
+            glow:  "rgba(74,222,128,0.2)",
+            border:"rgba(74,222,128,0.4)",
+            tag:   "6 Properties",
+          },
+        ] as const).map(({ key, label, desc, icon: Icon, grad, glow, border, tag }) => (
           <button key={key} onClick={() => setSubTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold border-b-2 transition-all -mb-px ${
+            className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden ${
               subTab === key
-                ? "border-[#60A5FA] text-[#60A5FA]"
-                : "border-transparent text-gray-600 hover:text-gray-300"
-            }`}>
-            <Icon size={12} />{label}
+                ? "bg-[rgba(255,255,255,0.04)]"
+                : "border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.15)] hover:bg-[rgba(255,255,255,0.02)]"
+            }`}
+            style={subTab === key ? { borderColor: border, boxShadow: `0 0 24px ${glow}` } : {}}
+          >
+            {/* Active glow bg */}
+            {subTab === key && (
+              <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                style={{ background: `radial-gradient(ellipse at top left, ${glow.replace("0.2","1")} 0%, transparent 70%)` }} />
+            )}
+            <div className="flex items-start gap-3 relative">
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                <Icon size={17} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-sm font-black text-white">{label}</p>
+                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full bg-gradient-to-r ${grad} text-white opacity-80`}>{tag}</span>
+                </div>
+                <p className="text-[11px] text-gray-500 leading-relaxed">{desc}</p>
+              </div>
+            </div>
           </button>
         ))}
       </div>

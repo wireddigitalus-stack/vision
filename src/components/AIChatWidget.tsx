@@ -15,29 +15,29 @@ import {
 } from "lucide-react";
 import { COMPANY } from "@/lib/data";
 
-// ─── Property URL map (id → internal page) ───────────────────────────────────
+// ─── Property URL map (id → individual property page) ───────────────────────
 const PROPERTY_URLS: Record<string, string> = {
-  // Canonical IDs (as instructed in the AI prompt)
-  "city-centre":            "/spaces/office-space-tri-cities-tn",
-  "the-executive":          "/spaces/office-space-tri-cities-tn",
-  "bristol-cowork":         "/cowork",
-  "centre-point":           "/spaces/retail-space-bristol-tn",
-  "foundation-event":       "/spaces",
-  "commercial-warehouse":   "/spaces/industrial-space-tri-cities-tn",
+  // Canonical IDs — direct links to individual property detail pages
+  "city-centre":              "/properties/city-centre",
+  "the-executive":            "/properties/the-executive",
+  "bristol-cowork":           "/properties/bristol-cowork",
+  "centre-point":             "/properties/centre-point-suites",
+  "foundation-event":         "/properties/foundation-event-facility",
+  "commercial-warehouse":     "/properties/warehouse",
   // Common AI-generated variations (safety net)
-  "city-centre-professional-suites": "/spaces/office-space-tri-cities-tn",
-  "city-centre-suites":     "/spaces/office-space-tri-cities-tn",
-  "executive":              "/spaces/office-space-tri-cities-tn",
-  "the-executive-suites":   "/spaces/office-space-tri-cities-tn",
-  "bristol-cowork-space":   "/cowork",
-  "cowork":                 "/cowork",
-  "centre-point-suites":    "/spaces/retail-space-bristol-tn",
-  "centerpoint":            "/spaces/retail-space-bristol-tn",
-  "center-point":           "/spaces/retail-space-bristol-tn",
-  "foundation":             "/spaces",
-  "foundation-event-facility": "/spaces",
-  "warehouse":              "/spaces/industrial-space-tri-cities-tn",
-  "commercial-warehouse-space": "/spaces/industrial-space-tri-cities-tn",
+  "city-centre-professional-suites": "/properties/city-centre",
+  "city-centre-suites":       "/properties/city-centre",
+  "executive":                "/properties/the-executive",
+  "the-executive-suites":     "/properties/the-executive",
+  "bristol-cowork-space":     "/properties/bristol-cowork",
+  "cowork":                   "/properties/bristol-cowork",
+  "centre-point-suites":      "/properties/centre-point-suites",
+  "centerpoint":              "/properties/centre-point-suites",
+  "center-point":             "/properties/centre-point-suites",
+  "foundation":               "/properties/foundation-event-facility",
+  "foundation-event-facility":"/properties/foundation-event-facility",
+  "warehouse":                "/properties/warehouse",
+  "commercial-warehouse-space":"/properties/warehouse",
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
 import MaintenanceTab from "./MaintenanceTab";
 import CleaningTab from "./CleaningTab";
 import MarketingTab from "./MarketingTab";
+import CallLogModal, { type CallLog, outcomeColor, outcomeLabel } from "./CallLogModal";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import * as XLSX from "xlsx";
 import {
@@ -1469,8 +1470,18 @@ export default function AdminPage() {
   const [recentLiveIds, setRecentLiveIds] = useState<Set<string>>(new Set());
   const [showAskVision, setShowAskVision] = useState(false);
   const [callListOpen, setCallListOpen] = useState(true);
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [activeCallLog, setActiveCallLog] = useState<{ leadId: string; leadName: string; phone: string } | null>(null);
   const seenIdsRef = useRef<Set<string>>(new Set(DEMO_LEADS.map(d => d.id)));
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fetch call logs on mount
+  useEffect(() => {
+    fetch("/api/call-logs")
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.logs)) setCallLogs(d.logs); })
+      .catch(() => {});
+  }, []);
 
   // Auth check — redirect to login if no session, block if not on allowlist
   useEffect(() => {
@@ -1788,6 +1799,20 @@ export default function AdminPage() {
           <AskVisionModal leads={leads} onClose={() => setShowAskVision(false)} />
         )}
 
+        {/* ─ CALL LOG MODAL ──────────────────────────────────────────────────── */}
+        {activeCallLog && (
+          <CallLogModal
+            leadId={activeCallLog.leadId}
+            leadName={activeCallLog.leadName}
+            phone={activeCallLog.phone}
+            existingLogs={callLogs.filter(l => l.lead_id === activeCallLog.leadId)}
+            currentUser={currentUser?.name || "Admin"}
+            onSave={log => setCallLogs(prev => [log, ...prev.filter(l => l.id !== log.id)])}
+            onDelete={id => setCallLogs(prev => prev.filter(l => l.id !== id))}
+            onClose={() => setActiveCallLog(null)}
+          />
+        )}
+
         {/* Tab Nav — horizontally scrollable on mobile */}
         <div className="relative mb-8">
           <div className="scrollbar-none flex items-center gap-0.5 border-b border-[rgba(255,255,255,0.06)] overflow-x-auto pb-0 -mx-2 px-2 sm:mx-0 sm:px-0" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
@@ -1958,25 +1983,52 @@ export default function AdminPage() {
                 {/* Body */}
                 {callListOpen && (
                   <div className="px-5 pb-5 space-y-2 border-t border-[rgba(255,255,255,0.04)] pt-4">
-                    {callList.map((lead, i) => (
-                      <div key={lead.id} className="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] hover:border-[rgba(74,222,128,0.2)] transition-all">
-                        <span className="text-xs font-black w-4 text-center flex-shrink-0" style={{ color: scoreColor(lead.score) }}>#{i + 1}</span>
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 text-xs sm:text-sm font-black" style={{ backgroundColor: `${scoreColor(lead.score)}12`, color: scoreColor(lead.score) }}>{lead.score}</div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-white truncate">{lead.name}</p>
-                          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-gray-500 mt-0.5">
-                            <span className="truncate max-w-[90px] sm:max-w-none">{lead.spaceType}</span>
-                            <span className="text-[#4ADE80] font-semibold">${lead.budget.toLocaleString()}/mo</span>
+                    {callList.map((lead, i) => {
+                      const logsForLead = callLogs.filter(l => l.lead_id === lead.id);
+                      const lastLog = logsForLead[0];
+                      const followUpDue = lastLog?.follow_up_date && new Date(lastLog.follow_up_date) < new Date() && lastLog.outcome !== "answered";
+                      return (
+                        <div key={lead.id} className="rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] hover:border-[rgba(74,222,128,0.2)] transition-all overflow-hidden">
+                          <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3">
+                            <span className="text-xs font-black w-4 text-center flex-shrink-0" style={{ color: scoreColor(lead.score) }}>#{i + 1}</span>
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 text-xs sm:text-sm font-black" style={{ backgroundColor: `${scoreColor(lead.score)}12`, color: scoreColor(lead.score) }}>{lead.score}</div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-white truncate">{lead.name}</p>
+                              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-gray-500 mt-0.5">
+                                <span className="truncate max-w-[90px] sm:max-w-none">{lead.spaceType}</span>
+                                <span className="text-[#4ADE80] font-semibold">${lead.budget.toLocaleString()}/mo</span>
+                              </div>
+                            </div>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold hidden sm:block flex-shrink-0 ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</span>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              <a href={`tel:${lead.phone}`} className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity">
+                                <Phone size={11} />
+                                <span className="hidden sm:inline">{lead.phone}</span>
+                                <span className="sm:hidden">Call</span>
+                              </a>
+                              <button
+                                onClick={() => setActiveCallLog({ leadId: lead.id, leadName: lead.name, phone: lead.phone || "" })}
+                                className="flex items-center gap-1 px-2.5 py-2 rounded-xl border border-[rgba(255,255,255,0.1)] text-gray-400 text-xs font-bold hover:text-white hover:border-[rgba(255,255,255,0.25)] transition-all"
+                                title="Log call notes"
+                              >
+                                <FileText size={11} />
+                                <span className="hidden sm:inline">Log</span>
+                              </button>
+                            </div>
                           </div>
+                          {/* Call activity strip */}
+                          {lastLog && (
+                            <div className={`px-4 py-1.5 flex items-center gap-2 border-t border-[rgba(255,255,255,0.04)] ${followUpDue ? "bg-[rgba(239,68,68,0.06)]" : "bg-[rgba(255,255,255,0.01)]"}`}>
+                              {followUpDue && <span className="text-[9px] font-black text-red-400 uppercase tracking-wide animate-pulse">⚠ Follow-up Due</span>}
+                              <span className="text-[9px] font-black uppercase tracking-wide" style={{ color: outcomeColor(lastLog.outcome) }}>{outcomeLabel(lastLog.outcome)}</span>
+                              <span className="text-[9px] text-gray-700">·</span>
+                              <span className="text-[9px] text-gray-600">{new Date(lastLog.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}</span>
+                              {logsForLead.length > 1 && <span className="text-[9px] text-gray-700 ml-auto">{logsForLead.length} calls logged</span>}
+                            </div>
+                          )}
                         </div>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold hidden sm:block flex-shrink-0 ${scoreBadge(lead.scoreLabel)}`}>{lead.scoreLabel}</span>
-                        <a href={`tel:${lead.phone}`} className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity flex-shrink-0">
-                          <Phone size={11} />
-                          <span className="hidden sm:inline">{lead.phone}</span>
-                          <span className="sm:hidden">Call</span>
-                        </a>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -2120,6 +2172,25 @@ export default function AdminPage() {
                                 </span>
                               </Tooltip>
                             )}
+                            {/* Call history badge */}
+                            {(() => {
+                              const logsForLead = callLogs.filter(l => l.lead_id === lead.id);
+                              const lastLog = logsForLead[0];
+                              if (!lastLog) return null;
+                              const followUpDue = lastLog.follow_up_date && new Date(lastLog.follow_up_date) < new Date() && lastLog.outcome !== "answered";
+                              return (
+                                <button
+                                  onClick={() => setActiveCallLog({ leadId: lead.id, leadName: lead.name, phone: lead.phone || "" })}
+                                  className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg border transition-all hover:opacity-80 cursor-pointer"
+                                  style={{ color: followUpDue ? "#F87171" : outcomeColor(lastLog.outcome), borderColor: followUpDue ? "rgba(248,113,113,0.4)" : `${outcomeColor(lastLog.outcome)}40`, backgroundColor: followUpDue ? "rgba(248,113,113,0.1)" : `${outcomeColor(lastLog.outcome)}12` }}
+                                  title={`Last call: ${outcomeLabel(lastLog.outcome)} — click to view call log`}
+                                >
+                                  <Phone size={9} />
+                                  {followUpDue ? "⚠ Follow-up Due" : outcomeLabel(lastLog.outcome)}
+                                  {logsForLead.length > 1 && <span className="opacity-60">×{logsForLead.length}</span>}
+                                </button>
+                              );
+                            })()}
                           </div>
                           <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-xs">
                             {lead.phone && (

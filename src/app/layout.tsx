@@ -20,7 +20,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://teamvisionllc.com"),
   title: {
-    default: "Vision LLC | Commercial Real Estate Bristol TN | Tri-Cities CRE Leader",
+    default: "Vision LLC | Downtown Bristol's #1 Commercial Real Estate Company",
     template: "%s | Vision LLC",
   },
   description:

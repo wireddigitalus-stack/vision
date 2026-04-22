@@ -18,14 +18,14 @@ import { COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
 
 export const metadata: Metadata = {
-  title: "Executive Advisement & Consulting | Vision LLC | Bristol, TN",
+  title: "C-Suite Executive Advisement & Strategic Consulting | Vision LLC, Bristol TN",
   description:
-    "Vision LLC delivers C-suite consulting, strategic planning, and government advisement grounded in 30+ years of real-world executive leadership. Bristol, TN. Call 423-573-1022.",
+    "Vision LLC delivers C-suite consulting, strategic planning, and government advisement grounded in 30+ years of real-world executive leadership by J. Allen Hurley II. Bristol, TN. Call 423-573-1022.",
   alternates: {
     canonical: "https://teamvisionllc.com/executive-advisement",
   },
   openGraph: {
-    title: "Executive Advisement & Consulting | Vision LLC | Bristol, TN",
+    title: "Executive Advisement & C-Suite Consulting | J. Allen Hurley II | Vision LLC",
     description:
       "C-suite consulting, strategic planning & government advisement from J. Allen Hurley II — 30+ years of real-world executive leadership in the Tri-Cities.",
     url: "https://teamvisionllc.com/executive-advisement",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Executive Advisement & C-Suite Consulting | Vision LLC",
+    title: "C-Suite Consulting & Executive Advisement | Vision LLC | Bristol, TN",
     description:
       "Strategic planning, government advisement & executive leadership coaching from Vision LLC. 30+ years of real-world leadership. Bristol, TN.",
     images: [

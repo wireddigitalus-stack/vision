@@ -7,15 +7,15 @@ import { COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
 
 export const metadata: Metadata = {
-  title: "About Vision LLC | Commercial Real Estate Bristol TN | J. Allen Hurley II",
+  title: "About Vision LLC | J. Allen Hurley II — Bristol, TN CRE Leader",
   description:
-    "Vision LLC is Downtown Bristol's largest private commercial property owner. Led by CEO J. Allen Hurley II. 20+ years building the Tri-Cities. Call 423-573-1022.",
+    "Vision LLC is Downtown Bristol's largest private commercial property owner, led by CEO J. Allen Hurley II. 20+ years building the Tri-Cities through real estate, development & executive advisement. Call 423-573-1022.",
   alternates: {
     canonical: "https://teamvisionllc.com/about",
   },
   openGraph: {
-    title: "About Vision LLC | J. Allen Hurley II, CEO",
-    description: "Downtown Bristol's largest private commercial property owner. 20+ years, 50+ properties.",
+    title: "J. Allen Hurley II | CEO, Vision LLC — Bristol, TN's #1 CRE Firm",
+    description: "20+ years. 50+ properties. Downtown Bristol's largest private commercial property owner & the Tri-Cities' most integrated CRE firm.",
     url: "https://teamvisionllc.com/about",
   },
 };

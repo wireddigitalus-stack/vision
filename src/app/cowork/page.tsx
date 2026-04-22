@@ -7,14 +7,14 @@ import { COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
 
 export const metadata: Metadata = {
-  title: "Bristol CoWork | Premium Coworking Space | Vision LLC",
+  title: "Bristol CoWork | Private Offices & Coworking | 620 State St, Bristol TN",
   description:
-    "Bristol CoWork at 620 State Street offers private offices, dedicated desks & conference rooms in the heart of Bristol, TN. All-inclusive memberships. Call 423-573-1022.",
+    "Bristol CoWork at 620 State Street offers private offices, dedicated desks & conference rooms in the heart of Bristol, TN. All-inclusive memberships. Move in tomorrow. Call 423-573-1022.",
   alternates: {
     canonical: "https://teamvisionllc.com/cowork",
   },
   openGraph: {
-    title: "Bristol CoWork | Downtown Bristol's Premier Coworking Space",
+    title: "Bristol CoWork | Downtown Bristol's Coworking & Private Offices",
     description:
       "Private offices, dedicated desks & conference rooms at 620 State Street, Bristol, TN. All-inclusive memberships. Move in tomorrow. Call 423-573-1022.",
     url: "https://teamvisionllc.com/cowork",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bristol CoWork | Premium Coworking in Downtown Bristol, TN",
+    title: "Bristol CoWork | Private Offices & Coworking in Downtown Bristol, TN",
     description:
       "Private offices, dedicated desks & conference rooms. 620 State Street, Bristol TN. All-inclusive memberships from Vision LLC.",
     images: [

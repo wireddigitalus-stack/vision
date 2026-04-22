@@ -22,6 +22,7 @@ export interface Tenant {
   leaseStart: string | null;
   leaseEnd: string | null;
   renewalDate: string | null;
+  leaseAlertDays: 30 | 60 | 180 | null;  // days-before-expiry to start alerting
   escalationPct: number;
   escalationDate: string | null;
   status: "active" | "pending" | "expired";
@@ -46,6 +47,7 @@ function rowToTenant(r: Record<string, unknown>): Tenant {
     leaseStart: (r.lease_start as string) || null,
     leaseEnd: (r.lease_end as string) || null,
     renewalDate: (r.renewal_date as string) || null,
+    leaseAlertDays: (r.lease_alert_days as 30 | 60 | 180 | null) || null,
     escalationPct: Number(r.escalation_pct) || 0,
     escalationDate: (r.escalation_date as string) || null,
     status: (r.status as "active" | "pending" | "expired") || "active",
@@ -85,7 +87,7 @@ const BLANK = (): Partial<Tenant> => ({
   name: "", contactName: "", email: "", phone: "",
   building: "", unit: "", rep: "",
   monthlyRent: 0,
-  leaseStart: "", leaseEnd: "", renewalDate: "",
+  leaseStart: "", leaseEnd: "", renewalDate: "", leaseAlertDays: 60,
   escalationPct: 0, escalationDate: "",
   status: "active", notes: "",
 });
@@ -167,6 +169,28 @@ function TenantForm({
           <input type="date" value={form.renewalDate || ""} onChange={e => set("renewalDate", e.target.value)} className={FIELD} /></div>
       </div>
 
+      {/* Lease Renewal Alert */}
+      <div>
+        <label className={LABEL}>Lease Renewal Alert Window</label>
+        <p className="text-[10px] text-gray-600 mb-2">Get an alert this many days before lease expiry</p>
+        <div className="flex gap-2">
+          {([30, 60, 180, null] as const).map(v => (
+            <button
+              key={String(v)}
+              type="button"
+              onClick={() => set("leaseAlertDays", v)}
+              className={`flex-1 py-2 rounded-xl text-xs font-black border transition-all ${
+                form.leaseAlertDays === v
+                  ? "bg-[rgba(74,222,128,0.15)] border-[rgba(74,222,128,0.5)] text-[#4ADE80]"
+                  : "border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              {v === null ? "None" : `${v}d`}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Rep + Status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div><label className={LABEL}>Assigned Rep</label>
@@ -209,11 +233,15 @@ function RevenueBanner({ tenants, onTenantClick }: { tenants: Tenant[]; onTenant
   const totalMonthly = active.reduce((s, t) => s + t.monthlyRent, 0);
   const totalARR = totalMonthly * 12;
 
-  // Renewal alerts — sorted by urgency
+  // Renewal alerts — per-tenant threshold (leaseAlertDays) or default 90
   const renewalAlerts = active
     .filter(t => t.renewalDate || t.leaseEnd)
     .map(t => ({ tenant: t, days: daysUntil(t.renewalDate || t.leaseEnd) }))
-    .filter(x => x.days !== null && x.days <= 90)
+    .filter(x => {
+      if (x.days === null) return false;
+      const threshold = x.tenant.leaseAlertDays ?? 90;
+      return x.days <= threshold;
+    })
     .sort((a, b) => (a.days ?? 999) - (b.days ?? 999));
 
   // Upcoming escalations
@@ -572,6 +600,7 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
         monthlyRent: form.monthlyRent,
         leaseStart: form.leaseStart || null, leaseEnd: form.leaseEnd || null,
         renewalDate: form.renewalDate || null,
+        leaseAlertDays: form.leaseAlertDays ?? null,
         escalationPct: form.escalationPct, escalationDate: form.escalationDate || null,
         status: form.status, notes: form.notes,
       }),
@@ -592,6 +621,7 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
         monthlyRent: form.monthlyRent,
         leaseStart: form.leaseStart || null, leaseEnd: form.leaseEnd || null,
         renewalDate: form.renewalDate || null,
+        leaseAlertDays: form.leaseAlertDays ?? null,
         escalationPct: form.escalationPct, escalationDate: form.escalationDate || null,
         status: form.status, notes: form.notes,
       }),

@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       lease_start: body.leaseStart || null,
       lease_end: body.leaseEnd || null,
       renewal_date: body.renewalDate || null,
+      lease_alert_days: body.leaseAlertDays ?? null,
       escalation_pct: Number(body.escalationPct) || 0,
       escalation_date: body.escalationDate || null,
       status: body.status || "active",
@@ -76,6 +77,7 @@ export async function PATCH(req: NextRequest) {
     name: "name", contactName: "contact_name", email: "email", phone: "phone",
     building: "building", unit: "unit", rep: "rep", monthlyRent: "monthly_rent",
     leaseStart: "lease_start", leaseEnd: "lease_end", renewalDate: "renewal_date",
+    leaseAlertDays: "lease_alert_days",
     escalationPct: "escalation_pct", escalationDate: "escalation_date",
     status: "status", notes: "notes",
   };

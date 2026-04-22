@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Sparkles, Copy, Download, CheckCircle2, Trash2, FileText, Clock, ChevronDown } from "lucide-react";
+import { Loader2, Sparkles, Copy, Download, CheckCircle2, Trash2, FileText, Clock, ChevronDown, ImageIcon, BookOpen } from "lucide-react";
+import PropertyImageManager from "./PropertyImageManager";
+import BlogGenerator from "./BlogGenerator";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +47,7 @@ function saveQueue(q: PressRelease[]) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MarketingTab() {
+  const [subTab, setSubTab] = useState<"press" | "blog" | "photos">("press");
   const [prType,    setPrType]    = useState("new_listing");
   const [topic,     setTopic]     = useState("");
   const [details,   setDetails]   = useState("");
@@ -136,6 +139,33 @@ export default function MarketingTab() {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-8">
+
+      {/* ── Sub-nav ── */}
+      <div className="flex gap-1 border-b border-[rgba(255,255,255,0.06)] pb-0 -mb-4">
+        {([
+          { key: "press",  label: "Press Releases", icon: FileText },
+          { key: "blog",   label: "Blog Articles",  icon: BookOpen },
+          { key: "photos", label: "Property Photos", icon: ImageIcon },
+        ] as const).map(({ key, label, icon: Icon }) => (
+          <button key={key} onClick={() => setSubTab(key)}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold border-b-2 transition-all -mb-px ${
+              subTab === key
+                ? "border-[#60A5FA] text-[#60A5FA]"
+                : "border-transparent text-gray-600 hover:text-gray-300"
+            }`}>
+            <Icon size={12} />{label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Blog Articles ── */}
+      {subTab === "blog" && <BlogGenerator />}
+
+      {/* ── Property Photos ── */}
+      {subTab === "photos" && <PropertyImageManager />}
+
+      {/* ── Press Releases ── */}
+      {subTab === "press" && (<div className="space-y-8">
 
       {/* ── Header ── */}
       <div>
@@ -363,7 +393,7 @@ export default function MarketingTab() {
             ))}
           </div>
         </div>
-      )}
+      )}</div>)}{/* end press tab */}
     </div>
   );
 }

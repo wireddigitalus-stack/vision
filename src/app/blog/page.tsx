@@ -2,40 +2,76 @@ import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock, Tag, BookOpen } from "lucide-react";
-import { BLOG_POSTS } from "@/lib/blog-data";
+import { BLOG_POSTS, type BlogPost } from "@/lib/blog-data";
 
 export const metadata: Metadata = {
   title: "Commercial Real Estate Insights | Vision LLC Blog",
   description:
     "Expert insights on commercial real estate in Bristol TN, the Tri-Cities market, coworking, historic adaptive reuse, and executive business consulting from Vision LLC.",
-  alternates: {
-    canonical: "https://teamvisionllc.com/blog",
-  },
+  alternates: { canonical: "https://teamvisionllc.com/blog" },
   openGraph: {
     title: "Commercial Real Estate Insights | Vision LLC Blog",
-    description:
-      "Expert insights on commercial real estate in Bristol TN, the Tri-Cities market, coworking, historic adaptive reuse, and executive business consulting.",
+    description: "Expert insights on commercial real estate in Bristol TN, the Tri-Cities market, coworking, historic adaptive reuse, and executive business consulting.",
     url: "https://teamvisionllc.com/blog",
   },
 };
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+async function getDbPosts(): Promise<BlogPost[]> {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return [];
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/blog_posts?status=eq.published&order=published_at.desc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }, next: { revalidate: 60 } }
+    );
+    if (!res.ok) return [];
+    const rows: {
+      slug: string; title: string; meta_title: string; meta_description: string;
+      category: string; tags: string[]; read_time: number; published_at: string;
+      author: string; author_title: string; excerpt: string; content: string;
+      image_url?: string; image_alt?: string;
+    }[] = await res.json();
+    return rows.map(r => ({
+      slug:            r.slug,
+      title:           r.title,
+      metaTitle:       r.meta_title,
+      metaDescription: r.meta_description,
+      category:        r.category,
+      tags:            r.tags || [],
+      targetKeyword:   "",
+      readTime:        r.read_time,
+      publishedAt:     r.published_at,
+      author:          r.author,
+      authorTitle:     r.author_title,
+      excerpt:         r.excerpt,
+      content:         r.content,
+      image:           r.image_url || undefined,
+      imageAlt:        r.image_alt || undefined,
+    }));
+  } catch { return []; }
+}
+
 const categoryColors: Record<string, string> = {
   "Market Reports": "bg-[rgba(74,222,128,0.1)] text-[#4ADE80] border-[rgba(74,222,128,0.25)]",
+  "Market Insights": "bg-[rgba(74,222,128,0.1)] text-[#4ADE80] border-[rgba(74,222,128,0.25)]",
   "Business Insights": "bg-[rgba(96,165,250,0.1)] text-[#60A5FA] border-[rgba(96,165,250,0.25)]",
   "Development": "bg-[rgba(250,204,21,0.1)] text-[#FACC15] border-[rgba(250,204,21,0.25)]",
   "Executive Advisement": "bg-[rgba(167,139,250,0.1)] text-[#A78BFA] border-[rgba(167,139,250,0.25)]",
+  "Investment": "bg-[rgba(251,146,60,0.1)] text-[#FB923C] border-[rgba(251,146,60,0.25)]",
 };
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
-export default function BlogPage() {
-  const [featured, ...rest] = BLOG_POSTS;
+export default async function BlogPage() {
+  const dbPosts = await getDbPosts();
+  // Merge: DB posts first (newest), then static posts — deduplicate by slug
+  const slugsSeen = new Set(dbPosts.map(p => p.slug));
+  const allPosts: BlogPost[] = [...dbPosts, ...BLOG_POSTS.filter(p => !slugsSeen.has(p.slug))];
+  const [featured, ...rest] = allPosts;
 
   return (
     <>

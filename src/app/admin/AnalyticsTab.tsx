@@ -32,6 +32,29 @@ function pct(num: number, den: number): number {
 
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
+// ─── Space type normalisation & colours ──────────────────────────────────────
+
+const SPACE_PALETTE: Record<string, { color: string; bg: string; border: string; emoji: string }> = {
+  "Office":    { color: "#60A5FA", bg: "rgba(96,165,250,0.12)",  border: "rgba(96,165,250,0.35)",  emoji: "🏢" },
+  "CoWork":    { color: "#A78BFA", bg: "rgba(167,139,250,0.12)", border: "rgba(167,139,250,0.35)", emoji: "💻" },
+  "Retail":    { color: "#FBBF24", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.35)",  emoji: "🏪" },
+  "Warehouse": { color: "#F97316", bg: "rgba(249,115,22,0.12)",  border: "rgba(249,115,22,0.35)",  emoji: "🏭" },
+  "Event":     { color: "#F472B6", bg: "rgba(244,114,182,0.12)", border: "rgba(244,114,182,0.35)", emoji: "🎭" },
+  "Mixed-Use": { color: "#34D399", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.35)",  emoji: "🏬" },
+  "Other":     { color: "#94A3B8", bg: "rgba(148,163,184,0.12)", border: "rgba(148,163,184,0.25)", emoji: "📦" },
+};
+
+function normalizeSpaceType(raw: string): string {
+  const s = raw.toLowerCase();
+  if (s.includes("cowork") || s.includes("desk") || s.includes("membership") || s.includes("shared")) return "CoWork";
+  if (s.includes("retail") || s.includes("storefront") || s.includes("shop") || s.includes("store")) return "Retail";
+  if (s.includes("warehouse") || s.includes("industrial") || s.includes("storage") || s.includes("dock")) return "Warehouse";
+  if (s.includes("event") || s.includes("venue") || s.includes("hall")) return "Event";
+  if (s.includes("mixed") || s.includes("multi") || s.includes("flex")) return "Mixed-Use";
+  if (s.includes("office") || s.includes("suite") || s.includes("executive") || s.includes("private") || s.includes("professional")) return "Office";
+  return "Other";
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, color = "#4ADE80", icon: Icon }:
@@ -64,6 +87,230 @@ function BarRow({ label, value, max, color, sub }: { label: string; value: numbe
       </div>
       <div className="h-1.5 rounded-full bg-[rgba(255,255,255,0.05)] overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${width}%`, backgroundColor: color }} />
+      </div>
+    </div>
+  );
+}
+
+// ─── Lead Health & Market Demand Dashboard ────────────────────────────────────
+
+type Period = "7d" | "30d" | "90d" | "1yr" | "all";
+const PERIOD_MS: Record<Period, number> = {
+  "7d":  7  * 86400000,
+  "30d": 30 * 86400000,
+  "90d": 90 * 86400000,
+  "1yr": 365 * 86400000,
+  "all": Infinity,
+};
+
+function LeadHealthDashboard({ leads }: { leads: AnalyticsLead[] }) {
+  const [period, setPeriod] = useState<Period>("90d");
+  const now = Date.now();
+
+  // Filter by period
+  const filtered = period === "all"
+    ? leads
+    : leads.filter(l => now - new Date(l.timestamp).getTime() <= PERIOD_MS[period]);
+
+  // ── Space-type demand ──────────────────────────────────────────────────────
+  const byType: Record<string, { count: number; budget: number; scores: number[]; raw: string[] }> = {};
+  filtered.forEach(l => {
+    const key = normalizeSpaceType(l.spaceType);
+    if (!byType[key]) byType[key] = { count: 0, budget: 0, scores: [], raw: [] };
+    byType[key].count++;
+    byType[key].budget += l.budget;
+    byType[key].scores.push(l.score);
+    byType[key].raw.push(l.spaceType);
+  });
+  const typeList = Object.entries(byType)
+    .sort((a, b) => b[1].count - a[1].count);
+  const maxCount = Math.max(...typeList.map(([, v]) => v.count), 1);
+  const totalLeads = filtered.length || 1;
+
+  // ── Lead age health buckets ────────────────────────────────────────────────
+  const buckets = [
+    { label: "New",     days: [0,7],   color: "#4ADE80", emoji: "✅" },
+    { label: "Fresh",   days: [7,30],  color: "#A3E635", emoji: "🌿" },
+    { label: "Aging",   days: [30,60], color: "#FACC15", emoji: "⚡" },
+    { label: "Warm",    days: [60,90], color: "#F97316", emoji: "🔥" },
+    { label: "Cold",    days: [90,999],color: "#60A5FA", emoji: "❄️" },
+  ];
+  const ageCounts = buckets.map(b => ({
+    ...b,
+    count: leads.filter(l => {
+      const d = (now - new Date(l.timestamp).getTime()) / 86400000;
+      return d >= b.days[0] && d < b.days[1];
+    }).length,
+  }));
+  const maxAge = Math.max(...ageCounts.map(b => b.count), 1);
+
+  // ── 6-Month trend ─────────────────────────────────────────────────────────
+  const trendMonths = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now);
+    d.setMonth(d.getMonth() - (5 - i));
+    return { label: MONTH_NAMES[d.getMonth()], year: d.getFullYear(), month: d.getMonth() };
+  });
+  const topTypes = typeList.slice(0, 4).map(([t]) => t);
+  const trendData = trendMonths.map(({ month, year }) => {
+    const monthLeads = leads.filter(l => {
+      const d = new Date(l.timestamp);
+      return d.getMonth() === month && d.getFullYear() === year;
+    });
+    const byT: Record<string, number> = {};
+    monthLeads.forEach(l => {
+      const k = normalizeSpaceType(l.spaceType);
+      byT[k] = (byT[k] || 0) + 1;
+    });
+    return { month, year, total: monthLeads.length, byType: byT };
+  });
+  const trendMax = Math.max(...trendData.map(m => m.total), 1);
+
+  return (
+    <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.018)] overflow-hidden mb-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FBBF24] to-[#F97316] flex items-center justify-center shadow-[0_0_14px_rgba(251,191,36,0.3)]">
+            <BarChart3 size={14} className="text-black" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-white uppercase tracking-widest">Market Demand Intelligence</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">{filtered.length} leads captured · what the market is asking for</p>
+          </div>
+        </div>
+        {/* Period filter */}
+        <div className="flex gap-1 bg-[rgba(255,255,255,0.04)] rounded-xl p-1 self-start sm:self-auto">
+          {(["7d","30d","90d","1yr","all"] as Period[]).map(p => (
+            <button key={p} onClick={() => setPeriod(p)}
+              className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all capitalize ${
+                period === p
+                  ? "bg-gradient-to-r from-[#FBBF24] to-[#F97316] text-black shadow-sm"
+                  : "text-gray-500 hover:text-white"
+              }`}>
+              {p === "all" ? "All Time" : p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-5 space-y-6">
+
+        {/* ── Space Type Demand Bars ─────────────────────────────────── */}
+        {filtered.length === 0 ? (
+          <p className="text-sm text-gray-600 italic text-center py-8">No lead data for this period yet</p>
+        ) : (
+          <>
+            <div>
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-1.5">
+                <PieChart size={10} /> Space Type Demand Breakdown
+              </p>
+              <div className="space-y-3">
+                {typeList.map(([type, data], i) => {
+                  const palette = SPACE_PALETTE[type] || SPACE_PALETTE["Other"];
+                  const sharePct = Math.round((data.count / totalLeads) * 100);
+                  const barPct   = Math.round((data.count / maxCount) * 100);
+                  const avgScore = data.scores.length ? Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length) : 0;
+                  const avgBudget = data.count ? Math.round(data.budget / data.count) : 0;
+                  return (
+                    <div key={type} className="group">
+                      <div className="flex items-center gap-3 mb-1.5">
+                        <span className="text-sm">{palette.emoji}</span>
+                        {/* Rank */}
+                        <span className="text-[10px] font-black text-gray-600 w-4 text-center flex-shrink-0">#{i+1}</span>
+                        <span className="text-sm font-bold text-white flex-shrink-0">{type}</span>
+                        <span className="text-[11px] font-black ml-auto flex-shrink-0" style={{ color: palette.color }}>{sharePct}%</span>
+                        <span className="text-[11px] text-gray-600 flex-shrink-0">{data.count} lead{data.count !== 1 ? "s" : ""}</span>
+                        <span className="text-[11px] text-gray-600 flex-shrink-0 hidden sm:block">Avg ${avgBudget.toLocaleString()}/mo</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-lg font-bold flex-shrink-0 hidden sm:block"
+                          style={{ color: palette.color, backgroundColor: palette.bg, border: `1px solid ${palette.border}` }}>
+                          Score {avgScore}
+                        </span>
+                      </div>
+                      {/* Bar */}
+                      <div className="h-2.5 rounded-full bg-[rgba(255,255,255,0.05)] overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700 relative overflow-hidden"
+                          style={{ width: `${barPct}%`, backgroundColor: palette.color }}>
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white opacity-20" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Lead Age Health ──────────────────────────────────────── */}
+            <div>
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                <Zap size={10} /> Lead Age Health — All Captured Leads
+              </p>
+              {/* Segmented health bar */}
+              <div className="flex h-4 rounded-full overflow-hidden gap-px mb-3">
+                {ageCounts.map(b => (
+                  <div key={b.label} title={`${b.label}: ${b.count} leads`}
+                    style={{ flex: b.count || 0.1, backgroundColor: b.color, opacity: b.count > 0 ? 0.85 : 0.1 }}
+                    className="transition-all duration-700" />
+                ))}
+              </div>
+              {/* Legend */}
+              <div className="flex flex-wrap gap-3">
+                {ageCounts.map(b => (
+                  <div key={b.label} className="flex items-center gap-2 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: b.color }} />
+                      <span className="text-gray-500">{b.emoji} {b.label}</span>
+                    </div>
+                    <span className="font-black" style={{ color: b.color }}>{b.count}</span>
+                    <div className="h-4 bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden w-12">
+                      <div className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${Math.round((b.count / maxAge) * 100)}%`, backgroundColor: b.color, opacity: 0.6 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── 6-Month Trend ────────────────────────────────────────── */}
+            <div>
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                <TrendingUp size={10} /> 6-Month Demand Trend
+              </p>
+              <div className="grid grid-cols-6 gap-2">
+                {trendData.map(({ month, year, total, byType: bt }) => (
+                  <div key={`${month}-${year}`} className="flex flex-col items-center gap-1.5">
+                    {/* Stacked bar */}
+                    <div className="w-full flex flex-col-reverse rounded-lg overflow-hidden h-16 bg-[rgba(255,255,255,0.04)]">
+                      {topTypes.map(t => {
+                        const count = bt[t] || 0;
+                        const h = total > 0 ? Math.max(count > 0 ? 4 : 0, Math.round((count / trendMax) * 64)) : 0;
+                        const p = SPACE_PALETTE[t] || SPACE_PALETTE["Other"];
+                        return (
+                          <div key={t} style={{ height: h, backgroundColor: p.color, opacity: 0.8 }}
+                            title={`${t}: ${count}`} className="flex-shrink-0 transition-all duration-700" />
+                        );
+                      })}
+                    </div>
+                    {/* Total count */}
+                    <span className="text-[10px] font-bold text-white">{total}</span>
+                    <span className="text-[9px] text-gray-600">{MONTH_NAMES[month]}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Legend */}
+              <div className="flex flex-wrap gap-3 mt-3">
+                {topTypes.map(t => {
+                  const p = SPACE_PALETTE[t] || SPACE_PALETTE["Other"];
+                  return (
+                    <div key={t} className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                      <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: p.color }} />
+                      {p.emoji} {t}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -332,6 +579,9 @@ export default function AnalyticsTab({ leads }: { leads: AnalyticsLead[] }) {
         <StatCard label="Conversion Rate" value={`${convRate}%`} sub={`${tenants.length} leads → tenants`} icon={Target} color="#60A5FA" />
         <StatCard label="Avg Lead Score" value={`${avgScore}`} sub={`${whaleLeads.length} whale${whaleLeads.length !== 1 ? "s" : ""} detected`} icon={TrendingUp} color="#FACC15" />
       </div>
+
+      {/* ── Market Demand Intelligence ──────────────────────────────── */}
+      <LeadHealthDashboard leads={leads} />
 
       {/* ── Revenue Forecast ───────────────────────────────────────── */}
       <RevenueForecast tenants={tenants} />

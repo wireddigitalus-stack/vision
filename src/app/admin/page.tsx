@@ -17,7 +17,7 @@ import {
   Settings, Plus, Trash2, Save, CheckCircle2, Loader2,
   Bell, Mail, Shield, X, Radio,
   Sparkles, Brain, Send, ChevronRight, ChevronDown, Archive, MessageSquare, BarChart3, Wrench,
-  FileSpreadsheet, Download, Upload, FileText,
+  FileSpreadsheet, Download, Upload, FileText, Flame,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -276,6 +276,7 @@ function initials(name: string) {
 // ── Lead Aging ───────────────────────────────────────────────────────
 
 const MAX_AGE_DAYS = 180;
+const COLD_DAYS    = 60;   // days without contact before lead goes cold
 
 function daysOld(ts: string): number {
   return Math.floor((Date.now() - new Date(ts).getTime()) / 864e5);
@@ -285,6 +286,17 @@ function daysRemaining(ts: string): number {
 }
 function isArchived(ts: string): boolean {
   return daysOld(ts) >= MAX_AGE_DAYS;
+}
+// Note: callLogs passed in at call site — no closure needed
+function daysSinceContact(lead: { id: string; timestamp: string }, callLogs: import("./CallLogModal").CallLog[]): number {
+  const logsForLead = callLogs.filter(l => l.lead_id === lead.id);
+  const lastDate = logsForLead.length > 0
+    ? new Date(logsForLead[0].created_at)   // already sorted desc
+    : new Date(lead.timestamp);
+  return Math.floor((Date.now() - lastDate.getTime()) / 864e5);
+}
+function isCold(lead: { id: string; timestamp: string }, callLogs: import("./CallLogModal").CallLog[]): boolean {
+  return daysSinceContact(lead, callLogs) >= COLD_DAYS && !isArchived(lead.timestamp);
 }
 function ageBarColor(days: number): string {
   if (days < 90) return "#4ADE80";   // green — fresh
@@ -1472,6 +1484,7 @@ export default function AdminPage() {
   const [callListOpen, setCallListOpen] = useState(true);
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [activeCallLog, setActiveCallLog] = useState<{ leadId: string; leadName: string; phone: string } | null>(null);
+  const [coldPipelineOpen, setColdPipelineOpen] = useState(false);
   const seenIdsRef = useRef<Set<string>>(new Set(DEMO_LEADS.map(d => d.id)));
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -1616,8 +1629,12 @@ export default function AdminPage() {
     return () => clearTimeout(t);
   }, [recentLiveIds]);
 
-  const activeLeads = leads.filter(l => !isArchived(l.timestamp));
-  const archivedLeads = leads.filter(l => isArchived(l.timestamp));
+  // ── Lead Segmentation ──────────────────────────────────────────────────
+  const allNonArchived = leads.filter(l => !isArchived(l.timestamp));
+  const coldLeads      = allNonArchived.filter(l => isCold(l, callLogs));
+  const coldSet        = new Set(coldLeads.map(l => l.id));
+  const activeLeads    = allNonArchived.filter(l => !coldSet.has(l.id));
+  const archivedLeads  = leads.filter(l => isArchived(l.timestamp));
   const filtered =
     filter === "All"      ? activeLeads :
     filter === "Whale"    ? activeLeads.filter(l => l.isWhale) :
@@ -2297,6 +2314,71 @@ export default function AdminPage() {
                 <Zap size={32} className="mx-auto mb-3 opacity-30" />
                 <p>No {filter.toLowerCase()}s yet.</p>
                 <p className="text-sm mt-1">Leads appear here as they come in through Ask VISION.</p>
+              </div>
+            )}
+
+            {/* ── Cold Pipeline ─────────────────────────────────────────── */}
+            {coldLeads.length > 0 && (
+              <div className="mt-8 rounded-2xl border border-[rgba(96,165,250,0.15)] bg-[rgba(96,165,250,0.03)] overflow-hidden">
+                {/* Header */}
+                <button
+                  onClick={() => setColdPipelineOpen(o => !o)}
+                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-[rgba(96,165,250,0.15)] flex items-center justify-center text-base">❄️</div>
+                    <div className="text-left">
+                      <p className="text-sm font-black text-[#93C5FD]">Cold Pipeline <span className="text-[#60A5FA] font-bold ml-1">({coldLeads.length})</span></p>
+                      <p className="text-[10px] text-gray-600">No contact in {COLD_DAYS}+ days — needs re-engagement</p>
+                    </div>
+                  </div>
+                  <ChevronDown size={14} className={`text-gray-600 transition-transform duration-200 ${coldPipelineOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {/* Cold lead cards */}
+                {coldPipelineOpen && (
+                  <div className="px-5 pb-5 space-y-2 border-t border-[rgba(96,165,250,0.08)]">
+                    {coldLeads.map(lead => {
+                      const dsc = daysSinceContact(lead, callLogs);
+                      const logsForLead = callLogs.filter(l => l.lead_id === lead.id);
+                      const lastLog = logsForLead[0];
+                      return (
+                        <div key={lead.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[rgba(96,165,250,0.04)] border border-[rgba(96,165,250,0.1)] hover:border-[rgba(96,165,250,0.25)] transition-all">
+                          {/* Score circle */}
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-black text-gray-500 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">{lead.score}</div>
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-bold text-gray-400 truncate">{lead.name}</p>
+                              <span className="text-[9px] px-2 py-0.5 rounded-full border border-[rgba(96,165,250,0.3)] text-[#93C5FD] font-black bg-[rgba(96,165,250,0.08)]">
+                                ❄ {dsc}d cold
+                              </span>
+                              {lastLog && (
+                                <span className="text-[9px] text-gray-700">
+                                  Last: {outcomeLabel(lastLog.outcome)} · {new Date(lastLog.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex gap-x-3 mt-0.5 text-[11px] text-gray-600">
+                              <span>{lead.spaceType}</span>
+                              <span>${lead.budget.toLocaleString()}/mo</span>
+                              {lead.phone && <span className="font-mono">{lead.phone}</span>}
+                            </div>
+                          </div>
+                          {/* Warm Up button */}
+                          <button
+                            onClick={() => setActiveCallLog({ leadId: lead.id, leadName: lead.name, phone: lead.phone || "" })}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[rgba(96,165,250,0.3)] text-[#60A5FA] text-xs font-black hover:bg-[rgba(96,165,250,0.12)] transition-all flex-shrink-0"
+                            title="Log a call to re-warm this lead"
+                          >
+                            <Flame size={11} />
+                            Warm Up
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </>

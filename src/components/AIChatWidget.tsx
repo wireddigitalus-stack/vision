@@ -524,12 +524,8 @@ export default function LeaseBotWidget() {
                     <div className="chat-bubble-ai">
                       👋 Hi! I see you&apos;re interested in{" "}
                       <span className="text-[#FACC15] font-bold">{preloadedProperty}</span>.
-                      Let&apos;s see if it&apos;s the perfect fit — I&apos;ll ask you a few quick questions.
-                    </div>
-                    <div className="chat-bubble-ai">
-                      I&apos;ll generate your{" "}
-                      <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
-                      and confirm whether this property checks all your boxes.
+                      Let&apos;s see if it&apos;s the perfect fit — I&apos;ll ask you a few quick questions and
+                      show you the spaces from our portfolio that best match your needs.
                     </div>
                   </>
                 ) : (
@@ -540,9 +536,7 @@ export default function LeaseBotWidget() {
                           👋 Hey! Glad you found us on {utmSource === "facebook" ? "Facebook" : "Instagram"}. I&apos;m VISION — Bristol&apos;s commercial space advisor.
                         </div>
                         <div className="chat-bubble-ai">
-                          Let me match you with the right space in under 2 minutes. I&apos;ll show you your{" "}
-                          <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
-                          and the best properties for your needs — no obligation.
+                          Let me match you with the right space in under 2 minutes — no obligation, just the best properties for your needs.
                         </div>
                       </>
                     ) : (
@@ -551,9 +545,9 @@ export default function LeaseBotWidget() {
                           👋 Hi! I&apos;m VISION — your commercial real estate advisor for the Tri-Cities. I&apos;ll match you with the perfect space in under 2 minutes.
                         </div>
                         <div className="chat-bubble-ai">
-                          I&apos;ll ask you 5 quick questions, then show you your{" "}
-                          <span className="text-[#4ADE80] font-bold">AI Match Score</span>{" "}
-                          and the best properties from our portfolio for your needs.
+                          I&apos;ll ask you 5 quick questions, then show you the
+                          {" "}<span className="text-[#4ADE80] font-bold">best properties</span>{" "}
+                          from our portfolio that fit your needs.
                         </div>
                       </>
                     )}
@@ -628,10 +622,10 @@ export default function LeaseBotWidget() {
                 </div>
                 <div className="flex flex-col gap-3">
                   {[
-                    "Evaluating budget fit",
+                    "Understanding your space requirements",
                     "Checking move-in availability",
                     "Matching property types",
-                    "Calculating your score",
+                    "Preparing your property recommendations",
                   ].map((step, i) => (
                     <div
                       key={step}
@@ -654,58 +648,18 @@ export default function LeaseBotWidget() {
             {/* ── Result ───────────────────────────────────────────────── */}
             {stage === "result" && result && (
               <div className="space-y-4">
-                <div className="chat-bubble-ai">
-                  ✅ Done! Here's your Vision AI Match Report, {lead.name}:
-                </div>
-
-                {/* Score card */}
-                <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.04)] p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                      AI Confidence Score
-                    </span>
-                    <span
-                      className={`text-xs px-2.5 py-1 rounded-lg border font-bold ${scoreLabelColor(
-                        result.scoreLabel
-                      )}`}
-                    >
-                      {result.scoreLabel}
-                    </span>
-                  </div>
-
-                  {/* Score bar */}
-                  <div className="flex items-end gap-3 mb-3">
-                    <span
-                      className="text-5xl font-black tabular-nums"
-                      style={{ color: scoreColor(result.score) }}
-                    >
-                      {result.score}
-                    </span>
-                    <span className="text-2xl font-black text-gray-600 mb-1">
-                      /100
-                    </span>
-                  </div>
-                  <div className="w-full h-2 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden mb-3">
-                    <div
-                      className="h-full rounded-full transition-all duration-1000"
-                      style={{
-                        width: `${result.score}%`,
-                        backgroundColor: scoreColor(result.score),
-                        boxShadow: `0 0 8px ${scoreColor(result.score)}`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    {result.reasoning}
+                {/* Match headline */}
+                <div className="rounded-2xl border border-[rgba(74,222,128,0.25)] bg-[rgba(74,222,128,0.06)] px-4 py-4 text-center">
+                  <p className="text-lg font-black text-[#4ADE80] mb-1">🎉 We have a match for you!</p>
+                  <p className="text-sm text-gray-300">
+                    {lead.name ? `${lead.name}, based` : "Based"} on what you&apos;re looking for,
+                    here{result.matchedProperties.length === 1 ? "&apos;s the property" : " are the properties"} we recommend from our Downtown Bristol portfolio:
                   </p>
                 </div>
 
                 {/* Matched properties */}
                 {result.matchedProperties.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs font-bold text-[#4ADE80] uppercase tracking-widest">
-                      Best Matches for You
-                    </p>
                     {result.matchedProperties.map((prop) => {
                       const url = PROPERTY_URLS[prop.id];
                       const CardWrapper = url

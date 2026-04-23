@@ -9,6 +9,7 @@ import MaintenanceTab from "./MaintenanceTab";
 import CleaningTab from "./CleaningTab";
 import MarketingTab from "./MarketingTab";
 import CallLogModal, { type CallLog, outcomeColor, outcomeLabel } from "./CallLogModal";
+import PrintButton from "./PrintButton";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import * as XLSX from "xlsx";
 import {
@@ -2099,32 +2100,35 @@ export default function AdminPage() {
               );
             })()}
 
-            {/* Filter + Lead Cards */}
-            <div id="leads-list" className="flex items-center gap-2 mb-6 flex-wrap">
-              <Filter size={13} className="text-gray-500" />
-              <span className="text-xs text-gray-600 mr-1">Filter:</span>
-              {(["All", "Hot Lead", "Warm Lead", "Nurture", "Whale", "New Today"] as const).map(f => {
-                const tip =
-                  f === "All"      ? "Show all active leads" :
-                  f === "Hot Lead" ? "Score 70+. High urgency, strong budget. Call today." :
-                  f === "Warm Lead"? "Score 40–69. Interested but needs nurturing." :
-                  f === "Nurture"  ? "Score below 40. Long-term potential — keep warm." :
-                  f === "Whale"    ? "Budget $4,000+/mo. High-value prospects — prioritize." :
-                                    "Leads that arrived in the last 24 hours.";
-                return (
-                  <Tooltip key={f} text={tip}>
-                    <button onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${filter === f ? "bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.3)] text-[#4ADE80]" : "border-[rgba(255,255,255,0.06)] text-gray-500 hover:text-gray-300"}`}>
-                      {f === "Whale" ? "🐳 Whales" : f === "New Today" ? "🆕 New Today" : f}
-                      {f === "Whale" && ` (${activeLeads.filter(l => l.isWhale).length})`}
-                      {f === "New Today" && ` (${activeLeads.filter(l => (Date.now() - new Date(l.timestamp).getTime()) < 864e5).length})`}
-                      {f !== "All" && f !== "Whale" && f !== "New Today" && ` (${activeLeads.filter(l => l.scoreLabel === f).length})`}
-                    </button>
-                  </Tooltip>
-                );
-              })}
+            {/* Filter + Print row */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+              <div id="leads-list" className="flex items-center gap-2 flex-wrap">
+                <Filter size={13} className="text-gray-500" />
+                <span className="text-xs text-gray-600 mr-1">Filter:</span>
+                {(["All", "Hot Lead", "Warm Lead", "Nurture", "Whale", "New Today"] as const).map(f => {
+                  const tip =
+                    f === "All"      ? "Show all active leads" :
+                    f === "Hot Lead" ? "Score 70+. High urgency, strong budget. Call today." :
+                    f === "Warm Lead"? "Score 40–69. Interested but needs nurturing." :
+                    f === "Nurture"  ? "Score below 40. Long-term potential — keep warm." :
+                    f === "Whale"    ? "Budget $4,000+/mo. High-value prospects — prioritize." :
+                                      "Leads that arrived in the last 24 hours.";
+                  return (
+                    <Tooltip key={f} text={tip}>
+                      <button onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${filter === f ? "bg-[rgba(74,222,128,0.1)] border-[rgba(74,222,128,0.3)] text-[#4ADE80]" : "border-[rgba(255,255,255,0.06)] text-gray-500 hover:text-gray-300"}`}>
+                        {f === "Whale" ? "🐳 Whales" : f === "New Today" ? "🆕 New Today" : f}
+                        {f === "Whale" && ` (${activeLeads.filter(l => l.isWhale).length})`}
+                        {f === "New Today" && ` (${activeLeads.filter(l => (Date.now() - new Date(l.timestamp).getTime()) < 864e5).length})`}
+                        {f !== "All" && f !== "Whale" && f !== "New Today" && ` (${activeLeads.filter(l => l.scoreLabel === f).length})`}
+                      </button>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+              <PrintButton zoneId="print-leads" label="Print Call Sheet" title={`Daily Call Sheet — ${filter} Leads`} />
             </div>
 
-            <div className="space-y-4">
+            <div id="print-leads" className="space-y-4">
               {filtered.map(lead => {
                 const isLive = recentLiveIds.has(lead.id);
                 return (

@@ -6,6 +6,7 @@ import {
   ChevronDown, ChevronUp, Trash2, Edit2, Circle, Flame,
   DollarSign, Timer, MessageSquare, ArrowRight,
 } from "lucide-react";
+import PrintButton from "./PrintButton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -661,10 +662,11 @@ CREATE POLICY "anon_all_maintenance" ON maintenance_tickets
             <option value="building">Sort: Building</option>
           </select>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={fetch_} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(250,204,21,0.06)] border border-[rgba(250,204,21,0.2)] text-[#FACC15] text-xs hover:bg-[rgba(250,204,21,0.12)] transition-colors">
             <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
+          <PrintButton zoneId="print-maintenance" label="Print / PDF" title="Maintenance Work Orders" />
           <button onClick={() => { setEditingTicket(null); setShowForm(true); }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#FACC15] to-[#F97316] text-black text-xs font-black hover:opacity-90 transition-opacity">
             <Plus size={13} /> New Ticket
@@ -698,8 +700,12 @@ CREATE POLICY "anon_all_maintenance" ON maintenance_tickets
         </div>
       )}
 
-      {/* Ticket cards */}
-      <div className="space-y-4">
+      {/* Ticket cards — wrapped in print zone */}
+      <div id="print-maintenance" className="space-y-4">
+        {/* Print-only summary header */}
+        <div className="print-only" style={{ marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #ccc", fontSize: 12 }}>
+          Filters: Status = {statusFilter} · Priority = {priorityFilter === "all" ? "All" : `CAT ${priorityFilter}`} · Showing {displayed.length} of {tickets.length} tickets
+        </div>
         {displayed.map(t => (
           <TicketCard key={t.id} ticket={t}
             onEdit={t => { setEditingTicket(t); setShowForm(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}

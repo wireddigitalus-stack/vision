@@ -7,6 +7,7 @@ import {
   MessageSquare, FileSpreadsheet,
 } from "lucide-react";
 import TenantImporter from "./TenantImporter";
+import PrintButton from "./PrintButton";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -737,6 +738,7 @@ CREATE POLICY "anon_all_tenants" ON tenants
           <button onClick={fetchTenants} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-xs hover:bg-[rgba(74,222,128,0.12)] transition-colors">
             <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
+          <PrintButton zoneId="print-tenants" label="Print Roster" title="Tenant Roster" />
           <button onClick={() => setShowImporter(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[rgba(74,222,128,0.3)] text-[#4ADE80] text-xs font-black hover:bg-[rgba(74,222,128,0.08)] transition-colors">
             <FileSpreadsheet size={13} /> Import Excel
@@ -786,8 +788,8 @@ CREATE POLICY "anon_all_tenants" ON tenants
         </div>
       )}
 
-      {/* Tenant cards */}
-      <div className="space-y-4">
+      {/* Tenant cards — wrapped in print zone */}
+      <div id="print-tenants" className="space-y-4">
         {displayed.map(tenant => (
           <TenantCard
             key={tenant.id}

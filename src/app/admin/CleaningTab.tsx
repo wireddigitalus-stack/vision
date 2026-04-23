@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, CheckCircle2, Clock, Building2,
   User, Calendar, AlertTriangle, Circle,
 } from "lucide-react";
+import PrintButton from "./PrintButton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -669,10 +670,11 @@ export default function CleaningTab() {
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={fetchAssignments} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-xs hover:bg-[rgba(74,222,128,0.12)] transition-colors">
             <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
+          <PrintButton zoneId="print-cleaning" label="Print Schedule" title={`Cleaning Schedule — ${viewMode === "today" ? "Today" : weekLabel}`} />
           <button onClick={() => setShowForm(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity">
             <Plus size={13} /> New Assignment
@@ -699,16 +701,16 @@ export default function CleaningTab() {
         </div>
       )}
 
-      {/* Views */}
+      {/* Views — wrapped in print zone */}
       {!loading && !setupError && (
-        <>
+        <div id="print-cleaning">
           {viewMode === "today" && (
             <TodayView assignments={assignments} today={today} workerIndex={workerIndex} onDelete={handleDelete} />
           )}
           {viewMode === "week" && (
             <WeekGrid assignments={assignments} weekStart={weekStart} workerIndex={workerIndex} onDelete={handleDelete} />
           )}
-        </>
+        </div>
       )}
     </div>
   );

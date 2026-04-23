@@ -59,7 +59,7 @@ export default function BannerManager() {
       }
       const p = BANNER_PROPS.find(x => x.id === id)!;
       const maxOrder = Math.max(0, ...prev.slides.map(s => s.order));
-      return { ...prev, slides: [...prev.slides, { type:"property", propertyId:id, label:p.name, location:`${p.city}, ${p.state}`, enabled:true, order:maxOrder+1 }] };
+      return { ...prev, slides: [...prev.slides, { type:"property", propertyId:id, label:p.name, location:`${p.city}, TN`, enabled:true, order:maxOrder+1 }] };
     });
   }
 
@@ -176,7 +176,7 @@ export default function BannerManager() {
                 </div>
                 <div className="p-2">
                   <p className="text-[10px] font-bold text-white truncate">{prop.name}</p>
-                  <p className="text-[9px] text-gray-600">{prop.city}, {prop.state}</p>
+                  <p className="text-[9px] text-gray-600">{prop.city}, TN</p>
                 </div>
               </button>
             );

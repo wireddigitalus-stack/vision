@@ -42,7 +42,7 @@ function resolve(config: HeroConfig, overrides: Record<string, string>) {
       if (s.type === "property" && s.propertyId) {
         const p = PROPERTIES.find(p => p.id === s.propertyId);
         if (!p) return null;
-        return { src: overrides[s.propertyId] || p.image, label: s.label || p.name, location: s.location || `${p.city}, ${p.state}` };
+        return { src: overrides[s.propertyId] || p.image, label: s.label || p.name, location: s.location || `${p.city}, TN` };
       }
       if (s.type === "custom" && s.imageUrl) {
         return { src: s.imageUrl, label: s.label || "Banner", location: s.location || "Bristol, TN" };
@@ -59,7 +59,7 @@ export async function GET() {
       const defaultConfig: HeroConfig = {
         slides: MAIN_IDS.map((id, i) => {
           const p = PROPERTIES.find(pr => pr.id === id)!;
-          return { type: "property", propertyId: id, label: p?.name, location: `${p?.city}, ${p?.state}`, enabled: true, order: i };
+          return { type: "property", propertyId: id, label: p?.name, location: `${p?.city}, TN`, enabled: true, order: i };
         }),
         videoUrl: null, videoEnabled: false,
       };

@@ -8,6 +8,7 @@ import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
 import MaintenanceTab from "./MaintenanceTab";
 import CleaningTab from "./CleaningTab";
 import MarketingTab from "./MarketingTab";
+import PropertyOneSheet from "./PropertyOneSheet";
 import CallLogModal, { type CallLog, outcomeColor, outcomeLabel } from "./CallLogModal";
 import PrintButton from "./PrintButton";
 import { supabaseBrowser } from "@/lib/supabase-browser";
@@ -1474,7 +1475,7 @@ export default function AdminPage() {
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; email: string; avatar?: string}>>([]);
   const briefKeyRef = useRef(0);
   const [briefKey, setBriefKey] = useState(0);
-  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "cleaning" | "archived" | "marketing" | "settings">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "cleaning" | "archived" | "marketing" | "one-sheet" | "settings">("leads");
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
   const [loading, setLoading] = useState(false);
@@ -1841,6 +1842,7 @@ export default function AdminPage() {
               { key: "cleaning",    label: "Cleaning", fullLabel: "Cleaning",    icon: Sparkles },
               { key: "analytics",   label: "Analytic", fullLabel: "Analytics",   icon: BarChart3 },
               { key: "marketing",   label: "Market",   fullLabel: "Marketing",   icon: FileText },
+              { key: "one-sheet",   label: "One-Sheet", fullLabel: "Property One-Sheet", icon: FileText },
               { key: "archived",    label: "Archive",  fullLabel: `Archived (${archivedLeads.length})`, icon: Archive },
               { key: "settings",    label: "Settings", fullLabel: "Settings",    icon: Settings },
             ] as const).map(({ key, label, fullLabel, icon: Icon }) => (
@@ -2505,6 +2507,19 @@ export default function AdminPage() {
             <MarketingTab />
           </div>
         )}
+
+        {/* ─ ONE-SHEET TAB ───────────────────────────────────────────────────── */}
+        {activeTab === "one-sheet" && (
+          <div className="glass rounded-2xl border border-[rgba(255,255,255,0.06)] p-6 sm:p-8">
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-lg font-black text-white">Property One-Sheet</h2>
+              <span className="text-[9px] font-black bg-[rgba(74,222,128,0.12)] text-[#4ADE80] border border-[rgba(74,222,128,0.25)] px-2 py-0.5 rounded-md uppercase tracking-widest">PDF Ready</span>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">Generate a branded brochure for any Vision property — perfect for showings and email attachments.</p>
+            <PropertyOneSheet />
+          </div>
+        )}
+
         {activeTab === "settings" && <SettingsPanel leads={activeLeads} />}
 
         <p className="text-center text-[11px] text-gray-700 mt-10">

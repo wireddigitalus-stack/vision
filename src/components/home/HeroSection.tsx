@@ -48,31 +48,47 @@ const HERO_SLIDES = [
 ];
 
 export default function HeroSection() {
+  const [slides, setSlides] = useState(HERO_SLIDES);
+  const [videoUrl, setVideoUrl] = useState<string|null>(null);
+  const [videoEnabled, setVideoEnabled] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [nextSlide, setNextSlide] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [progressKey, setProgressKey] = useState(0); // CSS animation restart key
+  const [progressKey, setProgressKey] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const SLIDE_DURATION = 5000; // 5s per slide
-  const TRANSITION_DURATION = 1200; // 1.2s crossfade
+  const SLIDE_DURATION = 5000;
+  const TRANSITION_DURATION = 1200;
+
+  // Fetch dynamic banner config from admin
+  useEffect(() => {
+    fetch("/api/hero-banner")
+      .then(r => r.json())
+      .then(d => {
+        if (d.resolved && d.resolved.length > 0) setSlides(d.resolved);
+        if (d.raw?.videoEnabled && d.raw?.videoUrl) {
+          setVideoUrl(d.raw.videoUrl);
+          setVideoEnabled(true);
+        }
+      })
+      .catch(() => { /* keep defaults */ });
+  }, []);
 
   const advanceSlide = () => {
     setIsTransitioning(true);
-    setNextSlide((prev) => (currentSlide + 1) % HERO_SLIDES.length);
+    setNextSlide((prev) => (currentSlide + 1) % slides.length);
     setTimeout(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
       setIsTransitioning(false);
     }, TRANSITION_DURATION);
   };
 
   useEffect(() => {
-    setProgressKey((k) => k + 1); // restart CSS progress animation
+    if (videoEnabled) return; // no slideshow when video is active
+    setProgressKey((k) => k + 1);
     intervalRef.current = setInterval(advanceSlide, SLIDE_DURATION);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [currentSlide]);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [currentSlide, videoEnabled, slides.length]);
 
   const goToSlide = (idx: number) => {
     if (idx === currentSlide || isTransitioning) return;
@@ -80,11 +96,11 @@ export default function HeroSection() {
     setNextSlide(idx);
     setIsTransitioning(true);
     setProgressKey((k) => k + 1);
-    setTimeout(() => {
-      setCurrentSlide(idx);
-      setIsTransitioning(false);
-    }, TRANSITION_DURATION);
+    setTimeout(() => { setCurrentSlide(idx); setIsTransitioning(false); }, TRANSITION_DURATION);
   };
+
+  const activeSlide = slides[currentSlide] || HERO_SLIDES[0];
+  const nextSlideData = slides[nextSlide] || HERO_SLIDES[0];
 
   return (
     <section
@@ -92,39 +108,28 @@ export default function HeroSection() {
       className="relative min-h-screen flex flex-col justify-center overflow-hidden"
       aria-label="Hero — Vision LLC Commercial Real Estate"
     >
-      {/* ── SLIDESHOW BACKGROUND ── */}
+      {/* ── BACKGROUND ── */}
       <div className="absolute inset-0 z-0">
-        {/* Current slide */}
-        <div className="absolute inset-0">
-          <Image
-            key={`current-${currentSlide}`}
-            src={HERO_SLIDES[currentSlide].src}
-            alt={HERO_SLIDES[currentSlide].label}
-            fill
-            priority
-            className="object-cover md:scale-[1.03] md:transition-transform md:duration-[10000ms] md:ease-linear"
-            sizes="100vw"
+        {videoEnabled && videoUrl ? (
+          /* Video Background */
+          <video
+            key={videoUrl}
+            autoPlay muted loop playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+            src={videoUrl}
           />
-        </div>
-
-        {/* Next slide (fades in during transition) */}
-        <div
-          className="absolute inset-0 transition-opacity"
-          style={{
-            opacity: isTransitioning ? 1 : 0,
-            transitionDuration: `${TRANSITION_DURATION}ms`,
-            transitionTimingFunction: "ease-in-out",
-          }}
-        >
-          <Image
-            key={`next-${nextSlide}`}
-            src={HERO_SLIDES[nextSlide].src}
-            alt={HERO_SLIDES[nextSlide].label}
-            fill
-            className="object-cover"
-            sizes="100vw"
-          />
-        </div>
+        ) : (
+          /* Slideshow */
+          <>
+            <div className="absolute inset-0">
+              <Image key={`cur-${currentSlide}`} src={activeSlide.src} alt={activeSlide.label}
+                fill priority className="object-cover md:scale-[1.03] md:transition-transform md:duration-[10000ms] md:ease-linear" sizes="100vw"/>
+            </div>
+            <div className="absolute inset-0 transition-opacity" style={{ opacity: isTransitioning ? 1 : 0, transitionDuration: `${TRANSITION_DURATION}ms`, transitionTimingFunction:"ease-in-out" }}>
+              <Image key={`nxt-${nextSlide}`} src={nextSlideData.src} alt={nextSlideData.label} fill className="object-cover" sizes="100vw"/>
+            </div>
+          </>
+        )}
 
         {/* Dark overlay — heavier at top/bottom, lighter in middle */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#080B0F]/85 via-[#080B0F]/55 to-[#080B0F]/90" />
@@ -222,46 +227,25 @@ export default function HeroSection() {
       {/* ── SLIDE CONTROLS (bottom-right) ── */}
       <div className="absolute bottom-8 right-6 z-20 flex flex-col items-end gap-3">
         {/* Current property label */}
-        <div
-          className="text-right transition-all duration-500"
-          style={{ opacity: isTransitioning ? 0 : 1 }}
-        >
-          <p className="text-xs text-[#4ADE80] font-semibold tracking-wider uppercase">
-            {HERO_SLIDES[currentSlide].label}
-          </p>
-          <p className="text-[11px] text-gray-500">{HERO_SLIDES[currentSlide].location}</p>
+        <div className="text-right transition-all duration-500" style={{ opacity: isTransitioning ? 0 : 1 }}>
+          <p className="text-xs text-[#4ADE80] font-semibold tracking-wider uppercase">{activeSlide.label}</p>
+          <p className="text-[11px] text-gray-500">{activeSlide.location}</p>
         </div>
 
         {/* Dot progress indicators */}
+        {!videoEnabled && (
         <div className="flex items-center gap-2">
-          {HERO_SLIDES.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => goToSlide(idx)}
-              aria-label={`Go to slide ${idx + 1}`}
-              className="group relative focus:outline-none"
-            >
-              <div
-                className={`h-0.5 transition-all duration-300 rounded-full ${
-                  idx === currentSlide
-                    ? "w-8 bg-[#4ADE80]"
-                    : "w-3 bg-white/25 group-hover:bg-white/50"
-                }`}
-              />
-              {/* Progress fill on active dot */}
+          {slides.map((_, idx) => (
+            <button key={idx} onClick={() => goToSlide(idx)} aria-label={`Go to slide ${idx + 1}`} className="group relative focus:outline-none">
+              <div className={`h-0.5 transition-all duration-300 rounded-full ${idx === currentSlide ? "w-8 bg-[#4ADE80]" : "w-3 bg-white/25 group-hover:bg-white/50"}`}/>
               {idx === currentSlide && (
-                <div
-                  key={progressKey}
-                  className="absolute inset-0 h-0.5 bg-white/30 rounded-full"
-                  style={{
-                    animation: `slideProgress ${SLIDE_DURATION}ms linear forwards`,
-                  }}
-                />
+                <div key={progressKey} className="absolute inset-0 h-0.5 bg-white/30 rounded-full" style={{ animation: `slideProgress ${SLIDE_DURATION}ms linear forwards` }}/>
               )}
               <style>{`@keyframes slideProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
             </button>
           ))}
         </div>
+        )}
       </div>
 
       {/* ── SCROLL INDICATOR ── */}

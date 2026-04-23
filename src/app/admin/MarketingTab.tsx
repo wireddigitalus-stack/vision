@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Sparkles, Copy, Download, CheckCircle2, Trash2, FileText, Clock, ChevronDown, ImageIcon, BookOpen } from "lucide-react";
+import { Loader2, Sparkles, Copy, Download, CheckCircle2, Trash2, FileText, Clock, ChevronDown, ImageIcon, BookOpen, Layout } from "lucide-react";
 import PropertyImageManager from "./PropertyImageManager";
 import BlogGenerator from "./BlogGenerator";
+import BannerManager from "./BannerManager";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,7 +48,7 @@ function saveQueue(q: PressRelease[]) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MarketingTab() {
-  const [subTab, setSubTab] = useState<"press" | "blog" | "photos">("press");
+  const [subTab, setSubTab] = useState<"press" | "blog" | "photos" | "banner">("press");
   const [prType,    setPrType]    = useState("new_listing");
   const [topic,     setTopic]     = useState("");
   const [details,   setDetails]   = useState("");
@@ -173,6 +174,16 @@ export default function MarketingTab() {
             border:"rgba(74,222,128,0.4)",
             tag:   "6 Properties",
           },
+          {
+            key:   "banner",
+            label: "Homepage Banner",
+            desc:  "Control hero slides, custom images & video",
+            icon:  Layout,
+            grad:  "from-[#FACC15] to-[#F59E0B]",
+            glow:  "rgba(250,204,21,0.2)",
+            border:"rgba(250,204,21,0.4)",
+            tag:   "Live",
+          },
         ] as const).map(({ key, label, desc, icon: Icon, grad, glow, border, tag }) => (
           <button key={key} onClick={() => setSubTab(key)}
             className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden ${
@@ -208,6 +219,9 @@ export default function MarketingTab() {
 
       {/* ── Property Photos ── */}
       {subTab === "photos" && <PropertyImageManager />}
+
+      {/* ── Homepage Banner ── */}
+      {subTab === "banner" && <BannerManager />}
 
       {/* ── Press Releases ── */}
       {subTab === "press" && (<div className="space-y-8">

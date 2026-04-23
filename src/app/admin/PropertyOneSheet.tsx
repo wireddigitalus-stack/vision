@@ -28,27 +28,20 @@ function buildOneSheetHTML(property: Property, baseUrl: string): string {
     : null;
 
   const imageSrc = imageUrl
-    ? `<div style="height:220px;overflow:hidden;border-radius:12px;margin-bottom:24px;position:relative">
+    ? `<div style="height:180px;overflow:hidden;border-radius:10px;margin-bottom:14px;position:relative">
         <img src="${imageUrl}" alt="${property.imageAlt ?? property.name}"
           style="width:100%;height:100%;object-fit:cover" />
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.35) 0%,transparent 60%)"></div>
-        <div style="position:absolute;bottom:12px;left:14px">
-          <span style="background:rgba(0,0,0,0.55);color:#fff;font-size:9pt;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.5px">
+        <div style="position:absolute;bottom:10px;left:12px">
+          <span style="background:rgba(0,0,0,0.55);color:#fff;font-size:8.5pt;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.5px">
             ${(property as Property & { badge?: string }).badge ?? property.type}
           </span>
         </div>
       </div>`
-    : `<div style="height:160px;border-radius:12px;margin-bottom:24px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:60px">🏢</div>`;
+    : `<div style="height:120px;border-radius:10px;margin-bottom:14px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:48px">🏢</div>`;
 
-  // Second image if available
-  const images = (property as Property & { images?: string[] }).images ?? [];
-  const secondImageSrc =
-    images[1]
-      ? `<div style="margin-top:16px;height:150px;overflow:hidden;border-radius:10px">
-          <img src="${baseUrl}${images[1]}" alt="${property.name}"
-            style="width:100%;height:100%;object-fit:cover" />
-        </div>`
-      : "";
+  // Second image suppressed — keeps content to one page
+  const secondImageSrc = "";
 
   return `
     <!DOCTYPE html>
@@ -57,260 +50,234 @@ function buildOneSheetHTML(property: Property, baseUrl: string): string {
       <meta charset="UTF-8"/>
       <title>${property.name} — Vision LLC Property One-Sheet</title>
       <style>
-        @page { margin: 0; size: letter; }
+        @page { margin: 0; size: letter portrait; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
+
+        html, body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-          background: #fff;
+          background: #0a1628; /* matches header/footer so no bare white strip */
           color: #111;
-          width: 8.5in;
-          min-height: 11in;
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          overflow: hidden;
         }
+
+        /* ── Page wrapper: fills the window, 8.5in only matters at print time ── */
+        .page {
+          width: 100%;
+          height: 100vh;
+          min-height: 100%;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
+
         /* ── Header bar ── */
         .header {
           background: #0a1628;
-          padding: 18px 32px;
+          padding: 14px 28px;
           display: flex;
           align-items: center;
           justify-content: space-between;
+          flex-shrink: 0;
         }
-        .header-brand { color: #fff; }
-        .header-brand .company { font-size: 18pt; font-weight: 900; letter-spacing: -0.5px; color:#fff }
-        .header-brand .tagline { font-size: 7.5pt; color: #94a3b8; margin-top: 2px; letter-spacing:.5px; text-transform:uppercase }
+        .header-brand .company { font-size: 16pt; font-weight: 900; letter-spacing: -0.5px; color:#fff }
+        .header-brand .tagline { font-size: 7pt; color: #94a3b8; margin-top: 2px; letter-spacing:.5px; text-transform:uppercase }
         .header-contact { text-align: right; }
-        .header-contact p { font-size: 9pt; color: #94a3b8; line-height: 1.6 }
+        .header-contact p { font-size: 8.5pt; color: #94a3b8; line-height: 1.5 }
         .header-contact a { color: #4ade80; text-decoration: none; font-weight: 700 }
+
         /* ── Accent bar ── */
-        .accent-bar { height: 4px; background: linear-gradient(90deg, #4ade80 0%, #22c55e 50%, #16a34a 100%) }
+        .accent-bar { height: 3px; background: linear-gradient(90deg, #4ade80 0%, #22c55e 50%, #16a34a 100%); flex-shrink: 0 }
+
         /* ── Property name banner ── */
         .property-banner {
-          padding: 22px 32px 18px;
+          padding: 12px 28px 10px;
           background: #f8fafc;
           border-bottom: 1px solid #e5e7eb;
+          flex-shrink: 0;
         }
-        .property-type {
-          font-size: 8pt;
-          font-weight: 800;
-          color: #4ade80;
-          text-transform: uppercase;
-          letter-spacing: 1.5px;
-          margin-bottom: 4px;
-        }
-        .property-name {
-          font-size: 22pt;
-          font-weight: 900;
-          color: #0f172a;
-          line-height: 1.1;
-          margin-bottom: 6px;
-        }
-        .property-meta {
-          display: flex;
-          gap: 20px;
-          flex-wrap: wrap;
-        }
-        .meta-item {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          font-size: 9.5pt;
-          color: #64748b;
-        }
-        .meta-icon { font-size: 11pt }
+        .property-type { font-size: 7.5pt; font-weight: 800; color: #4ade80; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px; }
+        .property-name { font-size: 18pt; font-weight: 900; color: #0f172a; line-height: 1.1; margin-bottom: 5px; }
+        .property-meta { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+        .meta-item { display: flex; align-items: center; gap: 4px; font-size: 9pt; color: #64748b; }
         .status-badge {
-          display: inline-block;
-          padding: 3px 10px;
-          border-radius: 20px;
-          background: #dcfce7;
-          color: #15803d;
-          font-size: 8pt;
-          font-weight: 800;
+          display: inline-block; padding: 2px 9px; border-radius: 20px;
+          background: #dcfce7; color: #15803d; font-size: 7.5pt; font-weight: 800;
           border: 1px solid #bbf7d0;
-          letter-spacing: .3px;
         }
-        /* ── Body grid ── */
+
+        /* ── Body: fills remaining vertical space ── */
         .body {
           display: flex;
-          gap: 0;
-          min-height: calc(11in - 200px);
+          flex: 1;
+          overflow: hidden;
+          min-height: 0;
         }
         .left-col {
           width: 58%;
-          padding: 24px 24px 24px 32px;
+          padding: 16px 20px 16px 28px;
           border-right: 1px solid #e5e7eb;
+          overflow: hidden;
         }
         .right-col {
           width: 42%;
-          padding: 24px 32px 24px 24px;
+          padding: 16px 28px 16px 20px;
           background: #f8fafc;
+          overflow: hidden;
         }
         .section-label {
-          font-size: 7.5pt;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 1.5px;
-          color: #94a3b8;
-          margin-bottom: 10px;
-          padding-bottom: 6px;
-          border-bottom: 2px solid #e5e7eb;
+          font-size: 7pt; font-weight: 800; text-transform: uppercase;
+          letter-spacing: 1.5px; color: #94a3b8;
+          margin-bottom: 7px; padding-bottom: 5px; border-bottom: 2px solid #e5e7eb;
         }
         .description {
-          font-size: 10pt;
-          line-height: 1.7;
-          color: #374151;
-          margin-bottom: 20px;
+          font-size: 9.5pt; line-height: 1.6; color: #374151; margin-bottom: 12px;
         }
         .highlights {
-          background: #fff;
-          border: 1px solid #e5e7eb;
-          border-radius: 10px;
-          padding: 14px 16px;
-          margin-bottom: 20px;
+          background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+          padding: 10px 13px; margin-bottom: 12px;
         }
-        .highlights-title {
-          font-size: 9pt;
-          font-weight: 800;
-          color: #0f172a;
-          margin-bottom: 8px;
-        }
+        .highlights-title { font-size: 8.5pt; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+
+        /* ── Features rows ── */
+        .feat-row { display:flex; align-items:center; gap:7px; padding:5px 0; border-bottom:1px solid #f0f0f0ь }
+
         /* ── CTA box ── */
         .cta-box {
-          background: #0a1628;
-          border-radius: 12px;
-          padding: 18px 20px;
-          margin-top: 20px;
-          color: #fff;
+          background: #0a1628; border-radius: 10px; padding: 13px 16px; margin-top: 10px; color: #fff;
         }
-        .cta-box h3 {
-          font-size: 12pt;
-          font-weight: 900;
-          margin-bottom: 10px;
-          color: #fff;
-        }
-        .cta-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 6px;
-        }
-        .cta-icon { font-size: 13pt; flex-shrink: 0 }
-        .cta-text { font-size: 10pt; color: #cbd5e1 }
+        .cta-box h3 { font-size: 10.5pt; font-weight: 900; margin-bottom: 8px; color: #fff; }
+        .cta-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+        .cta-icon { font-size: 11pt; flex-shrink: 0 }
+        .cta-text { font-size: 9.5pt; color: #cbd5e1 }
         .cta-value { color: #4ade80; font-weight: 800 }
+
         /* ── Specs table ── */
-        .specs-table { width: 100%; border-collapse: collapse; margin-bottom: 20px }
-        .specs-table td { padding: 7px 0; border-bottom: 1px solid #e5e7eb; font-size: 9.5pt }
+        .specs-table { width: 100%; border-collapse: collapse; margin-bottom: 12px }
+        .specs-table td { padding: 5px 0; border-bottom: 1px solid #e5e7eb; font-size: 9pt }
         .specs-table td:first-child { color: #94a3b8; font-weight: 600; width: 45% }
         .specs-table td:last-child { color: #0f172a; font-weight: 700 }
-        /* ── Footer ── */
+
+        /* ── Footer: pinned to bottom of the page wrapper ── */
         .footer {
-          padding: 12px 32px;
+          padding: 9px 28px;
           background: #0a1628;
           display: flex;
           align-items: center;
           justify-content: space-between;
+          flex-shrink: 0;
         }
-        .footer p { font-size: 8pt; color: #64748b }
+        .footer p { font-size: 7.5pt; color: #64748b; line-height: 1.4 }
         .footer .web { color: #4ade80; font-weight: 700 }
-        .footer .disclaimer { font-size: 7pt; color: #475569; text-align: right; max-width: 50% }
+        .footer .disclaimer { font-size: 6.5pt; color: #475569; text-align: right; max-width: 55% }
+
         @media print {
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact }
-          .header, .footer, .cta-box, .accent-bar, .property-banner { -webkit-print-color-adjust: exact; print-color-adjust: exact }
+          html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact }
+          .page, .header, .footer, .cta-box, .accent-bar, .property-banner {
+            -webkit-print-color-adjust: exact; print-color-adjust: exact
+          }
         }
       </style>
     </head>
     <body>
+      <div class="page">
 
-      <!-- Header -->
-      <div class="header">
-        <div class="header-brand">
-          <div class="company">VISION LLC</div>
-          <div class="tagline">Commercial Real Estate · Bristol, TN / VA</div>
-        </div>
-        <div class="header-contact">
-          <p>📞 <a href="tel:${COMPANY.phoneHref}">${COMPANY.phone}</a></p>
-          <p>✉ <a href="mailto:${COMPANY.email}">${COMPANY.email}</a></p>
-          <p style="color:#64748b">${COMPANY.fullAddress}</p>
-        </div>
-      </div>
-      <div class="accent-bar"></div>
-
-      <!-- Property banner -->
-      <div class="property-banner">
-        <div class="property-type">${property.type} · ${(property as Property & { badge?: string }).badge ?? "Available"}</div>
-        <div class="property-name">${property.name}</div>
-        <div class="property-meta">
-          <div class="meta-item"><span class="meta-icon">📍</span> ${property.city}</div>
-          ${(property as Property & { address?: string }).address ? `<div class="meta-item"><span class="meta-icon">🏢</span> ${(property as Property & { address?: string }).address}</div>` : ""}
-          <div class="meta-item"><span class="meta-icon">📐</span> ${property.sqft} sqft</div>
-          <span class="status-badge">● ${property.status}</span>
-        </div>
-      </div>
-
-      <!-- Body -->
-      <div class="body">
-        <!-- Left: images + description -->
-        <div class="left-col">
-          ${imageSrc}
-          <div class="section-label">About This Property</div>
-          <p class="description">${property.description}</p>
-          ${secondImageSrc}
-        </div>
-
-        <!-- Right: specs + features + CTA -->
-        <div class="right-col">
-          <div class="section-label">Property Specs</div>
-          <table class="specs-table">
-            <tr><td>Property Type</td><td>${property.type}</td></tr>
-            <tr><td>Available Space</td><td>${property.sqft} sqft</td></tr>
-            <tr><td>Location</td><td>${property.city}</td></tr>
-            <tr><td>Status</td><td>${property.status}</td></tr>
-            ${(property as Property & { address?: string }).address ? `<tr><td>Address</td><td>${(property as Property & { address?: string }).address}</td></tr>` : ""}
-          </table>
-
-          <div class="section-label">Features &amp; Amenities</div>
-          <div class="highlights">
-            <div class="highlights-title">What's Included</div>
-            ${features}
+        <!-- Header -->
+        <div class="header">
+          <div class="header-brand">
+            <div class="company">VISION LLC</div>
+            <div class="tagline">Commercial Real Estate · Bristol, TN / VA</div>
           </div>
-
-          <div class="cta-box">
-            <h3>Schedule a Showing</h3>
-            <div class="cta-row">
-              <span class="cta-icon">📞</span>
-              <span class="cta-text">Call us: <span class="cta-value">${COMPANY.phone}</span></span>
-            </div>
-            <div class="cta-row">
-              <span class="cta-icon">✉</span>
-              <span class="cta-text">Email: <span class="cta-value">${COMPANY.email}</span></span>
-            </div>
-            <div class="cta-row">
-              <span class="cta-icon">🌐</span>
-              <span class="cta-text">Web: <span class="cta-value">teamvisionllc.com</span></span>
-            </div>
-            <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)">
-              <p style="font-size:8.5pt;color:#94a3b8;line-height:1.5">
-                Vision LLC has been Downtown Bristol's #1 commercial property owner for over 20 years.
-                Our team will personally walk you through every available space.
-              </p>
-            </div>
+          <div class="header-contact">
+            <p>📞 <a href="tel:${COMPANY.phoneHref}">${COMPANY.phone}</a></p>
+            <p>✉ <a href="mailto:${COMPANY.email}">${COMPANY.email}</a></p>
+            <p style="color:#64748b">${COMPANY.fullAddress}</p>
           </div>
         </div>
-      </div>
+        <div class="accent-bar"></div>
 
-      <!-- Footer -->
-      <div class="footer">
-        <div>
-          <p class="web">teamvisionllc.com</p>
-          <p>${COMPANY.fullAddress} · ${COMPANY.phone}</p>
+        <!-- Property banner -->
+        <div class="property-banner">
+          <div class="property-type">${property.type} · ${(property as Property & { badge?: string }).badge ?? "Available"}</div>
+          <div class="property-name">${property.name}</div>
+          <div class="property-meta">
+            <div class="meta-item">📍 ${property.city}</div>
+            ${(property as Property & { address?: string }).address ? `<div class="meta-item">🏢 ${(property as Property & { address?: string }).address}</div>` : ""}
+            <div class="meta-item">📐 ${property.sqft} sqft</div>
+            <span class="status-badge">● ${property.status}</span>
+          </div>
         </div>
-        <p class="disclaimer">
-          Information is subject to change without notice. All square footages are approximate.
-          Contact Vision LLC to confirm current availability and lease terms.
-          Generated ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}.
-        </p>
-      </div>
 
+        <!-- Body: fills remaining space between banner and footer -->
+        <div class="body">
+
+          <!-- Left: image + description -->
+          <div class="left-col">
+            ${imageSrc}
+            <div class="section-label">About This Property</div>
+            <p class="description">${property.description}</p>
+          </div>
+
+          <!-- Right: specs + features + CTA -->
+          <div class="right-col">
+            <div class="section-label">Property Specs</div>
+            <table class="specs-table">
+              <tr><td>Property Type</td><td>${property.type}</td></tr>
+              <tr><td>Available Space</td><td>${property.sqft} sqft</td></tr>
+              <tr><td>Location</td><td>${property.city}</td></tr>
+              <tr><td>Status</td><td>${property.status}</td></tr>
+              ${(property as Property & { address?: string }).address ? `<tr><td>Address</td><td>${(property as Property & { address?: string }).address}</td></tr>` : ""}
+            </table>
+
+            <div class="section-label">Features &amp; Amenities</div>
+            <div class="highlights">
+              <div class="highlights-title">What's Included</div>
+              ${features}
+            </div>
+
+            <div class="cta-box">
+              <h3>Schedule a Showing</h3>
+              <div class="cta-row">
+                <span class="cta-icon">📞</span>
+                <span class="cta-text">Call us: <span class="cta-value">${COMPANY.phone}</span></span>
+              </div>
+              <div class="cta-row">
+                <span class="cta-icon">✉</span>
+                <span class="cta-text">Email: <span class="cta-value">${COMPANY.email}</span></span>
+              </div>
+              <div class="cta-row">
+                <span class="cta-icon">🌐</span>
+                <span class="cta-text">Web: <span class="cta-value">teamvisionllc.com</span></span>
+              </div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1)">
+                <p style="font-size:8pt;color:#94a3b8;line-height:1.5">
+                  Vision LLC — Downtown Bristol's #1 commercial property owner for 20+ years.
+                  Our team will personally walk you through every available space.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer: pinned inside .page flex column at the bottom -->
+        <div class="footer">
+          <div>
+            <p class="web">teamvisionllc.com</p>
+            <p>${COMPANY.fullAddress} · ${COMPANY.phone}</p>
+          </div>
+          <p class="disclaimer">
+            Information subject to change without notice. All square footages approximate.<br/>
+            Contact Vision LLC to confirm availability &amp; lease terms.<br/>
+            Generated ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}.
+          </p>
+        </div>
+
+      </div><!-- /.page -->
     </body>
-    </html>`;
+    </html>`;  
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────

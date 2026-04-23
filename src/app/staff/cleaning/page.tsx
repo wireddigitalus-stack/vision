@@ -91,7 +91,7 @@ function ReportIssueModal({ workerName, onClose, onSubmit }: { workerName: strin
           className="w-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-2xl px-4 py-3.5 text-base text-white outline-none focus:border-[rgba(239,68,68,0.5)] placeholder:text-gray-600 mb-4" />
 
         <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Details</p>
-        <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="What did you find?"
+        <textarea spellCheck={true} value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="What did you find?"
           className="w-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-2xl px-4 py-3 text-sm text-white outline-none focus:border-[rgba(239,68,68,0.4)] placeholder:text-gray-600 resize-none mb-6" />
 
         <button onClick={submit} disabled={saving || !location.trim()}

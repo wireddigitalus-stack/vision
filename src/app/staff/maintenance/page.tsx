@@ -146,7 +146,7 @@ function ReportModal({ workerName, onClose, onSubmit }: { workerName: string; on
 
         {/* Details */}
         <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Details (optional)</p>
-        <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="Any extra details…"
+        <textarea spellCheck={true} value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="Any extra details…"
           className="w-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-2xl px-4 py-3 text-sm text-white outline-none focus:border-[rgba(250,204,21,0.4)] placeholder:text-gray-600 resize-none mb-6" />
 
         <button onClick={submit} disabled={saving || !title.trim()}

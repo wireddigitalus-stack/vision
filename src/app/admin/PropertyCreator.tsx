@@ -254,7 +254,7 @@ ALTER TABLE properties ENABLE ROW LEVEL SECURITY;`}</pre>
         {/* Description */}
         <div>
           <label className={labelCls}>Description</label>
-          <textarea className={inputCls} rows={5} placeholder="Property description — use AI above or write your own…"
+          <textarea spellCheck={true} className={inputCls} rows={5} placeholder="Property description — use AI above or write your own…"
             value={form.description} onChange={e => set("description", e.target.value)} />
         </div>
 

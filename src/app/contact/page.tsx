@@ -81,8 +81,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <label htmlFor="contact-message" className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Tell Us More</label>
-                <textarea id="contact-message" name="message" rows={4} placeholder="Square footage needed, timeline, budget, special requirements..."
-                  spellCheck={true}
+                <textarea spellCheck={true} id="contact-message" name="message" rows={4} placeholder="Square footage needed, timeline, budget, special requirements..."
                   className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(74,222,128,0.15)] rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-[rgba(74,222,128,0.5)] transition-all resize-none" />
               </div>
               <button type="submit" id="contact-submit" className="btn-primary w-full py-4 justify-center text-base">

@@ -222,7 +222,7 @@ function TicketForm({ initial, onSave, onCancel, currentUserName }:
       {/* Description */}
       <div>
         <label className={LABEL}>Description</label>
-        <textarea value={form.description || ""} onChange={e => set("description", e.target.value)} rows={2} spellCheck className={FIELD + " text-xs py-1.5 resize-none"} placeholder="Describe the issue in detail…" />
+        <textarea spellCheck={true} value={form.description || ""} onChange={e => set("description", e.target.value)} rows={2} className={FIELD + " text-xs py-1.5 resize-none"} placeholder="Describe the issue in detail…" />
       </div>
 
       {/* Building / Unit / Priority */}
@@ -286,7 +286,7 @@ function TicketForm({ initial, onSave, onCancel, currentUserName }:
       {/* Notes */}
       <div>
         <label className={LABEL}>Notes / Resolution</label>
-        <textarea value={form.notes || ""} onChange={e => set("notes", e.target.value)} rows={2} spellCheck className={FIELD + " text-xs py-1.5 resize-none"} placeholder="Parts needed, access details, resolution notes…" />
+        <textarea spellCheck={true} value={form.notes || ""} onChange={e => set("notes", e.target.value)} rows={2} className={FIELD + " text-xs py-1.5 resize-none"} placeholder="Parts needed, access details, resolution notes…" />
       </div>
 
       {error && <p className="text-xs text-red-400 flex items-center gap-1"><AlertTriangle size={11} />{error}</p>}
@@ -482,7 +482,7 @@ function TicketCard({ ticket, onEdit, onDelete, onUpdate, currentUserName }:
               );
             })}
             <div className="flex gap-2">
-              <textarea value={note} onChange={e => setNote(e.target.value)} spellCheck
+              <textarea spellCheck={true} value={note} onChange={e => setNote(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveNote(); } }}
                 rows={2} placeholder="Add a note… (Enter to post)"
                 className="flex-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-lg px-3 py-1.5 text-xs text-white focus:border-[rgba(250,204,21,0.35)] outline-none placeholder:text-gray-700 resize-none transition-colors" />

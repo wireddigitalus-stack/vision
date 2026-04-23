@@ -334,3 +334,12 @@ body {
 .ticker-track:hover {
   animation-play-state: paused;
 }
+
+/* ── Spellcheck: enable on all text inputs and textareas ── */
+input[type="text"],
+input[type="email"],
+input[type="search"],
+input:not([type]),
+textarea {
+  spell-check: normal; /* hint to browsers */
+}

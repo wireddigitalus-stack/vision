@@ -1,0 +1,433 @@
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import { X, Lightbulb, ChevronRight } from "lucide-react";
+
+// ─── Tip Data ─────────────────────────────────────────────────────────────────
+
+type Tip = { title: string; body: string; emoji: string };
+
+type TabKey =
+  | "leads"
+  | "tenants"
+  | "analytics"
+  | "maintenance"
+  | "cleaning"
+  | "marketing"
+  | "one-sheet"
+  | "archived"
+  | "settings"
+  | "global";
+
+const TIPS: Record<TabKey, Tip[]> = {
+  global: [
+    {
+      emoji: "🔄",
+      title: "Auto-Refresh",
+      body: "The dashboard automatically refreshes every 30 seconds so you always have the latest lead data without lifting a finger.",
+    },
+    {
+      emoji: "📱",
+      title: "Works on Any Device",
+      body: "You can use the dashboard on your phone, tablet, or desktop — the layout adjusts automatically.",
+    },
+    {
+      emoji: "🔒",
+      title: "Secure Access",
+      body: "Only team members with an approved Vision LLC account can access this dashboard. All data is encrypted.",
+    },
+  ],
+  leads: [
+    {
+      emoji: "🌡️",
+      title: "Lead Temperature",
+      body: "Every lead gets a Score (0–100). Hot Lead = 75+, Warm Lead = 50–74, Nurture = below 50. The AI updates scores automatically based on budget, timeline, and fit.",
+    },
+    {
+      emoji: "📞",
+      title: "Printing the Call Sheet",
+      body: "Use the green '🖨️ Print Call Sheet' button near the top right of the Leads tab. A clean, formatted list of every lead opens — ready to print or save as PDF.",
+    },
+    {
+      emoji: "🐋",
+      title: "Whale Detector",
+      body: "The Whale badge (🐋) automatically flags leads with large team sizes or high budgets. These are priority prospects — contact them first.",
+    },
+    {
+      emoji: "🔍",
+      title: "Filtering Leads",
+      body: "Use the colored filter buttons (Hot, Warm, Nurture, Whale, New Today) to narrow your list before printing the call sheet — only the filtered leads will appear on the printed page.",
+    },
+    {
+      emoji: "📋",
+      title: "Call Log",
+      body: "Click the phone icon on any lead to log a call. You can record the outcome (Interested, Left Voicemail, etc.) and add notes. This keeps your team on the same page.",
+    },
+    {
+      emoji: "⭐",
+      title: "Starring a Lead",
+      body: "Click the star ⭐ icon to mark a lead as high priority. Starred leads float to the top so they're easy to find.",
+    },
+  ],
+  tenants: [
+    {
+      emoji: "📥",
+      title: "Importing Tenants from Excel",
+      body: "Click '+ Add Tenant' then choose 'Import from Excel / CSV'. Upload your spreadsheet and the system will auto-map the columns to tenant profiles — you can edit every field after.",
+    },
+    {
+      emoji: "🖨️",
+      title: "Printing the Tenant Roster",
+      body: "Use the 'Print Roster' button to generate a clean PDF of all current tenants — great for weekly team reviews.",
+    },
+    {
+      emoji: "📁",
+      title: "Tenant Profiles",
+      body: "Each tenant card stores their name, unit, phone, email, lease dates, and payment status. Click on a tenant to expand or edit their profile.",
+    },
+  ],
+  maintenance: [
+    {
+      emoji: "🔧",
+      title: "Creating a Work Order",
+      body: "Click '+ New Work Order' to log a maintenance request. Set priority (Low / Medium / High / Urgent) and assign it to a team member.",
+    },
+    {
+      emoji: "🖨️",
+      title: "Printing Work Orders",
+      body: "The 'Print Work Orders' button generates a formatted list of all active maintenance tickets — perfect for your maintenance crew.",
+    },
+    {
+      emoji: "✅",
+      title: "Marking Complete",
+      body: "When a job is done, click the green checkmark on the work order to mark it complete. Completed orders move off the active list automatically.",
+    },
+  ],
+  cleaning: [
+    {
+      emoji: "📅",
+      title: "The Schedule Grid",
+      body: "The Cleaning tab shows a weekly grid. Each cell represents a cleaning task for a specific day and property zone. Green = done, gray = pending.",
+    },
+    {
+      emoji: "🖨️",
+      title: "Printing the Cleaning Schedule",
+      body: "Use the 'Print Schedule' button to hand a printed weekly schedule to your cleaning crew — no login required for them.",
+    },
+    {
+      emoji: "✔️",
+      title: "Checking Off Tasks",
+      body: "Click any task cell to mark it as completed. The dashboard keeps a running log so you can review what was cleaned and when.",
+    },
+  ],
+  analytics: [
+    {
+      emoji: "📊",
+      title: "What You're Looking At",
+      body: "The Analytics tab shows lead trends, conversion rates, and pipeline health over time. Use it in team meetings to report on the month's activity.",
+    },
+    {
+      emoji: "🤖",
+      title: "AI Market Brief",
+      body: "The AI-generated Market Brief at the top summarizes what your lead data is telling you in plain English — no spreadsheets needed.",
+    },
+    {
+      emoji: "📈",
+      title: "Reading the Charts",
+      body: "Hover over any bar or data point on the charts for an exact number. The charts auto-scale based on your current lead volume.",
+    },
+  ],
+  marketing: [
+    {
+      emoji: "✍️",
+      title: "AI Copy Generator",
+      body: "The Marketing tab uses AI to draft Facebook and Instagram post copy for your properties. Select a property, pick a tone, and click Generate.",
+    },
+    {
+      emoji: "📋",
+      title: "Copy & Paste Ready",
+      body: "All generated copy is ready to paste directly into Meta Business Suite, Buffer, or any scheduling tool. No editing required — though you're always welcome to tweak it.",
+    },
+    {
+      emoji: "📍",
+      title: "Tri-Cities Focused",
+      body: "Every AI-generated post is written with Bristol TN/VA keywords and local context baked in — designed to resonate with the Tri-Cities audience.",
+    },
+  ],
+  "one-sheet": [
+    {
+      emoji: "🏢",
+      title: "What Is a One-Sheet?",
+      body: "A Property One-Sheet is a single-page branded PDF brochure for a property. It includes the photo, description, features, specs, and Vision LLC's contact info — perfect for a site tour or email attachment.",
+    },
+    {
+      emoji: "🖨️",
+      title: "How to Generate a PDF",
+      body: "Click a property card to select it (it glows green), then click 'Generate One-Sheet PDF'. A new window opens with the brochure. In the print dialog, choose 'Save as PDF', Paper: Letter, Margins: None.",
+    },
+    {
+      emoji: "📧",
+      title: "When to Use It",
+      body: "Email it to a prospect before a showing, print a stack for open houses, or include it in a lease proposal folder. Looks professional every time.",
+    },
+    {
+      emoji: "🔄",
+      title: "Always Up to Date",
+      body: "The one-sheet pulls live data from the Vision platform. Any time property info is updated in the system, the next generated PDF reflects those changes automatically.",
+    },
+  ],
+  archived: [
+    {
+      emoji: "📦",
+      title: "What's in the Archive?",
+      body: "Archived leads are contacts who didn't convert, went cold, or were disqualified. They're kept here for reference — you can restore any lead to active at any time.",
+    },
+    {
+      emoji: "♻️",
+      title: "Restoring a Lead",
+      body: "Click the restore icon on any archived lead to move them back to the active Leads tab. Useful when a cold lead re-engages after a few months.",
+    },
+  ],
+  settings: [
+    {
+      emoji: "👤",
+      title: "Team Access",
+      body: "In Settings, you can manage which team members have admin access vs. read-only access to the dashboard.",
+    },
+    {
+      emoji: "🔔",
+      title: "Notifications",
+      body: "Configure email alerts so you're notified the moment a high-scoring lead submits an inquiry — no need to watch the dashboard constantly.",
+    },
+  ],
+};
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+interface ProTipsProps {
+  activeTab: TabKey;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function ProTips({ activeTab }: ProTipsProps) {
+  const [open, setOpen] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [pulse, setPulse] = useState(false);
+  const prevTab = useRef<TabKey | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Pulse the button whenever the tab changes (after first render)
+  useEffect(() => {
+    if (prevTab.current !== null && prevTab.current !== activeTab) {
+      setPulse(true);
+      setSelectedIdx(0);
+      const t = setTimeout(() => setPulse(false), 2000);
+      return () => clearTimeout(t);
+    }
+    prevTab.current = activeTab;
+  }, [activeTab]);
+
+  // Reset tip index when tab changes
+  useEffect(() => {
+    setSelectedIdx(0);
+  }, [activeTab]);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    setTimeout(() => document.addEventListener("mousedown", handler), 10);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  // Merge global tips with tab-specific tips
+  const tabTips = TIPS[activeTab] ?? [];
+  const globalTips = TIPS.global;
+  const allTips = [...tabTips, ...globalTips];
+  const current = allTips[selectedIdx] ?? allTips[0];
+
+  const tabLabel: Record<TabKey, string> = {
+    leads: "Leads",
+    tenants: "Tenants",
+    maintenance: "Maintenance",
+    cleaning: "Cleaning",
+    analytics: "Analytics",
+    marketing: "Marketing",
+    "one-sheet": "One-Sheet",
+    archived: "Archive",
+    settings: "Settings",
+    global: "General",
+  };
+
+  return (
+    <>
+      {/* ── Floating trigger button ── */}
+      <button
+        onClick={() => setOpen(true)}
+        aria-label="Open Pro Tips"
+        className={`fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center
+          bg-gradient-to-br from-[#4ADE80] to-[#16A34A] text-black font-black text-lg
+          shadow-[0_0_20px_rgba(74,222,128,0.45)] hover:shadow-[0_0_30px_rgba(74,222,128,0.65)]
+          hover:scale-110 active:scale-95 transition-all duration-200 select-none
+          ${pulse ? "animate-bounce" : ""}`}
+        title="Pro Tips"
+      >
+        ?
+        {/* Ripple ring when pulsing */}
+        {pulse && (
+          <span className="absolute inset-0 rounded-full border-2 border-[#4ADE80] animate-ping opacity-60 pointer-events-none" />
+        )}
+      </button>
+
+      {/* ── Modal backdrop + panel ── */}
+      {open && (
+        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:justify-end p-4 sm:p-6">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+          {/* Panel */}
+          <div
+            ref={modalRef}
+            className="relative w-full max-w-md sm:max-w-sm bg-[#0d1117] border border-[rgba(74,222,128,0.25)] rounded-3xl shadow-[0_0_60px_rgba(74,222,128,0.12)] overflow-hidden
+              animate-in slide-in-from-bottom-4 sm:slide-in-from-right-4 duration-300"
+          >
+            {/* Header */}
+            <div className="px-6 pt-6 pb-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#16A34A] flex items-center justify-center shadow-[0_0_14px_rgba(74,222,128,0.3)]">
+                  <Lightbulb size={16} className="text-black" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-white leading-none">Pro Tips</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    {tabLabel[activeTab]} tab · {tabTips.length} tips · {globalTips.length} general
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.12)] flex items-center justify-center transition-colors"
+              >
+                <X size={13} className="text-gray-400" />
+              </button>
+            </div>
+
+            {/* Tip list sidebar + content */}
+            <div className="flex" style={{ minHeight: 320 }}>
+              {/* Left: tip list */}
+              <div className="w-36 flex-shrink-0 border-r border-[rgba(255,255,255,0.06)] py-3 overflow-y-auto">
+                {allTips.length === 0 && (
+                  <p className="text-[10px] text-gray-600 px-4 py-3">No tips yet.</p>
+                )}
+                {tabTips.length > 0 && (
+                  <p className="text-[9px] font-black text-[#4ADE80] uppercase tracking-widest px-4 pb-1">
+                    {tabLabel[activeTab]}
+                  </p>
+                )}
+                {tabTips.map((tip, i) => (
+                  <button
+                    key={`tab-${i}`}
+                    onClick={() => setSelectedIdx(i)}
+                    className={`w-full text-left px-4 py-2.5 flex items-center gap-2 transition-all group ${
+                      selectedIdx === i
+                        ? "bg-[rgba(74,222,128,0.1)] border-r-2 border-[#4ADE80]"
+                        : "hover:bg-[rgba(255,255,255,0.04)]"
+                    }`}
+                  >
+                    <span className="text-sm leading-none flex-shrink-0">{tip.emoji}</span>
+                    <span className={`text-[10px] font-semibold leading-tight line-clamp-2 ${selectedIdx === i ? "text-[#4ADE80]" : "text-gray-400 group-hover:text-gray-300"}`}>
+                      {tip.title}
+                    </span>
+                  </button>
+                ))}
+
+                {globalTips.length > 0 && (
+                  <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest px-4 pt-3 pb-1">
+                    General
+                  </p>
+                )}
+                {globalTips.map((tip, i) => {
+                  const idx = tabTips.length + i;
+                  return (
+                    <button
+                      key={`global-${i}`}
+                      onClick={() => setSelectedIdx(idx)}
+                      className={`w-full text-left px-4 py-2.5 flex items-center gap-2 transition-all group ${
+                        selectedIdx === idx
+                          ? "bg-[rgba(74,222,128,0.1)] border-r-2 border-[#4ADE80]"
+                          : "hover:bg-[rgba(255,255,255,0.04)]"
+                      }`}
+                    >
+                      <span className="text-sm leading-none flex-shrink-0">{tip.emoji}</span>
+                      <span className={`text-[10px] font-semibold leading-tight line-clamp-2 ${selectedIdx === idx ? "text-[#4ADE80]" : "text-gray-400 group-hover:text-gray-300"}`}>
+                        {tip.title}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Right: tip content */}
+              <div className="flex-1 p-5 flex flex-col justify-between">
+                {current && (
+                  <div key={selectedIdx} className="animate-in fade-in duration-200">
+                    <div className="text-4xl mb-3">{current.emoji}</div>
+                    <h3 className="text-sm font-black text-white mb-2 leading-tight">{current.title}</h3>
+                    <p className="text-xs text-gray-400 leading-relaxed">{current.body}</p>
+                  </div>
+                )}
+
+                {/* Navigation arrows */}
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+                  <button
+                    onClick={() => setSelectedIdx((i) => Math.max(0, i - 1))}
+                    disabled={selectedIdx === 0}
+                    className="text-[10px] text-gray-600 hover:text-gray-300 disabled:opacity-30 transition-colors font-semibold"
+                  >
+                    ← Prev
+                  </button>
+                  <span className="text-[10px] text-gray-700">
+                    {selectedIdx + 1} / {allTips.length}
+                  </span>
+                  <button
+                    onClick={() => setSelectedIdx((i) => Math.min(allTips.length - 1, i + 1))}
+                    disabled={selectedIdx === allTips.length - 1}
+                    className="flex items-center gap-1 text-[10px] text-gray-600 hover:text-[#4ADE80] disabled:opacity-30 transition-colors font-semibold"
+                  >
+                    Next <ChevronRight size={11} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-3 bg-[rgba(0,0,0,0.3)] border-t border-[rgba(255,255,255,0.04)] flex items-center justify-between">
+              <p className="text-[9px] text-gray-700">
+                Vision Property Intelligence Platform
+              </p>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-[10px] font-black text-[#4ADE80] hover:underline"
+              >
+                Got it ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

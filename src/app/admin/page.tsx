@@ -9,6 +9,7 @@ import MaintenanceTab from "./MaintenanceTab";
 import CleaningTab from "./CleaningTab";
 import MarketingTab from "./MarketingTab";
 import PropertyOneSheet from "./PropertyOneSheet";
+import ProTips from "./ProTips";
 import CallLogModal, { type CallLog, outcomeColor, outcomeLabel } from "./CallLogModal";
 import PrintButton from "./PrintButton";
 import { supabaseBrowser } from "@/lib/supabase-browser";
@@ -2529,6 +2530,10 @@ export default function AdminPage() {
           <span className="text-gray-800">Monday.com sync — ready to activate on API connection</span>
         </p>
       </div>
+
+      {/* ─ PRO TIPS floating button (always visible, context-aware) ─────────── */}
+      <ProTips activeTab={activeTab} />
+
     </div>
   );
 }

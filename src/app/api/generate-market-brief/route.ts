@@ -62,7 +62,7 @@ Keep it under 250 words total. Be direct and smart. No preamble, no "here is you
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.5, maxOutputTokens: 1024 },
+          generationConfig: { temperature: 0.5, maxOutputTokens: 2048 },
         }),
       }
     );

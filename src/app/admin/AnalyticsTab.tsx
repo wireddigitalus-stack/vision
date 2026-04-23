@@ -647,6 +647,73 @@ export default function AnalyticsTab({ leads }: { leads: AnalyticsLead[] }) {
         <StatCard label="Avg Lead Score" value={`${avgScore}`} sub={`${whaleLeads.length} whale${whaleLeads.length !== 1 ? "s" : ""} detected`} icon={TrendingUp} color="#FACC15" />
       </div>
 
+      {/* ── AI Market Brief ─────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.03)]">
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-[rgba(74,222,128,0.1)]">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_14px_rgba(74,222,128,0.3)]">
+              <Sparkles size={14} className="text-black" />
+            </div>
+            <div>
+              <p className="text-xs font-black text-white uppercase tracking-widest">AI Market Brief</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Gemini analyzes your live lead &amp; tenant data and writes a strategic brief</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {brief && (
+              <button
+                onClick={() => { navigator.clipboard.writeText(brief).catch(() => {}); setBriefCopied(true); setTimeout(() => setBriefCopied(false), 2000); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors"
+              >
+                {briefCopied ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied!</> : <><Copy size={10} /> Copy</>}
+              </button>
+            )}
+            <button
+              onClick={generateBrief}
+              disabled={briefLoading}
+              className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black font-black text-[11px] hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {briefLoading
+                ? <><Loader2 size={12} className="animate-spin" /> Analyzing…</>
+                : <><Sparkles size={12} /> {brief ? "Regenerate" : "Generate Brief"}</>
+              }
+            </button>
+          </div>
+        </div>
+
+        <div className="px-5 py-4">
+          {briefError && (
+            <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] rounded-xl px-4 py-3 mb-3">{briefError}</p>
+          )}
+
+          {brief ? (
+            <div className="text-sm text-gray-300 leading-relaxed space-y-2">
+              {brief.split("\n").map((line, i) => {
+                const boldSection = line.match(/^\*\*(.*)\*\*$/);
+                if (boldSection) return <p key={i} className="text-xs font-black text-[#4ADE80] uppercase tracking-widest mt-4 first:mt-0">{boldSection[1]}</p>;
+                if (line.startsWith("\u2022 ") || line.startsWith("- ")) return <p key={i} className="flex gap-2"><span className="text-[#4ADE80] flex-shrink-0">›</span><span>{line.slice(2)}</span></p>;
+                if (line.trim() === "") return null;
+                return <p key={i}>{line}</p>;
+              })}
+            </div>
+          ) : !briefLoading && (
+            <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.15)] flex items-center justify-center">
+                <Sparkles size={20} className="text-[#4ADE80] opacity-50" />
+              </div>
+              <p className="text-sm text-gray-600">Click <span className="text-[#4ADE80] font-bold">Generate Brief</span> to get an AI analysis<br />of your current lead pipeline and market position.</p>
+            </div>
+          )}
+
+          {briefLoading && (
+            <div className="flex items-center justify-center py-10 gap-3">
+              <Loader2 size={18} className="animate-spin text-[#4ADE80]" />
+              <p className="text-sm text-gray-500">Gemini is analyzing your data…</p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* ── Market Demand Intelligence ──────────────────────────────── */}
       <LeadHealthDashboard leads={leads} />
 
@@ -773,73 +840,6 @@ export default function AnalyticsTab({ leads }: { leads: AnalyticsLead[] }) {
           </div>
         </div>
 
-      </div>
-
-      {/* ── AI Market Brief ─────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.03)] overflow-hidden">
-        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-[rgba(74,222,128,0.1)]">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_14px_rgba(74,222,128,0.3)]">
-              <Sparkles size={14} className="text-black" />
-            </div>
-            <div>
-              <p className="text-xs font-black text-white uppercase tracking-widest">AI Market Brief</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">Gemini analyzes your live lead & tenant data and writes a strategic brief</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {brief && (
-              <button
-                onClick={() => { navigator.clipboard.writeText(brief).catch(() => {}); setBriefCopied(true); setTimeout(() => setBriefCopied(false), 2000); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors"
-              >
-                {briefCopied ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied!</> : <><Copy size={10} /> Copy</>}
-              </button>
-            )}
-            <button
-              onClick={generateBrief}
-              disabled={briefLoading}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black font-black text-[11px] hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {briefLoading
-                ? <><Loader2 size={12} className="animate-spin" /> Analyzing…</>
-                : <><Sparkles size={12} /> {brief ? "Regenerate" : "Generate Brief"}</>
-              }
-            </button>
-          </div>
-        </div>
-
-        <div className="px-5 py-4">
-          {briefError && (
-            <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] rounded-xl px-4 py-3 mb-3">{briefError}</p>
-          )}
-
-          {brief ? (
-            <div className="text-sm text-gray-300 leading-relaxed space-y-2">
-              {brief.split("\n").map((line, i) => {
-                const boldSection = line.match(/^\*\*(.*)\*\*$/);
-                if (boldSection) return <p key={i} className="text-xs font-black text-[#4ADE80] uppercase tracking-widest mt-4 first:mt-0">{boldSection[1]}</p>;
-                if (line.startsWith("• ") || line.startsWith("- ")) return <p key={i} className="flex gap-2"><span className="text-[#4ADE80] flex-shrink-0">›</span><span>{line.slice(2)}</span></p>;
-                if (line.trim() === "") return null;
-                return <p key={i}>{line}</p>;
-              })}
-            </div>
-          ) : !briefLoading && (
-            <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.15)] flex items-center justify-center">
-                <Sparkles size={20} className="text-[#4ADE80] opacity-50" />
-              </div>
-              <p className="text-sm text-gray-600">Click <span className="text-[#4ADE80] font-bold">Generate Brief</span> to get an AI analysis<br />of your current lead pipeline and market position.</p>
-            </div>
-          )}
-
-          {briefLoading && (
-            <div className="flex items-center justify-center py-10 gap-3">
-              <Loader2 size={18} className="animate-spin text-[#4ADE80]" />
-              <p className="text-sm text-gray-500">Gemini is analyzing your data…</p>
-            </div>
-          )}
-        </div>
       </div>
 
     </div>

@@ -6,13 +6,19 @@ import { X, Lightbulb, ChevronRight } from "lucide-react";
 
 type Tip = { title: string; body: string; emoji: string };
 
-type TabKey =
+export type TabKey =
   | "leads"
   | "tenants"
   | "analytics"
   | "maintenance"
   | "cleaning"
   | "marketing"
+  | "marketing-press"
+  | "marketing-blog"
+  | "marketing-photos"
+  | "marketing-banner"
+  | "marketing-properties"
+  | "marketing-social"
   | "one-sheet"
   | "archived"
   | "settings"
@@ -138,19 +144,116 @@ const TIPS: Record<TabKey, Tip[]> = {
   ],
   marketing: [
     {
-      emoji: "✍️",
-      title: "AI Copy Generator",
-      body: "The Marketing tab uses AI to draft Facebook and Instagram post copy for your properties. Select a property, pick a tone, and click Generate.",
+      emoji: "📣",
+      title: "Marketing Hub",
+      body: "The Marketing tab is your content command center. Pick a sub-tab to create press releases, blog articles, manage photos, update the homepage banner, add properties, or generate AI social copy.",
+    },
+  ],
+  "marketing-press": [
+    {
+      emoji: "🗞️",
+      title: "When to Write a Press Release",
+      body: "Use press releases for signed leases, new property additions, business expansions, and community milestones. Local Tri-Cities media actively picks up commercial real estate news.",
     },
     {
-      emoji: "📋",
-      title: "Copy & Paste Ready",
-      body: "All generated copy is ready to paste directly into Meta Business Suite, Buffer, or any scheduling tool. No editing required — though you're always welcome to tweak it.",
+      emoji: "✏️",
+      title: "Keep It Newsworthy",
+      body: "A strong release answers: Who? What? Where? When? Why does it matter? Lead with the most important fact in the first paragraph — editors decide in seconds.",
+    },
+    {
+      emoji: "📧",
+      title: "Where to Submit",
+      body: "Target Kingsport Times-News, Bristol Herald Courier, and WJHL TV. Paste the full release in the email body with the headline as the subject line — no attachments.",
+    },
+  ],
+  "marketing-blog": [
+    {
+      emoji: "📝",
+      title: "Blog = Local SEO",
+      body: "Blog posts help your site rank for searches like 'office space Bristol TN' or 'commercial real estate Tri-Cities.' One post per month keeps you visible in Google.",
+    },
+    {
+      emoji: "🔗",
+      title: "Always Link to Listings",
+      body: "Every blog post should link to at least one relevant property. This drives readers directly to your available spaces and improves on-site time.",
+    },
+    {
+      emoji: "🔄",
+      title: "Repurpose Content",
+      body: "A single blog post can become 3–4 social media posts, an email newsletter, and a press release angle. Write once, distribute everywhere.",
+    },
+  ],
+  "marketing-photos": [
+    {
+      emoji: "📸",
+      title: "Shoot in Natural Light",
+      body: "The best property photos are taken midday with all blinds open. Turn on every light before shooting to eliminate dark corners and flat shadows.",
+    },
+    {
+      emoji: "🏢",
+      title: "Must-Have Shots",
+      body: "For each property, capture: street-level exterior, lobby/entry, main interior spaces, amenities (break room, conference room), and any standout features like exposed brick or high ceilings.",
+    },
+    {
+      emoji: "📐",
+      title: "Frame from Corners",
+      body: "Shoot from room corners to show maximum depth and size. Keep the camera level at chest height — slightly tilted photos look amateurish and make spaces look smaller.",
+    },
+  ],
+  "marketing-banner": [
+    {
+      emoji: "🎨",
+      title: "One Message at a Time",
+      body: "The most effective banners have a single clear headline and one CTA button. Avoid crowding text — visitors make a decision in under 3 seconds.",
+    },
+    {
+      emoji: "🔄",
+      title: "Refresh Quarterly",
+      body: "Update the banner to reflect what's most important right now: a new property, a seasonal message, or a market update. Stale banners signal inactivity to visitors.",
+    },
+    {
+      emoji: "📱",
+      title: "Always Check Mobile",
+      body: "After any banner change, view the site on your phone. The headline and button should be fully visible without scrolling on a 6-inch screen.",
+    },
+  ],
+  "marketing-properties": [
+    {
+      emoji: "🏗️",
+      title: "Fill Every Field",
+      body: "Complete property descriptions power AI social copy, blog content, and one-sheet PDFs. The more detail you add, the better the AI output — don't skip features or the description.",
     },
     {
       emoji: "📍",
-      title: "Tri-Cities Focused",
-      body: "Every AI-generated post is written with Bristol TN/VA keywords and local context baked in — designed to resonate with the Tri-Cities audience.",
+      title: "Use Location Keywords",
+      body: "Include nearby landmarks and neighborhoods in descriptions (e.g., 'steps from downtown Bristol State Street,' 'minutes from I-81'). This improves local SEO and AI content quality.",
+    },
+    {
+      emoji: "🔢",
+      title: "Verify Square Footage",
+      body: "Always double-check sq. ft. before publishing — it's the first number prospects ask about. Inconsistencies between the listing and the space hurt credibility fast.",
+    },
+  ],
+  "marketing-social": [
+    {
+      emoji: "✍️",
+      title: "AI Copy Generator",
+      body: "Select a property, pick a tone (Professional / Friendly / Exciting), choose your platform, then click Generate. The AI writes platform-optimized copy with Tri-Cities keywords built in.",
+    },
+    {
+      emoji: "📋",
+      title: "Ready to Paste",
+      body: "Generated copy works directly in Meta Business Suite, Buffer, or any scheduling tool. Feel free to customize the CTA or add a local hook before posting.",
+    },
+    {
+      emoji: "📅",
+      title: "Best Posting Times",
+      body: "Facebook performs best Tuesday–Thursday between 9am–2pm. Instagram peaks at 11am–1pm or 7–9pm. Use Meta Business Suite to schedule posts in advance.",
+    },
+    {
+      emoji: "🎯",
+      title: "Vary Your Content",
+      body: "Don't only post new listings. Mix in market updates, tenant success stories, behind-the-scenes, and team highlights to build genuine community engagement.",
     },
   ],
   "one-sheet": [
@@ -266,6 +369,12 @@ export default function ProTips({ activeTab }: ProTipsProps) {
     cleaning: "Cleaning",
     analytics: "Analytics",
     marketing: "Marketing",
+    "marketing-press": "Press Releases",
+    "marketing-blog": "Blog Articles",
+    "marketing-photos": "Property Photos",
+    "marketing-banner": "Homepage Banner",
+    "marketing-properties": "Add Property",
+    "marketing-social": "Social Copy",
     "one-sheet": "One-Sheet",
     archived: "Archive",
     settings: "Settings",

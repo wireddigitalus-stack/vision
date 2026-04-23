@@ -49,8 +49,13 @@ function saveQueue(q: PressRelease[]) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function MarketingTab() {
+export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub: string) => void }) {
   const [subTab, setSubTab] = useState<"press" | "blog" | "photos" | "banner" | "properties" | "social">("properties");
+
+  const switchSubTab = (key: "press" | "blog" | "photos" | "banner" | "properties" | "social") => {
+    setSubTab(key);
+    onSubTabChange?.(key);
+  };
 
   // ── Social Copy state ─────────────────────────────────────────────────────
   const [socialPropId,  setSocialPropId]  = useState<string>(PROPERTIES[0]?.id ?? "");
@@ -243,7 +248,7 @@ export default function MarketingTab() {
         ] as const).map(({ key, label, desc, icon: Icon, grad, glow, border, tag }) => (
           <button
             key={key}
-            onClick={() => setSubTab(key as "press"|"blog"|"photos"|"banner"|"properties"|"social")}
+            onClick={() => switchSubTab(key as "press"|"blog"|"photos"|"banner"|"properties"|"social")}
             className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden flex-shrink-0 w-full sm:w-auto sm:min-w-[180px] sm:flex-1 ${
               subTab === key
                 ? "bg-[rgba(255,255,255,0.04)]"

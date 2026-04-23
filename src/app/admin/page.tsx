@@ -1477,6 +1477,7 @@ export default function AdminPage() {
   const briefKeyRef = useRef(0);
   const [briefKey, setBriefKey] = useState(0);
   const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "cleaning" | "archived" | "marketing" | "one-sheet" | "settings">("leads");
+  const [marketingSubTab, setMarketingSubTab] = useState("properties");
 
   // Always start at the very top — prevents browser scroll-restoration from
   // loading the dashboard mid-page and hiding the tab nav under the site nav
@@ -2509,7 +2510,7 @@ export default function AdminPage() {
         {/* ─ SETTINGS TAB ───────────────────────────────────────────────────── */}
         {activeTab === "marketing" && (
           <div className="glass rounded-2xl border border-[rgba(255,255,255,0.06)] p-6 sm:p-8">
-            <MarketingTab />
+            <MarketingTab onSubTabChange={setMarketingSubTab} />
           </div>
         )}
 
@@ -2536,7 +2537,7 @@ export default function AdminPage() {
       </div>
 
       {/* ─ PRO TIPS floating button (always visible, context-aware) ─────────── */}
-      <ProTips activeTab={activeTab} />
+      <ProTips activeTab={(activeTab === "marketing" ? `marketing-${marketingSubTab}` : activeTab) as import("./ProTips").TabKey} />
 
     </div>
   );

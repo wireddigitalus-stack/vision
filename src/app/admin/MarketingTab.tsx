@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Sparkles, Copy, Download, CheckCircle2, Trash2, FileText, Clock, ChevronDown, ImageIcon, BookOpen, Layout } from "lucide-react";
+import { Loader2, Sparkles, Copy, Download, CheckCircle2, Trash2, FileText, Clock, ChevronDown, ImageIcon, BookOpen, Layout, Building2 } from "lucide-react";
 import PropertyImageManager from "./PropertyImageManager";
 import BlogGenerator from "./BlogGenerator";
 import BannerManager from "./BannerManager";
+import PropertyCreator from "./PropertyCreator";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ function saveQueue(q: PressRelease[]) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MarketingTab() {
-  const [subTab, setSubTab] = useState<"press" | "blog" | "photos" | "banner">("press");
+  const [subTab, setSubTab] = useState<"press" | "blog" | "photos" | "banner" | "properties">("properties");
   const [prType,    setPrType]    = useState("new_listing");
   const [topic,     setTopic]     = useState("");
   const [details,   setDetails]   = useState("");
@@ -142,7 +143,7 @@ export default function MarketingTab() {
     <div className="space-y-8">
 
       {/* ── Sub-nav ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {([
           {
             key:   "press",
@@ -184,8 +185,18 @@ export default function MarketingTab() {
             border:"rgba(250,204,21,0.4)",
             tag:   "Live",
           },
+          {
+            key:   "properties",
+            label: "Add Property",
+            desc:  "Create new listings with AI copy & images",
+            icon:  Building2,
+            grad:  "from-[#F97316] to-[#EA580C]",
+            glow:  "rgba(249,115,22,0.2)",
+            border:"rgba(249,115,22,0.4)",
+            tag:   "New",
+          },
         ] as const).map(({ key, label, desc, icon: Icon, grad, glow, border, tag }) => (
-          <button key={key} onClick={() => setSubTab(key)}
+          <button key={key} onClick={() => setSubTab(key as "press"|"blog"|"photos"|"banner"|"properties")}
             className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden ${
               subTab === key
                 ? "bg-[rgba(255,255,255,0.04)]"
@@ -213,6 +224,9 @@ export default function MarketingTab() {
           </button>
         ))}
       </div>
+
+      {/* ── Properties ── */}
+      {subTab === "properties" && <PropertyCreator />}
 
       {/* ── Blog Articles ── */}
       {subTab === "blog" && <BlogGenerator />}

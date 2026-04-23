@@ -11,13 +11,40 @@ import LeaseBotTrigger from "@/components/LeaseBotTrigger";
 
 type Props = { params: Promise<{ id: string }> };
 
+export const dynamicParams = true; // allow dynamic property pages without rebuild
+
+async function getDynamicProperty(id: string) {
+  try {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!SUPABASE_URL || !KEY) return null;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/properties?id=eq.${id}&published=eq.true&select=*`, {
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!rows[0]) return null;
+    const p = rows[0];
+    return {
+      id: p.id, name: p.name, type: p.type, address: p.address, city: p.city, sqft: p.sqft || "TBD",
+      status: p.lease_status === "available" ? "Available" : p.lease_status === "leased" ? "Leased" : "Coming Soon",
+      badge: p.badge || p.type, badgeColor: "green",
+      image: p.hero_image || (p.images?.[0] ?? ""),
+      images: p.images || [],
+      imageAlt: p.name,
+      description: p.description || "",
+      features: p.features || [],
+    };
+  } catch { return null; }
+}
+
 export async function generateStaticParams() {
   return PROPERTIES.map((p) => ({ id: p.id }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const property = PROPERTIES.find((p) => p.id === id);
+  const property = PROPERTIES.find((p) => p.id === id) || await getDynamicProperty(id);
   if (!property) return { title: "Property Not Found | Vision LLC" };
   const desc = property.description.substring(0, 160);
   const ogTitle = encodeURIComponent(property.name);
@@ -49,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PropertyDetailPage({ params }: Props) {
   const { id } = await params;
-  const property = PROPERTIES.find((p) => p.id === id);
+  const property = PROPERTIES.find((p) => p.id === id) || await getDynamicProperty(id);
   if (!property) notFound();
 
 
@@ -86,7 +113,7 @@ export default async function PropertyDetailPage({ params }: Props) {
       unitCode: "FTK",
       unitText: "square feet",
     },
-    amenityFeature: property.features.map((f) => ({
+    amenityFeature: property.features.map((f: string) => ({
       "@type": "LocationFeatureSpecification",
       name: f,
       value: true,
@@ -208,7 +235,7 @@ export default async function PropertyDetailPage({ params }: Props) {
 
               <h2 className="text-xl font-bold text-white mb-4">Features & Amenities</h2>
               <div className="grid sm:grid-cols-2 gap-3 mb-8">
-                {property.features.map((f) => (
+                {property.features.map((f: string) => (
                   <div key={f} className="flex items-center gap-3 glass rounded-xl p-3 border border-[rgba(74,222,128,0.08)]">
                     <Check size={15} className="text-[#4ADE80] flex-shrink-0" />
                     <span className="text-sm text-gray-300">{f}</span>

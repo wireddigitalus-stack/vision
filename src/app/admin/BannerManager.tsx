@@ -35,7 +35,8 @@ export default function BannerManager() {
       if (bRes.ok) {
         const d = await bRes.json();
         if (d.raw) { setConfig(d.raw); if (d.raw.videoUrl) setVideoInput(d.raw.videoUrl); }
-        else setSetupNeeded(true);
+        // Show setup prompt if table doesn't exist
+        if (d.tableExists === false) setSetupNeeded(true);
       } else setSetupNeeded(true);
       if (iRes.ok) {
         const d = await iRes.json();
@@ -93,7 +94,16 @@ export default function BannerManager() {
     try {
       const payload = { ...config, videoUrl: config.videoEnabled ? (videoInput.trim() || config.videoUrl) : null };
       const res = await fetch("/api/hero-banner", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      const d = await res.json();
+      if (!res.ok) {
+        if (d.error === "TABLE_MISSING") {
+          setSetupNeeded(true);
+          setError("Database table not ready — run the SQL below first, then save again.");
+        } else {
+          throw new Error(d.error || "Save failed");
+        }
+        return;
+      }
       setSavedOk(true); setSetupNeeded(false); setTimeout(()=>setSavedOk(false), 3000);
     } catch(e: unknown) { setError(e instanceof Error ? e.message : "Save failed"); }
     finally { setSaving(false); }

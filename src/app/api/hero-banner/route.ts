@@ -18,11 +18,28 @@ interface HeroConfig { slides: SlideConfig[]; videoUrl: string | null; videoEnab
 
 const MAIN_IDS = ["city-centre","bristol-cowork","the-executive","centre-point-suites","foundation-event-facility","warehouse"];
 
-async function getRaw(): Promise<HeroConfig | null> {
+/** Returns { value, tableExists } */
+async function getRaw(): Promise<{ value: HeroConfig | null; tableExists: boolean }> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?key=eq.hero_config&select=value`, { headers: H, cache: "no-store" });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    // Supabase returns 400/404 with code 42P01 when table doesn't exist
+    const body = await res.text().catch(() => "");
+    const missing = body.includes("42P01") || body.includes("does not exist") || res.status === 404;
+    return { value: null, tableExists: !missing };
+  }
   const rows = await res.json();
-  return rows[0]?.value || null;
+  return { value: rows[0]?.value || null, tableExists: true };
+}
+
+/** Auto-create the site_settings table via Supabase Management API if service role key present */
+async function ensureTable() {
+  // Try via REST SQL endpoint (available with service role key)
+  const sql = `CREATE TABLE IF NOT EXISTS site_settings (key TEXT PRIMARY KEY, value JSONB NOT NULL, updated_at TIMESTAMPTZ DEFAULT NOW());`;
+  await fetch(`${SUPABASE_URL}/rest/v1/rpc/exec_sql`, {
+    method: "POST",
+    headers: H,
+    body: JSON.stringify({ sql }),
+  }).catch(() => null); // Ignore — not all plans expose this
 }
 
 async function getOverrides(): Promise<Record<string, string>> {
@@ -52,33 +69,67 @@ function resolve(config: HeroConfig, overrides: Record<string, string>) {
     .filter(Boolean) as { src: string; label: string; location: string }[];
 }
 
+function defaultConfig(): HeroConfig {
+  return {
+    slides: MAIN_IDS.map((id, i) => {
+      const p = PROPERTIES.find(pr => pr.id === id)!;
+      return { type: "property", propertyId: id, label: p?.name, location: `${p?.city}, TN`, enabled: true, order: i };
+    }),
+    videoUrl: null, videoEnabled: false,
+  };
+}
+
 export async function GET() {
   try {
-    const [raw, overrides] = await Promise.all([getRaw(), getOverrides()]);
-    if (!raw) {
-      const defaultConfig: HeroConfig = {
-        slides: MAIN_IDS.map((id, i) => {
-          const p = PROPERTIES.find(pr => pr.id === id)!;
-          return { type: "property", propertyId: id, label: p?.name, location: `${p?.city}, TN`, enabled: true, order: i };
-        }),
-        videoUrl: null, videoEnabled: false,
-      };
-      return NextResponse.json({ raw: defaultConfig, resolved: resolve(defaultConfig, overrides), isDefault: true });
-    }
-    return NextResponse.json({ raw, resolved: resolve(raw, overrides), isDefault: false });
-  } catch (e) { console.error(e); return NextResponse.json({ raw: null, resolved: null }, { status: 500 }); }
+    const [{ value: raw, tableExists }, overrides] = await Promise.all([getRaw(), getOverrides()]);
+    const cfg = raw || defaultConfig();
+    return NextResponse.json({
+      raw: cfg,
+      resolved: resolve(cfg, overrides),
+      isDefault: !raw,
+      tableExists,
+    });
+  } catch (e) { console.error(e); return NextResponse.json({ raw: null, resolved: null, tableExists: false }, { status: 500 }); }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const config: HeroConfig = { slides: body.slides || [], videoUrl: body.videoUrl || null, videoEnabled: !!body.videoEnabled };
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings`, {
+    const config: HeroConfig = {
+      slides: body.slides || [],
+      videoUrl: body.videoUrl || null,
+      videoEnabled: !!body.videoEnabled,
+    };
+
+    // Try to save
+    let res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings`, {
       method: "POST",
       headers: { ...H, Prefer: "resolution=merge-duplicates" },
       body: JSON.stringify({ key: "hero_config", value: config, updated_at: new Date().toISOString() }),
     });
-    if (!res.ok) { const err = await res.text(); return NextResponse.json({ error: err }, { status: 500 }); }
+
+    // If table doesn't exist, try auto-creating it then retry once
+    if (!res.ok) {
+      const errBody = await res.text();
+      if (errBody.includes("42P01") || errBody.includes("does not exist")) {
+        await ensureTable();
+        // Retry
+        res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings`, {
+          method: "POST",
+          headers: { ...H, Prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({ key: "hero_config", value: config, updated_at: new Date().toISOString() }),
+        });
+        if (!res.ok) {
+          return NextResponse.json({
+            error: "TABLE_MISSING",
+            message: "The site_settings table doesn't exist yet. Please run the setup SQL in Supabase, then try saving again.",
+          }, { status: 422 });
+        }
+      } else {
+        return NextResponse.json({ error: errBody }, { status: 500 });
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (e) { console.error(e); return NextResponse.json({ error: "Save failed" }, { status: 500 }); }
 }

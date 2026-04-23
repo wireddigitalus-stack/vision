@@ -1477,6 +1477,10 @@ export default function AdminPage() {
   const briefKeyRef = useRef(0);
   const [briefKey, setBriefKey] = useState(0);
   const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "cleaning" | "archived" | "marketing" | "one-sheet" | "settings">("leads");
+
+  // Always start at the very top — prevents browser scroll-restoration from
+  // loading the dashboard mid-page and hiding the tab nav under the site nav
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }, []);
   const [leads, setLeads] = useState<Lead[]>(DEMO_LEADS);
   const [filter, setFilter] = useState<"All" | "Hot Lead" | "Warm Lead" | "Nurture" | "Whale" | "New Today">("All");
   const [loading, setLoading] = useState(false);
@@ -1833,8 +1837,8 @@ export default function AdminPage() {
           />
         )}
 
-        {/* Tab Nav — horizontally scrollable on mobile */}
-        <div className="relative mb-8">
+        {/* Tab Nav — sticky below fixed site-nav, horizontally scrollable on mobile */}
+        <div className="sticky top-16 lg:top-20 z-40 bg-[#080C14] -mx-4 sm:-mx-6 px-4 sm:px-6 mb-8">
           <div className="scrollbar-none flex items-center gap-0.5 border-b border-[rgba(255,255,255,0.06)] overflow-x-auto pb-0 -mx-2 px-2 sm:mx-0 sm:px-0" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
             {([
               { key: "leads",       label: "Leads",    fullLabel: `Leads (${activeLeads.length})`, icon: TrendingUp },

@@ -2,60 +2,154 @@
 import { Printer } from "lucide-react";
 
 interface Props {
-  /** Must match the id you put on the printable container: <div id={zoneId}> */
-  zoneId: string;
-  /** Label shown next to the printer icon */
+  /** id of the container element whose content will be printed */
+  zoneId?: string;
+  /** Optional: supply raw HTML string directly instead of reading from DOM */
+  buildHTML?: () => string;
   label?: string;
-  /** Report title printed in the page header */
   title?: string;
 }
 
-export default function PrintButton({ zoneId, label = "Print / PDF", title }: Props) {
+const PRINT_CSS = `
+  @page { margin: 18mm 15mm; }
+  *, *::before, *::after {
+    color: #000 !important;
+    background: #fff !important;
+    background-color: #fff !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-color: #ccc !important;
+    opacity: 1 !important;
+    -webkit-print-color-adjust: exact;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    padding: 0;
+    margin: 0;
+  }
+  /* Page header */
+  .print-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #000 !important;
+  }
+  .print-page-header h1 { font-size: 16pt; font-weight: 900; margin: 0; }
+  .print-page-header span { font-size: 9pt; color: #555 !important; }
+  /* Cards become simple bordered boxes */
+  [id^="ticket-card-"], .glass, [class*="rounded-2xl"], [class*="rounded-xl"] {
+    border: 1px solid #ccc !important;
+    border-radius: 0 !important;
+    padding: 8px 10px !important;
+    margin-bottom: 8px !important;
+    page-break-inside: avoid;
+  }
+  /* Hide interactive / decorative elements */
+  button, [class*="animate-"], [class*="blur"],
+  [class*="opacity-0"], [class*="group-hover"],
+  [class*="pointer-events"], [class*="absolute"],
+  [data-no-print], .no-print { display: none !important; }
+  /* Make all text visible */
+  h1, h2, h3, h4, p, span, div, li, td, th {
+    color: #000 !important;
+    text-decoration: none;
+  }
+  /* Ensure text doesn't disappear due to tiny font */
+  [class*="text-\\[10px\\]"], [class*="text-\\[9px\\]"],
+  [class*="text-xs"] { font-size: 8.5pt !important; }
+  [class*="text-sm"] { font-size: 9.5pt !important; }
+  [class*="text-base"], [class*="text-lg"] { font-size: 11pt !important; }
+  [class*="text-xl"], [class*="text-2xl"], [class*="text-3xl"] { font-size: 13pt !important; }
+  /* Emoji score badges, labels — keep them */
+  [class*="tabular-nums"] { font-family: monospace; }
+  /* Grid layouts — collapse to single column for readability */
+  [class*="grid"] { display: block !important; }
+  [class*="flex"] { display: block !important; }
+  [class*="flex-wrap"] { display: block !important; }
+  /* Re-enable flex only for header rows */
+  .print-page-header { display: flex !important; }
+  /* Phone / email links — show the actual value */
+  a[href^="tel"]::after { content: " (" attr(href) ")"; font-size: 8pt; color: #555 !important; }
+  a[href^="mailto"]::after { content: " (" attr(href) ")"; font-size: 8pt; color: #555 !important; }
+  /* Tables */
+  table { width: 100% !important; border-collapse: collapse !important; }
+  th, td { border: 1px solid #bbb !important; padding: 5px 8px !important; }
+  th { background: #f0f0f0 !important; font-weight: 700 !important; }
+`;
+
+export default function PrintButton({ zoneId, buildHTML, label = "Print / PDF", title }: Props) {
   const handlePrint = () => {
-    // Inject a temporary <style> that scopes @media print to just this zone
-    const existing = document.getElementById("__vision-print-style");
-    if (existing) existing.remove();
+    let bodyHTML = "";
 
-    const style = document.createElement("style");
-    style.id = "__vision-print-style";
-    style.innerHTML = `
-      @media print {
-        /* Hide everything */
-        body > * { display: none !important; }
-        /* Show only our zone */
-        #${zoneId} { display: block !important; }
-        #${zoneId} * { color: #000 !important; background: #fff !important;
-          border-color: #ccc !important; box-shadow: none !important; }
-        /* Page meta */
-        @page { margin: 18mm 15mm; }
+    if (buildHTML) {
+      bodyHTML = buildHTML();
+    } else if (zoneId) {
+      const zone = document.getElementById(zoneId);
+      if (!zone) {
+        alert("Nothing to print yet — data may still be loading.");
+        return;
       }
-    `;
-
-    // Inject title header into the zone temporarily
-    const zone = document.getElementById(zoneId);
-    let headerEl: HTMLElement | null = null;
-    if (zone && title) {
-      headerEl = document.createElement("div");
-      headerEl.id = "__vision-print-header";
-      headerEl.style.cssText =
-        "font-family:sans-serif;font-size:18px;font-weight:900;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #000;display:flex;justify-content:space-between;align-items:center";
-      headerEl.innerHTML = `
-        <span>${title}</span>
-        <span style="font-size:11px;font-weight:400;color:#555">
-          Printed ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-          &nbsp;·&nbsp; Vision LLC
-        </span>`;
-      zone.prepend(headerEl);
+      // Clone so we don't mutate the live DOM
+      const clone = zone.cloneNode(true) as HTMLElement;
+      // Remove elements that should never print (buttons, icons that are purely decorative)
+      clone.querySelectorAll("button, svg[class*='lucide'], [data-no-print], .no-print").forEach(el => el.remove());
+      bodyHTML = clone.innerHTML;
     }
 
-    document.head.appendChild(style);
-    window.print();
+    if (!bodyHTML.trim()) {
+      alert("Nothing to print — the list appears to be empty.");
+      return;
+    }
 
-    // Clean up after print dialog closes
+    const dateStr = new Date().toLocaleDateString("en-US", {
+      weekday: "long", year: "numeric", month: "long", day: "numeric",
+    });
+
+    const win = window.open("", "_blank", "width=900,height=750,scrollbars=yes");
+    if (!win) {
+      alert("Pop-up blocked — please allow pop-ups for this site and try again.");
+      return;
+    }
+
+    win.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>${title ?? "Vision Report"}</title>
+  <style>${PRINT_CSS}</style>
+</head>
+<body>
+  <div class="print-page-header">
+    <h1>${title ?? "Vision Report"}</h1>
+    <span>${dateStr} &nbsp;·&nbsp; Vision LLC</span>
+  </div>
+  ${bodyHTML}
+</body>
+</html>`);
+
+    win.document.close();
+
+    // Give images / fonts a moment to load before printing
+    win.onload = () => {
+      setTimeout(() => {
+        win.focus();
+        win.print();
+        // win.close() — leave open so user can Save as PDF if they need
+      }, 300);
+    };
+
+    // Fallback if onload doesn't fire (e.g. Firefox)
     setTimeout(() => {
-      style.remove();
-      headerEl?.remove();
-    }, 1000);
+      if (!win.closed) {
+        win.focus();
+        win.print();
+      }
+    }, 800);
   };
 
   return (

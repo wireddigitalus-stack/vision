@@ -2125,7 +2125,43 @@ export default function AdminPage() {
                   );
                 })}
               </div>
-              <PrintButton zoneId="print-leads" label="Print Call Sheet" title={`Daily Call Sheet — ${filter} Leads`} />
+              <PrintButton
+                label="Print Call Sheet"
+                title={`Daily Call Sheet — ${filter} Leads`}
+                buildHTML={() => {
+                  if (filtered.length === 0) return "<p>No leads match the current filter.</p>";
+                  const rows = filtered.map((l, i) => `
+                    <tr style="background:${i % 2 === 0 ? "#fff" : "#f7f7f7"}">
+                      <td style="text-align:center;font-size:10pt;font-weight:900;border:1px solid #bbb;padding:5px 8px">${l.score}</td>
+                      <td style="border:1px solid #bbb;padding:5px 8px"><strong>${l.name || "—"}</strong></td>
+                      <td style="border:1px solid #bbb;padding:5px 8px">${l.phone ? `<a href="tel:${l.phone}" style="color:#000">${l.phone}</a>` : "—"}</td>
+                      <td style="border:1px solid #bbb;padding:5px 8px">${l.email ? `<a href="mailto:${l.email}" style="color:#000;font-size:8.5pt">${l.email}</a>` : "—"}</td>
+                      <td style="border:1px solid #bbb;padding:5px 8px">${l.budget ? `$${l.budget.toLocaleString()}/mo` : "—"}</td>
+                      <td style="border:1px solid #bbb;padding:5px 8px">${l.spaceType || "—"}</td>
+                      <td style="border:1px solid #bbb;padding:5px 8px">${l.teamSize || "—"}</td>
+                      <td style="border:1px solid #bbb;padding:5px 8px;font-size:8.5pt">${l.timeline || "—"}</td>
+                      <td style="border:1px solid #bbb;padding:5px 8px;font-weight:700;font-size:8.5pt">${l.scoreLabel || "—"}</td>
+                    </tr>`).join("");
+                  return `
+                    <table style="width:100%;border-collapse:collapse;font-size:9.5pt;color:#000">
+                      <thead>
+                        <tr style="background:#f0f0f0">
+                          <th style="border:1px solid #bbb;padding:6px 8px;text-align:center">Score</th>
+                          <th style="border:1px solid #bbb;padding:6px 8px">Name</th>
+                          <th style="border:1px solid #bbb;padding:6px 8px">Phone</th>
+                          <th style="border:1px solid #bbb;padding:6px 8px">Email</th>
+                          <th style="border:1px solid #bbb;padding:6px 8px">Budget</th>
+                          <th style="border:1px solid #bbb;padding:6px 8px">Space Type</th>
+                          <th style="border:1px solid #bbb;padding:6px 8px">Team Size</th>
+                          <th style="border:1px solid #bbb;padding:6px 8px">Timeline</th>
+                          <th style="border:1px solid #bbb;padding:6px 8px">Priority</th>
+                        </tr>
+                      </thead>
+                      <tbody>${rows}</tbody>
+                    </table>
+                    <p style="margin-top:16px;font-size:8.5pt;color:#666">Total: ${filtered.length} lead${filtered.length !== 1 ? "s" : ""} &nbsp;·&nbsp; Filter: ${filter}</p>`;
+                }}
+              />
             </div>
 
             <div id="print-leads" className="space-y-4">

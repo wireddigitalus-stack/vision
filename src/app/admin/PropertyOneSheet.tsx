@@ -7,9 +7,27 @@ import { PROPERTIES, COMPANY } from "@/lib/data";
 
 type Property = (typeof PROPERTIES)[number];
 
+// ─── Image → base64 helper ───────────────────────────────────────────────────
+// Fetches an image by URL and returns it as a data URI so it's embedded
+// directly in the popup HTML — the PDF always shows it regardless of timing.
+async function toDataUri(url: string): Promise<string> {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return ""; // shows placeholder emoji if fetch fails
+  }
+}
+
 // ─── One-Sheet HTML Builder ───────────────────────────────────────────────────
 
-function buildOneSheetHTML(property: Property, baseUrl: string): string {
+function buildOneSheetHTML(property: Property, baseUrl: string, imageDataUri: string = ""): string {
   const features = (property.features ?? [])
     .map(
       (f) => `
@@ -22,10 +40,11 @@ function buildOneSheetHTML(property: Property, baseUrl: string): string {
     )
     .join("");
 
-  // Resolve absolute image URL for the popup window
-  const imageUrl = (property as Property & { image?: string }).image
-    ? `${baseUrl}${(property as Property & { image?: string }).image}`
-    : null;
+  // Use the embedded base64 URI if available, otherwise fall back to the absolute URL
+  const imageUrl = imageDataUri
+    || ((property as Property & { image?: string }).image
+      ? `${baseUrl}${(property as Property & { image?: string }).image}`
+      : null);
 
   const imageSrc = imageUrl
     ? `<div style="height:180px;overflow:hidden;border-radius:10px;margin-bottom:14px;position:relative">
@@ -286,7 +305,7 @@ export default function PropertyOneSheet() {
   const [selected, setSelected] = useState<Property | null>(null);
   const [previewing, setPreviewing] = useState(false);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!selected) return;
     setPreviewing(true);
 
@@ -295,7 +314,11 @@ export default function PropertyOneSheet() {
         ? `${window.location.protocol}//${window.location.host}`
         : "https://teamvisionllc.com";
 
-    const html = buildOneSheetHTML(selected, baseUrl);
+    // Fetch the image and embed it as base64 so the PDF always shows it
+    const imgPath = (selected as Property & { image?: string }).image;
+    const imageDataUri = imgPath ? await toDataUri(`${baseUrl}${imgPath}`) : "";
+
+    const html = buildOneSheetHTML(selected, baseUrl, imageDataUri);
 
     const win = window.open("", "_blank", "width=920,height=780,scrollbars=yes");
     if (!win) {
@@ -312,7 +335,7 @@ export default function PropertyOneSheet() {
         win.focus();
         win.print();
         setPreviewing(false);
-      }, 400);
+      }, 800);
     };
 
     setTimeout(() => {
@@ -321,7 +344,7 @@ export default function PropertyOneSheet() {
         win.print();
       }
       setPreviewing(false);
-    }, 900);
+    }, 1400);
   };
 
   return (

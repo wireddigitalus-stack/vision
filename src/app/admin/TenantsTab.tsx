@@ -4,8 +4,9 @@ import {
   Building2, Plus, Phone, Mail, Calendar, TrendingUp, DollarSign,
   AlertTriangle, ChevronDown, ChevronUp, Edit2, Trash2, Save, X,
   Clock, RefreshCw, CheckCircle2, User, Home, BadgePercent, Loader2,
-  MessageSquare,
+  MessageSquare, FileSpreadsheet,
 } from "lucide-react";
+import TenantImporter from "./TenantImporter";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -568,6 +569,7 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
   const [setupError, setSetupError] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
+  const [showImporter, setShowImporter] = useState(false);
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "pending" | "expired">("all");
   const [sortBy, setSortBy] = useState<"name" | "rent" | "lease_end">("lease_end");
 
@@ -634,6 +636,25 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
   const handleDelete = async (id: string) => {
     await fetch(`/api/tenants?id=${id}`, { method: "DELETE" });
     setTenants(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleBatchImport = async (tenants: Partial<Tenant>[]) => {
+    for (const form of tenants) {
+      await fetch("/api/tenants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name, contactName: form.contactName, email: form.email, phone: form.phone,
+          building: form.building, unit: form.unit, rep: "",
+          monthlyRent: form.monthlyRent ?? 0,
+          leaseStart: form.leaseStart || null, leaseEnd: form.leaseEnd || null,
+          renewalDate: null, leaseAlertDays: 60,
+          escalationPct: 0, escalationDate: null,
+          status: form.status ?? "active", notes: form.notes ?? "",
+        }),
+      });
+    }
+    await fetchTenants();
   };
 
   const scrollToTenant = (id: string) => {
@@ -712,9 +733,13 @@ CREATE POLICY "anon_all_tenants" ON tenants
             <option value="name">Sort: Name A→Z</option>
           </select>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={fetchTenants} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.2)] text-[#4ADE80] text-xs hover:bg-[rgba(74,222,128,0.12)] transition-colors">
             <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
+          </button>
+          <button onClick={() => setShowImporter(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[rgba(74,222,128,0.3)] text-[#4ADE80] text-xs font-black hover:bg-[rgba(74,222,128,0.08)] transition-colors">
+            <FileSpreadsheet size={13} /> Import Excel
           </button>
           <button onClick={() => { setEditingTenant(null); setShowForm(true); }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black text-xs font-black hover:opacity-90 transition-opacity">
@@ -722,6 +747,14 @@ CREATE POLICY "anon_all_tenants" ON tenants
           </button>
         </div>
       </div>
+
+      {/* Excel Importer Modal */}
+      {showImporter && (
+        <TenantImporter
+          onImport={handleBatchImport}
+          onClose={() => setShowImporter(false)}
+        />
+      )}
 
       {/* Add form */}
       {showForm && !editingTenant && (

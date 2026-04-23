@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   TrendingUp, DollarSign, Users, Building2, Target,
   BarChart3, PieChart, Zap, RefreshCw, AlertTriangle,
-  ChevronUp, ChevronDown, Flame, ArrowUpRight,
+  ChevronUp, ChevronDown, Flame, ArrowUpRight, Sparkles, Loader2, Copy, CheckCircle2,
 } from "lucide-react";
 import type { Tenant } from "./TenantsTab";
 
@@ -448,6 +448,10 @@ function RevenueForecast({ tenants }: { tenants: Tenant[] }) {
 export default function AnalyticsTab({ leads }: { leads: AnalyticsLead[] }) {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [brief, setBrief] = useState("");
+  const [briefLoading, setBriefLoading] = useState(false);
+  const [briefError, setBriefError] = useState("");
+  const [briefCopied, setBriefCopied] = useState(false);
 
   const fetchTenants = useCallback(async () => {
     setLoading(true);
@@ -477,6 +481,69 @@ export default function AnalyticsTab({ leads }: { leads: AnalyticsLead[] }) {
   }, []);
 
   useEffect(() => { fetchTenants(); }, [fetchTenants]);
+
+  // ── Generate AI Market Brief ───────────────────────────────────────────────
+
+  async function generateBrief() {
+    setBriefLoading(true); setBriefError(""); setBrief("");
+    try {
+      // Compute quick space breakdown from all leads
+      const bySpace: Record<string, number> = {};
+      leads.forEach(l => { bySpace[l.spaceType] = (bySpace[l.spaceType] || 0) + 1; });
+      const totalL = leads.length || 1;
+      const spaceBreakdown = Object.entries(bySpace)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([type, count]) => ({ type, count, pct: Math.round((count / totalL) * 100) }));
+      const topSpace = spaceBreakdown[0]?.type ?? "N/A";
+
+      // 6-month trend
+      const now = Date.now();
+      const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const leadsByMonth = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date(now); d.setMonth(d.getMonth() - (5 - i));
+        const count = leads.filter(l => {
+          const ld = new Date(l.timestamp);
+          return ld.getMonth() === d.getMonth() && ld.getFullYear() === d.getFullYear();
+        }).length;
+        return { label: monthNames[d.getMonth()], count };
+      });
+
+      const hotL  = leads.filter(l => l.scoreLabel === "Hot Lead");
+      const whaleL = leads.filter(l => l.isWhale);
+      const activeL = leads.filter(l => (now - new Date(l.timestamp).getTime()) < 90 * 86400000);
+      const avgBudget = activeL.length ? Math.round(activeL.reduce((s, l) => s + l.budget, 0) / activeL.length) : 0;
+      const pipeline  = activeL.reduce((s, l) => s + l.budget, 0);
+      const activeTenantCount = tenants.filter(t => t.status === "active").length;
+      const baselineMRR = tenants.filter(t => t.status === "active").reduce((s, t) => s + t.monthlyRent, 0);
+
+      const res = await fetch("/api/generate-market-brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          totalLeads: leads.length,
+          hotLeads: hotL.length,
+          whalLeads: whaleL.length,
+          avgBudget,
+          pipeline,
+          topSpace,
+          activeTenants: activeTenantCount,
+          baselineMRR,
+          finalMRR: baselineMRR, // simplified — no projection needed for brief
+          leadsByMonth,
+          spaceBreakdown,
+          period: "90 days",
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Generation failed.");
+      setBrief(d.brief || "");
+    } catch (e: unknown) {
+      setBriefError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setBriefLoading(false);
+    }
+  }
 
   // ── Tenant metrics ───────────────────────────────────────────────────────
   const activeTenants = tenants.filter(t => t.status === "active");
@@ -708,14 +775,70 @@ export default function AnalyticsTab({ leads }: { leads: AnalyticsLead[] }) {
 
       </div>
 
-      {/* ── Ask VISION nudge ───────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[rgba(74,222,128,0.15)] bg-[rgba(74,222,128,0.04)] p-4 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center flex-shrink-0">
-          <TrendingUp size={14} className="text-black" />
+      {/* ── AI Market Brief ─────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.03)] overflow-hidden">
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-[rgba(74,222,128,0.1)]">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_14px_rgba(74,222,128,0.3)]">
+              <Sparkles size={14} className="text-black" />
+            </div>
+            <div>
+              <p className="text-xs font-black text-white uppercase tracking-widest">AI Market Brief</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Gemini analyzes your live lead & tenant data and writes a strategic brief</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {brief && (
+              <button
+                onClick={() => { navigator.clipboard.writeText(brief).catch(() => {}); setBriefCopied(true); setTimeout(() => setBriefCopied(false), 2000); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors"
+              >
+                {briefCopied ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied!</> : <><Copy size={10} /> Copy</>}
+              </button>
+            )}
+            <button
+              onClick={generateBrief}
+              disabled={briefLoading}
+              className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black font-black text-[11px] hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {briefLoading
+                ? <><Loader2 size={12} className="animate-spin" /> Analyzing…</>
+                : <><Sparkles size={12} /> {brief ? "Regenerate" : "Generate Brief"}</>
+              }
+            </button>
+          </div>
         </div>
-        <div className="flex-1">
-          <p className="text-xs font-bold text-[#4ADE80]">Ask VISION for deeper insights</p>
-          <p className="text-[11px] text-gray-500 mt-0.5">Try: "Which rep has the highest revenue per lease?" · "What's my average deal size by property?" · "Who's up for renewal this quarter?"</p>
+
+        <div className="px-5 py-4">
+          {briefError && (
+            <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] rounded-xl px-4 py-3 mb-3">{briefError}</p>
+          )}
+
+          {brief ? (
+            <div className="text-sm text-gray-300 leading-relaxed space-y-2">
+              {brief.split("\n").map((line, i) => {
+                const boldSection = line.match(/^\*\*(.*)\*\*$/);
+                if (boldSection) return <p key={i} className="text-xs font-black text-[#4ADE80] uppercase tracking-widest mt-4 first:mt-0">{boldSection[1]}</p>;
+                if (line.startsWith("• ") || line.startsWith("- ")) return <p key={i} className="flex gap-2"><span className="text-[#4ADE80] flex-shrink-0">›</span><span>{line.slice(2)}</span></p>;
+                if (line.trim() === "") return null;
+                return <p key={i}>{line}</p>;
+              })}
+            </div>
+          ) : !briefLoading && (
+            <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.15)] flex items-center justify-center">
+                <Sparkles size={20} className="text-[#4ADE80] opacity-50" />
+              </div>
+              <p className="text-sm text-gray-600">Click <span className="text-[#4ADE80] font-bold">Generate Brief</span> to get an AI analysis<br />of your current lead pipeline and market position.</p>
+            </div>
+          )}
+
+          {briefLoading && (
+            <div className="flex items-center justify-center py-10 gap-3">
+              <Loader2 size={18} className="animate-spin text-[#4ADE80]" />
+              <p className="text-sm text-gray-500">Gemini is analyzing your data…</p>
+            </div>
+          )}
         </div>
       </div>
 

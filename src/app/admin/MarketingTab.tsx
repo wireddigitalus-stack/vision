@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Sparkles, Copy, Download, CheckCircle2, Trash2, FileText, Clock, ChevronDown, ImageIcon, BookOpen, Layout, Building2 } from "lucide-react";
+import { Loader2, Sparkles, Copy, Download, CheckCircle2, Trash2, FileText, Clock, ChevronDown, ImageIcon, BookOpen, Layout, Building2, Instagram } from "lucide-react";
 import PropertyImageManager from "./PropertyImageManager";
 import BlogGenerator from "./BlogGenerator";
 import BannerManager from "./BannerManager";
 import PropertyCreator from "./PropertyCreator";
+import { PROPERTIES } from "@/lib/data";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,7 +50,18 @@ function saveQueue(q: PressRelease[]) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MarketingTab() {
-  const [subTab, setSubTab] = useState<"press" | "blog" | "photos" | "banner" | "properties">("properties");
+  const [subTab, setSubTab] = useState<"press" | "blog" | "photos" | "banner" | "properties" | "social">("properties");
+
+  // ── Social Copy state ─────────────────────────────────────────────────────
+  const [socialPropId,  setSocialPropId]  = useState<string>(PROPERTIES[0]?.id ?? "");
+  const [socialPlatform, setSocialPlatform] = useState<"facebook" | "instagram" | "both">("both");
+  const [socialTone,    setSocialTone]    = useState<"professional" | "friendly" | "exciting">("professional");
+  const [socialFB,      setSocialFB]      = useState("");
+  const [socialIG,      setSocialIG]      = useState("");
+  const [socialLoading, setSocialLoading] = useState(false);
+  const [socialError,   setSocialError]   = useState("");
+  const [copiedFB,      setCopiedFB]      = useState(false);
+  const [copiedIG,      setCopiedIG]      = useState(false);
   const [prType,    setPrType]    = useState("new_listing");
   const [topic,     setTopic]     = useState("");
   const [details,   setDetails]   = useState("");
@@ -64,7 +76,30 @@ export default function MarketingTab() {
 
   useEffect(() => { setQueue(loadQueue()); }, []);
 
-  // ── Generate ──────────────────────────────────────────────────────────────
+  // ── Generate Social Copy ────────────────────────────────────────────────
+
+  async function generateSocial() {
+    const property = PROPERTIES.find(p => p.id === socialPropId);
+    if (!property) { setSocialError("Please select a property."); return; }
+    setSocialLoading(true); setSocialError(""); setSocialFB(""); setSocialIG("");
+    try {
+      const res = await fetch("/api/generate-social-copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ property, platform: socialPlatform, tone: socialTone }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Generation failed.");
+      setSocialFB(d.facebook || "");
+      setSocialIG(d.instagram || "");
+    } catch (e: unknown) {
+      setSocialError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setSocialLoading(false);
+    }
+  }
+
+  // ── Generate Press Release ──────────────────────────────────────────────────
 
   async function generate() {
     if (!topic.trim()) { setError("Please enter a topic or property name."); return; }
@@ -195,10 +230,20 @@ export default function MarketingTab() {
             border:"rgba(249,115,22,0.4)",
             tag:   "New",
           },
+          {
+            key:   "social",
+            label: "Social Copy",
+            desc:  "FB & Instagram AI posts",
+            icon:  Instagram,
+            grad:  "from-[#E1306C] to-[#833AB4]",
+            glow:  "rgba(225,48,108,0.2)",
+            border:"rgba(225,48,108,0.4)",
+            tag:   "AI",
+          },
         ] as const).map(({ key, label, desc, icon: Icon, grad, glow, border, tag }) => (
           <button
             key={key}
-            onClick={() => setSubTab(key as "press"|"blog"|"photos"|"banner"|"properties")}
+            onClick={() => setSubTab(key as "press"|"blog"|"photos"|"banner"|"properties"|"social")}
             className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden flex-shrink-0 w-full sm:w-auto sm:min-w-[180px] sm:flex-1 ${
               subTab === key
                 ? "bg-[rgba(255,255,255,0.04)]"
@@ -469,6 +514,147 @@ export default function MarketingTab() {
           </div>
         </div>
       )}</div>)}{/* end press tab */}
+
+      {/* ── Social Copy Generator ── */}
+      {subTab === "social" && (
+        <div className="space-y-6">
+
+          {/* Header */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E1306C] to-[#833AB4] flex items-center justify-center shadow-[0_0_20px_rgba(225,48,108,0.3)]">
+              <Instagram size={16} className="text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-white">Social Copy Generator</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">AI-crafted Facebook & Instagram posts from live property data</p>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+            {/* Property picker */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">1. Choose Property</label>
+              <select
+                value={socialPropId}
+                onChange={e => setSocialPropId(e.target.value)}
+                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(225,48,108,0.5)] outline-none appearance-none"
+              >
+                {PROPERTIES.map(p => (
+                  <option key={p.id} value={p.id} className="bg-[#0a1628] text-white">{p.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Platform picker */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">2. Platform</label>
+              <div className="flex gap-2">
+                {(["facebook", "instagram", "both"] as const).map(p => (
+                  <button key={p}
+                    onClick={() => setSocialPlatform(p)}
+                    className={`flex-1 py-2.5 rounded-xl text-[11px] font-black capitalize border transition-all ${
+                      socialPlatform === p
+                        ? "border-[rgba(225,48,108,0.6)] bg-[rgba(225,48,108,0.12)] text-[#E1306C]"
+                        : "border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-white"
+                    }`}
+                  >{p === "both" ? "Both" : p === "facebook" ? "FB" : "IG"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tone picker */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">3. Tone</label>
+              <div className="flex gap-2">
+                {(["professional", "friendly", "exciting"] as const).map(t => (
+                  <button key={t}
+                    onClick={() => setSocialTone(t)}
+                    className={`flex-1 py-2.5 rounded-xl text-[11px] font-black capitalize border transition-all ${
+                      socialTone === t
+                        ? "border-[rgba(167,139,250,0.6)] bg-[rgba(167,139,250,0.12)] text-[#A78BFA]"
+                        : "border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-white"
+                    }`}
+                  >{t === "professional" ? "Pro" : t === "friendly" ? "Warm" : "🔥 Hot"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Generate button */}
+          <button
+            onClick={generateSocial}
+            disabled={socialLoading}
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#E1306C] to-[#833AB4] text-white font-black text-sm hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_24px_rgba(225,48,108,0.3)]"
+          >
+            {socialLoading
+              ? <><Loader2 size={15} className="animate-spin" /> Generating…</>
+              : <><Sparkles size={15} /> Generate Posts</>
+            }
+          </button>
+
+          {socialError && (
+            <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] rounded-xl px-4 py-3">{socialError}</p>
+          )}
+
+          {/* Output panels */}
+          {(socialFB || socialIG) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              {/* Facebook */}
+              {(socialPlatform === "facebook" || socialPlatform === "both") && socialFB && (
+                <div className="glass rounded-2xl border border-[rgba(96,165,250,0.2)] p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#1877F2] flex items-center justify-center">
+                        <span className="text-white font-black text-sm">f</span>
+                      </div>
+                      <p className="text-xs font-black text-white uppercase tracking-widest">Facebook</p>
+                    </div>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(socialFB).catch(() => {}); setCopiedFB(true); setTimeout(() => setCopiedFB(false), 2000); }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors"
+                    >
+                      {copiedFB ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied!</> : <><Copy size={10} /> Copy</>}
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{socialFB}</p>
+                </div>
+              )}
+
+              {/* Instagram */}
+              {(socialPlatform === "instagram" || socialPlatform === "both") && socialIG && (
+                <div className="glass rounded-2xl border border-[rgba(225,48,108,0.2)] p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E1306C] to-[#833AB4] flex items-center justify-center">
+                        <Instagram size={13} className="text-white" />
+                      </div>
+                      <p className="text-xs font-black text-white uppercase tracking-widest">Instagram</p>
+                    </div>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(socialIG).catch(() => {}); setCopiedIG(true); setTimeout(() => setCopiedIG(false), 2000); }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors"
+                    >
+                      {copiedIG ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied!</> : <><Copy size={10} /> Copy</>}
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{socialIG}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tip */}
+          <p className="text-[11px] text-gray-600 italic">
+            💡 Pro Tip: Copy the post, then paste directly into Meta Business Suite to schedule Facebook & Instagram at the same time.
+          </p>
+        </div>
+      )}{/* end social tab */}
+
     </div>
   );
 }

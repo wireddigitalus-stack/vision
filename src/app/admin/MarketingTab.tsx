@@ -143,12 +143,12 @@ export default function MarketingTab() {
     <div className="space-y-8">
 
       {/* ── Sub-nav ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 overflow-x-auto pb-1 -mx-1 px-1">
         {([
           {
             key:   "press",
             label: "Press Releases",
-            desc:  "AI-generated press copy, review & distribute",
+            desc:  "AI-generated press copy",
             icon:  FileText,
             grad:  "from-[#60A5FA] to-[#3B82F6]",
             glow:  "rgba(96,165,250,0.2)",
@@ -158,7 +158,7 @@ export default function MarketingTab() {
           {
             key:   "blog",
             label: "Blog Articles",
-            desc:  "SEO articles published straight to the website",
+            desc:  "SEO articles, live on site",
             icon:  BookOpen,
             grad:  "from-[#A78BFA] to-[#7C3AED]",
             glow:  "rgba(167,139,250,0.2)",
@@ -168,17 +168,17 @@ export default function MarketingTab() {
           {
             key:   "photos",
             label: "Property Photos",
-            desc:  "Upload & swap images for any listing",
+            desc:  "Upload & swap listing images",
             icon:  ImageIcon,
             grad:  "from-[#4ADE80] to-[#22C55E]",
             glow:  "rgba(74,222,128,0.2)",
             border:"rgba(74,222,128,0.4)",
-            tag:   "6 Properties",
+            tag:   "6 Props",
           },
           {
             key:   "banner",
             label: "Homepage Banner",
-            desc:  "Control hero slides, custom images & video",
+            desc:  "Hero slides, images & video",
             icon:  Layout,
             grad:  "from-[#FACC15] to-[#F59E0B]",
             glow:  "rgba(250,204,21,0.2)",
@@ -188,7 +188,7 @@ export default function MarketingTab() {
           {
             key:   "properties",
             label: "Add Property",
-            desc:  "Create new listings with AI copy & images",
+            desc:  "AI-enhanced new listings",
             icon:  Building2,
             grad:  "from-[#F97316] to-[#EA580C]",
             glow:  "rgba(249,115,22,0.2)",
@@ -196,8 +196,10 @@ export default function MarketingTab() {
             tag:   "New",
           },
         ] as const).map(({ key, label, desc, icon: Icon, grad, glow, border, tag }) => (
-          <button key={key} onClick={() => setSubTab(key as "press"|"blog"|"photos"|"banner"|"properties")}
-            className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden ${
+          <button
+            key={key}
+            onClick={() => setSubTab(key as "press"|"blog"|"photos"|"banner"|"properties")}
+            className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden flex-shrink-0 w-full sm:w-auto sm:min-w-[180px] sm:flex-1 ${
               subTab === key
                 ? "bg-[rgba(255,255,255,0.04)]"
                 : "border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.15)] hover:bg-[rgba(255,255,255,0.02)]"
@@ -209,16 +211,16 @@ export default function MarketingTab() {
               <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
                 style={{ background: `radial-gradient(ellipse at top left, ${glow.replace("0.2","1")} 0%, transparent 70%)` }} />
             )}
-            <div className="flex items-start gap-3 relative">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                <Icon size={17} className="text-white" />
+            <div className="flex items-center sm:items-start gap-3 relative">
+              <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                <Icon size={15} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-sm font-black text-white">{label}</p>
-                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full bg-gradient-to-r ${grad} text-white opacity-80`}>{tag}</span>
+                <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                  <p className="text-sm font-black text-white whitespace-nowrap">{label}</p>
+                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full bg-gradient-to-r ${grad} text-white opacity-80 whitespace-nowrap`}>{tag}</span>
                 </div>
-                <p className="text-[11px] text-gray-500 leading-relaxed">{desc}</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed hidden sm:block">{desc}</p>
               </div>
             </div>
           </button>

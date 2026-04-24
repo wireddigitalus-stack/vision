@@ -70,19 +70,7 @@ function LinkCard({
 }) {
   const inner = (
     <div
-      className="group flex items-start gap-3 p-4 rounded-xl border transition-all duration-200 cursor-pointer"
-      style={{
-        background: "rgba(255,255,255,0.02)",
-        borderColor: "rgba(255,255,255,0.07)",
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = accent + "55";
-        (e.currentTarget as HTMLDivElement).style.background = accent + "08";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.07)";
-        (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.02)";
-      }}
+      className="group flex items-start gap-3 p-4 rounded-xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 transition-all duration-200 cursor-pointer"
     >
       <ChevronRight
         size={14}

@@ -183,7 +183,7 @@ export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub
     <div className="space-y-8">
 
       {/* ── Sub-nav ── */}
-      <div className="flex flex-col sm:flex-row gap-3 overflow-x-auto pb-1 -mx-1 px-1">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {([
           {
             key:   "press",
@@ -249,7 +249,7 @@ export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub
           <button
             key={key}
             onClick={() => switchSubTab(key as "press"|"blog"|"photos"|"banner"|"properties"|"social")}
-            className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden flex-shrink-0 w-full sm:w-auto sm:min-w-[180px] sm:flex-1 ${
+            className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden w-full ${
               subTab === key
                 ? "bg-[rgba(255,255,255,0.04)]"
                 : "border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.15)] hover:bg-[rgba(255,255,255,0.02)]"
@@ -261,7 +261,7 @@ export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub
               <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
                 style={{ background: `radial-gradient(ellipse at top left, ${glow.replace("0.2","1")} 0%, transparent 70%)` }} />
             )}
-            <div className="flex items-center sm:items-start gap-3 relative">
+            <div className="flex items-start gap-3 relative">
               <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center flex-shrink-0 shadow-lg`}>
                 <Icon size={15} className="text-white" />
               </div>
@@ -270,7 +270,7 @@ export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub
                   <p className="text-sm font-black text-white whitespace-nowrap">{label}</p>
                   <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full bg-gradient-to-r ${grad} text-white opacity-80 whitespace-nowrap`}>{tag}</span>
                 </div>
-                <p className="text-[11px] text-gray-500 leading-relaxed hidden sm:block">{desc}</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">{desc}</p>
               </div>
             </div>
           </button>

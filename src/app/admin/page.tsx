@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import TenantsTab from "./TenantsTab";
 import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
 import MaintenanceTab from "./MaintenanceTab";
@@ -1480,7 +1480,17 @@ export default function AdminPage() {
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; email: string; avatar?: string}>>([]);
   const briefKeyRef = useRef(0);
   const [briefKey, setBriefKey] = useState(0);
-  const [activeTab, setActiveTab] = useState<"leads" | "tenants" | "analytics" | "maintenance" | "cleaning" | "archived" | "marketing" | "one-sheet" | "settings">("leads");
+  const searchParams = useSearchParams();
+  const VALID_TABS = ["leads", "tenants", "analytics", "maintenance", "cleaning", "archived", "marketing", "one-sheet", "settings"] as const;
+  type TabKey = typeof VALID_TABS[number];
+  const initialTab = (VALID_TABS.includes(searchParams.get("tab") as TabKey) ? searchParams.get("tab") : "leads") as TabKey;
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
+
+  // Keep URL in sync when tab changes — use replace so the back button isn't polluted
+  const switchTab = (tab: TabKey) => {
+    setActiveTab(tab);
+    router.replace(`/admin?tab=${tab}`, { scroll: false });
+  };
   const [marketingSubTab, setMarketingSubTab] = useState("properties");
 
   // Always start at the very top — prevents browser scroll-restoration from
@@ -1858,7 +1868,7 @@ export default function AdminPage() {
             ] as const).map(({ key, label, fullLabel, icon: Icon }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => switchTab(key)}
                 className={`flex items-center gap-1.5 px-3 sm:px-5 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all -mb-px whitespace-nowrap flex-shrink-0 ${activeTab === key ? "border-[#4ADE80] text-[#4ADE80]" : "border-transparent text-gray-500 hover:text-gray-300"}`}
               >
                 <Icon size={13} />

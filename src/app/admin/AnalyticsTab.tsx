@@ -60,16 +60,28 @@ function normalizeSpaceType(raw: string): string {
 function StatCard({ label, value, sub, color = "#4ADE80", icon: Icon }:
   { label: string; value: string; sub?: string; color?: string; icon: React.ElementType }) {
   return (
-    <div className="bg-[rgba(255,255,255,0.025)] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-20 h-20 rounded-full blur-2xl opacity-[0.07] pointer-events-none" style={{ backgroundColor: color }} />
-      <div className="flex items-start justify-between gap-2 mb-2">
+    <div
+      className="rounded-2xl p-4 relative overflow-hidden border bg-[rgba(255,255,255,0.025)]"
+      style={{ borderColor: `${color}28`, boxShadow: `0 0 22px ${color}12` }}
+    >
+      {/* Ambient radial warmth — top-left origin, like ambient light behind frosted glass */}
+      <div className="absolute inset-0 pointer-events-none rounded-2xl"
+        style={{ background: `radial-gradient(ellipse at 0% 0%, ${color}0C 0%, transparent 62%)` }} />
+      {/* Corner accent glow (existing) */}
+      <div className="absolute top-0 right-0 w-20 h-20 rounded-full blur-2xl opacity-[0.10] pointer-events-none" style={{ backgroundColor: color }} />
+      <div className="flex items-start justify-between gap-2 mb-2 relative">
         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{label}</p>
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}18`, border: `1px solid ${color}30` }}>
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{
+            background: `linear-gradient(135deg, ${color}28, ${color}10)`,
+            border: `1px solid ${color}40`,
+            boxShadow: `0 0 10px ${color}18`,
+          }}>
           <Icon size={13} style={{ color }} />
         </div>
       </div>
-      <p className="text-2xl font-black text-white tabular-nums leading-none">{value}</p>
-      {sub && <p className="text-[11px] text-gray-600 mt-1">{sub}</p>}
+      <p className="text-2xl font-black text-white tabular-nums leading-none relative">{value}</p>
+      {sub && <p className="text-[11px] text-gray-600 mt-1 relative">{sub}</p>}
     </div>
   );
 }
@@ -166,7 +178,8 @@ function LeadHealthDashboard({ leads }: { leads: AnalyticsLead[] }) {
   const trendMax = Math.max(...trendData.map(m => m.total), 1);
 
   return (
-    <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.018)] overflow-hidden mb-6">
+    <div className="rounded-2xl border overflow-hidden mb-6 bg-[rgba(255,255,255,0.018)]"
+      style={{ borderColor: "rgba(251,191,36,0.18)", boxShadow: "0 0 28px rgba(251,191,36,0.07)" }}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center gap-2.5">
@@ -372,7 +385,8 @@ function RevenueForecast({ tenants }: { tenants: Tenant[] }) {
   });
 
   return (
-    <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.07)] rounded-2xl p-5 mb-6">
+    <div className="rounded-2xl p-5 mb-6 border bg-[rgba(255,255,255,0.02)]"
+      style={{ borderColor: "rgba(74,222,128,0.18)", boxShadow: "0 0 28px rgba(74,222,128,0.07)" }}>
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <BarChart3 size={14} className="text-[#4ADE80]" />

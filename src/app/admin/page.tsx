@@ -371,7 +371,8 @@ function UserSection({ title, role, icon, color, users, onRefresh }: {
   };
 
   return (
-    <div className="rounded-2xl border bg-[rgba(255,255,255,0.02)] p-5" style={{ borderColor: `${color}22` }}>
+    <div className="rounded-2xl border bg-[rgba(255,255,255,0.02)] p-5"
+      style={{ borderColor: `${color}22`, boxShadow: `0 0 20px ${color}10` }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}18`, border: `1px solid ${color}35` }}>
@@ -619,7 +620,8 @@ ON CONFLICT (email) DO NOTHING;`}</pre>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
           {/* ── EXPORT ── */}
-          <div className="rounded-2xl border border-[rgba(74,222,128,0.15)] bg-[rgba(74,222,128,0.03)] p-5 flex flex-col gap-3">
+          <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.03)] p-5 flex flex-col gap-3"
+            style={{ boxShadow: "0 0 22px rgba(74,222,128,0.08)" }}>
             <div className="flex items-center gap-2">
               <Download size={15} className="text-[#4ADE80]" />
               <p className="text-xs font-black text-white uppercase tracking-widest">Export Leads</p>
@@ -639,7 +641,8 @@ ON CONFLICT (email) DO NOTHING;`}</pre>
           </div>
 
           {/* ── IMPORT ── */}
-          <div className="rounded-2xl border border-[rgba(96,165,250,0.15)] bg-[rgba(96,165,250,0.03)] p-5 flex flex-col gap-3">
+          <div className="rounded-2xl border border-[rgba(96,165,250,0.2)] bg-[rgba(96,165,250,0.03)] p-5 flex flex-col gap-3"
+            style={{ boxShadow: "0 0 22px rgba(96,165,250,0.08)" }}>
             <div className="flex items-center gap-2">
               <Upload size={15} className="text-[#60A5FA]" />
               <p className="text-xs font-black text-white uppercase tracking-widest">Import Leads</p>
@@ -1025,7 +1028,8 @@ Use real names and numbers. Be punchy.`,
   ];
 
   return (
-    <div className="rounded-2xl border border-[rgba(74,222,128,0.3)] bg-gradient-to-br from-[rgba(74,222,128,0.06)] via-[rgba(74,222,128,0.03)] to-transparent p-5 mb-6 relative overflow-hidden">
+    <div className="rounded-2xl border border-[rgba(74,222,128,0.3)] bg-gradient-to-br from-[rgba(74,222,128,0.06)] via-[rgba(74,222,128,0.03)] to-transparent p-5 mb-6 relative overflow-hidden"
+      style={{ boxShadow: "0 0 32px rgba(74,222,128,0.10)" }}>
       {/* Subtle glow */}
       <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-[#4ADE80] opacity-[0.04] blur-3xl pointer-events-none" />
 

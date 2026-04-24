@@ -1771,7 +1771,7 @@ export default function AdminPage() {
             {/* Online presence avatars */}
             {onlineUsers.length > 0 && (
               <div className="hidden sm:flex items-center gap-1" title={onlineUsers.map(u => u.name).join(", ") + " online"}>
-                {onlineUsers.map(u => (
+                {[...new Map(onlineUsers.map(u => [u.email, u])).values()].map(u => (
                   <div key={u.email} className="relative" title={`${u.name} — online now`}>
                     {u.avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element

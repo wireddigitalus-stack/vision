@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
+import NavigationConditional from "@/components/NavigationConditional";
+import FooterConditional from "@/components/FooterConditional";
 import AIChatWidgetConditional from "@/components/AIChatWidgetConditional";
 
 const dmSans = DM_Sans({
@@ -183,9 +183,9 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-mesh antialiased">
-        <Navigation />
+        <NavigationConditional />
         <main>{children}</main>
-        <Footer />
+        <FooterConditional />
         <AIChatWidgetConditional />
       </body>
     </html>

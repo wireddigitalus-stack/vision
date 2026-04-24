@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
-// One-shot seed endpoint — call once to populate demo leads in Supabase.
-// GET /api/seed-leads
-export async function GET() {
+// One-shot seed endpoint — protected by ADMIN_SECRET to prevent public access.
+// GET /api/seed-leads?secret=<ADMIN_SECRET>
+export async function GET(req: NextRequest) {
+  const secret = req.nextUrl.searchParams.get("secret");
+  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const now = Date.now();
 
   const DEMO_ROWS = [

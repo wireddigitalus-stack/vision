@@ -155,7 +155,7 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-4 text-xs text-gray-600">
             <Link href="/privacy" className="hover:text-gray-400 transition-colors">Privacy Policy</Link>
-            <Link href="/sitemap.xml" className="hover:text-gray-400 transition-colors">Sitemap</Link>
+            <Link href="/sitemap-page" className="hover:text-gray-400 transition-colors">Sitemap</Link>
             <span className="flex items-center gap-1">
               Powered by{" "}
               <span className="text-[#4ADE80] font-semibold">Gemini AI</span>

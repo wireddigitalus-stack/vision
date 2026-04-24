@@ -8,6 +8,16 @@ const H = {
   "Authorization": `Bearer ${KEY}`,
 };
 
+// ── Guard: write operations require x-admin-secret header ────────────────────
+function requireAdminSecret(req: NextRequest): NextResponse | null {
+  const secret = req.headers.get("x-admin-secret");
+  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return null;
+}
+
+// GET — read users (open; needed by the client-side auth guard)
 export async function GET(req: NextRequest) {
   const role  = req.nextUrl.searchParams.get("role");
   const email = req.nextUrl.searchParams.get("email");
@@ -31,7 +41,11 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ users: Array.isArray(users) ? users : [] });
 }
 
+// POST — add a user (requires ADMIN_SECRET)
 export async function POST(req: NextRequest) {
+  const guard = requireAdminSecret(req);
+  if (guard) return guard;
+
   const { email, name, role } = await req.json();
   if (!email || !role) return NextResponse.json({ error: "email and role required" }, { status: 400 });
 
@@ -45,7 +59,11 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
+// PATCH — update a user (requires ADMIN_SECRET)
 export async function PATCH(req: NextRequest) {
+  const guard = requireAdminSecret(req);
+  if (guard) return guard;
+
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
   const body = await req.json();
@@ -58,7 +76,11 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
+// DELETE — remove a user (requires ADMIN_SECRET)
 export async function DELETE(req: NextRequest) {
+  const guard = requireAdminSecret(req);
+  if (guard) return guard;
+
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
   await fetch(`${SUPABASE_URL}/rest/v1/allowed_users?id=eq.${id}`, { method: "DELETE", headers: H });

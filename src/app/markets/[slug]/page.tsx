@@ -12,6 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { GEO_PAGES, COMPANY, PROPERTIES } from "@/lib/data";
+import CustomSearchCTA from "@/components/CustomSearchCTA";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -522,6 +523,7 @@ export default async function GeoPage({ params }: Props) {
           </div>
         </div>
       </section>
+      <CustomSearchCTA />
     </>
   );
 }

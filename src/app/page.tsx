@@ -7,6 +7,7 @@ import GeoMarketsSection from "@/components/home/GeoMarketsSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import FAQSection from "@/components/home/FAQSection";
 import CTASection from "@/components/home/CTASection";
+import CustomSearchCTA from "@/components/CustomSearchCTA";
 import { HOMEPAGE_FAQ_SCHEMA } from "@/lib/faq-data";
 
 export const metadata: Metadata = {
@@ -55,6 +56,7 @@ export default function HomePage() {
       <GeoMarketsSection />
       <TestimonialsSection />
       <FAQSection />
+      <CustomSearchCTA />
       <CTASection />
     </>
   );

@@ -7,6 +7,7 @@ import { MapPin, Phone, ArrowRight, Check, ArrowLeft, Building2 } from "lucide-r
 import { PROPERTIES, COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
 import LeaseBotTrigger from "@/components/LeaseBotTrigger";
+import CustomSearchCTA from "@/components/CustomSearchCTA";
 
 
 type Props = { params: Promise<{ id: string }> };
@@ -317,6 +318,7 @@ export default async function PropertyDetailPage({ params }: Props) {
             </div>
           </div>
         </section>
+        <CustomSearchCTA />
       </main>
     </>
   );

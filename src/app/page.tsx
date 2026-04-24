@@ -53,10 +53,10 @@ export default function HomePage() {
       <StatsBar />
       <ServicesSection />
       <PropertiesSection />
+      <CustomSearchCTA />
       <GeoMarketsSection />
       <TestimonialsSection />
       <FAQSection />
-      <CustomSearchCTA />
       <CTASection />
     </>
   );

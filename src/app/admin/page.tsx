@@ -1470,6 +1470,43 @@ function AddLeadPanel({ onLeadAdded }: { onLeadAdded: (lead: Lead) => void }) {
   );
 }
 
+// ─── One-Sheet Collapsible (lives inside Marketing tab) ──────────────────────
+
+function OneSheetCollapsible() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-8 rounded-2xl border border-[rgba(255,255,255,0.08)] overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-xl bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.25)] flex items-center justify-center">
+            <FileText size={13} className="text-[#4ADE80]" />
+          </div>
+          <div>
+            <p className="text-sm font-black text-white">Property One-Sheet Generator</p>
+            <p className="text-[11px] text-gray-500">Branded PDF brochure — perfect for showings &amp; email</p>
+          </div>
+          <span className="text-[9px] font-black bg-[rgba(74,222,128,0.12)] text-[#4ADE80] border border-[rgba(74,222,128,0.25)] px-2 py-0.5 rounded-md uppercase tracking-widest ml-1">
+            PDF Ready
+          </span>
+        </div>
+        <ChevronDown
+          size={18}
+          className="text-gray-500 flex-shrink-0 transition-transform duration-200"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+      {open && (
+        <div className="px-5 pb-6 pt-2 border-t border-[rgba(255,255,255,0.06)]">
+          <PropertyOneSheet />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Admin Page ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -1481,7 +1518,7 @@ export default function AdminPage() {
   const briefKeyRef = useRef(0);
   const [briefKey, setBriefKey] = useState(0);
   const searchParams = useSearchParams();
-  const VALID_TABS = ["leads", "tenants", "analytics", "maintenance", "cleaning", "archived", "marketing", "one-sheet", "settings"] as const;
+  const VALID_TABS = ["leads", "tenants", "analytics", "maintenance", "cleaning", "archived", "marketing", "settings"] as const;
   type TabKey = typeof VALID_TABS[number];
   const initialTab = (VALID_TABS.includes(searchParams.get("tab") as TabKey) ? searchParams.get("tab") : "leads") as TabKey;
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
@@ -1862,7 +1899,6 @@ export default function AdminPage() {
               { key: "cleaning",    label: "Cleaning", fullLabel: "Cleaning",    icon: Sparkles },
               { key: "analytics",   label: "Analytic", fullLabel: "Analytics",   icon: BarChart3 },
               { key: "marketing",   label: "Market",   fullLabel: "Marketing",   icon: FileText },
-              { key: "one-sheet",   label: "One-Sheet", fullLabel: "Property One-Sheet", icon: FileText },
               { key: "archived",    label: "Archive",  fullLabel: `Archived (${archivedLeads.length})`, icon: Archive },
               { key: "settings",    label: "Settings", fullLabel: "Settings",    icon: Settings },
             ] as const).map(({ key, label, fullLabel, icon: Icon }) => (
@@ -2525,18 +2561,7 @@ export default function AdminPage() {
         {activeTab === "marketing" && (
           <div className="glass rounded-2xl border border-[rgba(255,255,255,0.06)] p-6 sm:p-8">
             <MarketingTab onSubTabChange={setMarketingSubTab} />
-          </div>
-        )}
-
-        {/* ─ ONE-SHEET TAB ───────────────────────────────────────────────────── */}
-        {activeTab === "one-sheet" && (
-          <div className="glass rounded-2xl border border-[rgba(255,255,255,0.06)] p-6 sm:p-8">
-            <div className="flex items-center gap-3 mb-1">
-              <h2 className="text-lg font-black text-white">Property One-Sheet</h2>
-              <span className="text-[9px] font-black bg-[rgba(74,222,128,0.12)] text-[#4ADE80] border border-[rgba(74,222,128,0.25)] px-2 py-0.5 rounded-md uppercase tracking-widest">PDF Ready</span>
-            </div>
-            <p className="text-xs text-gray-500 mb-4">Generate a branded brochure for any Vision property — perfect for showings and email attachments.</p>
-            <PropertyOneSheet />
+            <OneSheetCollapsible />
           </div>
         )}
 

@@ -5,7 +5,7 @@ import Navigation from "./Navigation";
 
 export default function NavigationConditional() {
   const pathname = usePathname();
-  // Dashboard has its own AdminHeader — public nav not needed there
-  if (pathname?.startsWith("/admin")) return null;
+  // Dashboard and crew portals have their own UI — public nav not needed
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/staff")) return null;
   return <Navigation />;
 }

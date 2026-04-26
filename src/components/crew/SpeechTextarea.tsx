@@ -2,6 +2,23 @@
 import { useRef, useState, useEffect } from "react";
 import { Mic, MicOff } from "lucide-react";
 
+// Browser Speech API types (not always present in TS lib — declare locally)
+type SpeechRecognitionInstance = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((e: SpeechRecognitionResultEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+type SpeechRecognitionResultEvent = {
+  resultIndex: number;
+  results: { isFinal: boolean; 0: { transcript: string } }[];
+};
+type SpeechRecognitionCtor = new () => SpeechRecognitionInstance;
+
 interface Props {
   value: string;
   onChange: (v: string) => void;
@@ -20,16 +37,15 @@ export default function SpeechTextarea({
 }: Props) {
   const [listening, setListening] = useState(false);
   const [supported, setSupported] = useState(true);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalRef = useRef(value);
 
   useEffect(() => { finalRef.current = value; }, [value]);
   useEffect(() => () => { recognitionRef.current?.stop(); }, []);
 
   const toggleSpeech = () => {
-    const SR =
-      (window as Window & typeof globalThis & { SpeechRecognition?: typeof SpeechRecognition; webkitSpeechRecognition?: typeof SpeechRecognition }).SpeechRecognition ||
-      (window as Window & typeof globalThis & { SpeechRecognition?: typeof SpeechRecognition; webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition;
+    const w = window as Window & { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor };
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) { setSupported(false); return; }
 
     if (listening) {
@@ -42,7 +58,7 @@ export default function SpeechTextarea({
     rec.interimResults = true;
     rec.lang = "en-US";
 
-    rec.onresult = (e: SpeechRecognitionEvent) => {
+    rec.onresult = (e: SpeechRecognitionResultEvent) => {
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) {

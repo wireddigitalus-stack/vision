@@ -133,16 +133,27 @@ function SummaryBanner({ assignments, today }: { assignments: Assignment[]; toda
   return (
     <div className="rounded-2xl border border-[rgba(74,222,128,0.2)] bg-gradient-to-br from-[rgba(74,222,128,0.05)] via-transparent to-transparent p-5 mb-6 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-[#4ADE80] opacity-[0.03] blur-3xl pointer-events-none" />
-      <div className="flex items-center gap-2.5 mb-4">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center text-lg shadow-[0_0_12px_rgba(74,222,128,0.3)]">
-          🧹
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center text-lg shadow-[0_0_12px_rgba(74,222,128,0.3)]">
+            🧹
+          </div>
+          <div>
+            <p className="text-xs font-black text-[#4ADE80] uppercase tracking-widest">Cleaning Control</p>
+            <p className="text-[11px] text-gray-500">
+              {todayA.length} assignments today · {workers.size} worker{workers.size !== 1 ? "s" : ""} active
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs font-black text-[#4ADE80] uppercase tracking-widest">Cleaning Control</p>
-          <p className="text-[11px] text-gray-500">
-            {todayA.length} assignments today · {workers.size} worker{workers.size !== 1 ? "s" : ""} active
-          </p>
-        </div>
+        <a
+          href="/staff/cleaning"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all hover:opacity-75 flex-shrink-0"
+          style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)", color: "#4ADE80" }}
+        >
+          🧹 Crew Portal ↗
+        </a>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">

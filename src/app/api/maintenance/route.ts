@@ -59,6 +59,7 @@ export async function PATCH(req: NextRequest) {
     estimatedCost: "estimated_cost", actualCost: "actual_cost",
     estimatedHours: "estimated_hours", scheduledDate: "scheduled_date",
     completedDate: "completed_date", notes: "notes",
+    photoUrl: "photo_url", completionNotes: "completion_notes", actualMinutes: "actual_minutes",
   };
   const patch: Record<string, unknown> = {};
   Object.entries(map).forEach(([js, db]) => { if (body[js] !== undefined) patch[db] = body[js]; });

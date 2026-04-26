@@ -59,6 +59,8 @@ export async function PATCH(req: NextRequest) {
   if (body.status !== undefined) patch.status = body.status;
   if (body.completedAt !== undefined) patch.completed_at = body.completedAt;
   if (body.notes !== undefined) patch.notes = body.notes;
+  if (body.photoUrl !== undefined) patch.photo_url = body.photoUrl;
+  if (body.completionNotes !== undefined) patch.completion_notes = body.completionNotes;
   const res = await fetch(`${SUPABASE_URL}/rest/v1/cleaning_assignments?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: { ...H, "Prefer": "return=representation" },

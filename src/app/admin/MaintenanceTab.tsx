@@ -132,14 +132,25 @@ function SummaryBanner({ tickets }: { tickets: Ticket[] }) {
   return (
     <div className="rounded-2xl border border-[rgba(250,204,21,0.2)] bg-gradient-to-br from-[rgba(250,204,21,0.05)] via-transparent to-transparent p-5 mb-6 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-[#FACC15] opacity-[0.03] blur-3xl pointer-events-none" />
-      <div className="flex items-center gap-2.5 mb-4">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FACC15] to-[#F97316] flex items-center justify-center shadow-[0_0_12px_rgba(250,204,21,0.25)]">
-          <Wrench size={14} className="text-black" />
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FACC15] to-[#F97316] flex items-center justify-center shadow-[0_0_12px_rgba(250,204,21,0.25)]">
+            <Wrench size={14} className="text-black" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-[#FACC15] uppercase tracking-widest">Maintenance Control</p>
+            <p className="text-[11px] text-gray-500">{open.length} open ticket{open.length !== 1 ? "s" : ""} · {tickets.filter(t => t.status === "complete").length} completed</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs font-black text-[#FACC15] uppercase tracking-widest">Maintenance Control</p>
-          <p className="text-[11px] text-gray-500">{open.length} open ticket{open.length !== 1 ? "s" : ""} · {tickets.filter(t => t.status === "complete").length} completed</p>
-        </div>
+        <a
+          href="/staff/maintenance"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all hover:opacity-75 flex-shrink-0"
+          style={{ background: "rgba(250,204,21,0.1)", border: "1px solid rgba(250,204,21,0.3)", color: "#FACC15" }}
+        >
+          🔧 Crew Portal ↗
+        </a>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">

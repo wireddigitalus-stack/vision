@@ -1750,7 +1750,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#080C14] text-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 pb-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-16">
 
         {/* ─ New Lead Toast ──────────────────────────────────────────────── */}
         {newLeadToast && (
@@ -1786,7 +1786,7 @@ export default function AdminPage() {
         )}
 
         {/* Page Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.25)]">
               <Zap size={18} className="text-black" />

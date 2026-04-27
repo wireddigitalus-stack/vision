@@ -39,8 +39,12 @@ export default function SpeechTextarea({
   const [supported, setSupported] = useState(true);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalRef = useRef(value);
+  const listeningRef = useRef(false);
 
-  useEffect(() => { finalRef.current = value; }, [value]);
+  // Only sync finalRef from the prop when NOT listening.
+  // During speech, interim text flows into `value` for display, but must
+  // NOT be baked into finalRef — otherwise the final transcript doubles up.
+  useEffect(() => { if (!listeningRef.current) finalRef.current = value; }, [value]);
   useEffect(() => () => { recognitionRef.current?.stop(); }, []);
 
   const toggleSpeech = () => {
@@ -67,12 +71,21 @@ export default function SpeechTextarea({
           interim = e.results[i][0].transcript;
         }
       }
+      // Show interim text visually, but finalRef stays clean (finals only)
       onChange(finalRef.current + (interim ? " " + interim : ""));
     };
-    rec.onend = () => { setListening(false); onChange(finalRef.current); };
-    rec.onerror = () => setListening(false);
+    rec.onend = () => {
+      listeningRef.current = false;
+      setListening(false);
+      onChange(finalRef.current);
+    };
+    rec.onerror = () => {
+      listeningRef.current = false;
+      setListening(false);
+    };
     rec.start();
     recognitionRef.current = rec;
+    listeningRef.current = true;
     setListening(true);
   };
 

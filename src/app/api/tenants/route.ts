@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
       monthly_rent: Number(body.monthlyRent) || 0,
       utilities_fee: Number(body.utilitiesFee) || 0,
       security_deposit: Number(body.securityDeposit) || 0,
+      nnn_fee: Number(body.nnnFee) || 0,
       lease_start: body.leaseStart || null,
       lease_end: body.leaseEnd || null,
       renewal_date: body.renewalDate || null,
@@ -80,7 +81,8 @@ export async function PATCH(req: NextRequest) {
   const map: Record<string, string> = {
     name: "name", contactName: "contact_name", email: "email", phone: "phone",
     building: "building", unit: "unit", rep: "rep",
-    monthlyRent: "monthly_rent", utilitiesFee: "utilities_fee", securityDeposit: "security_deposit",
+    monthlyRent: "monthly_rent", utilitiesFee: "utilities_fee",
+    securityDeposit: "security_deposit", nnnFee: "nnn_fee",
     leaseStart: "lease_start", leaseEnd: "lease_end", renewalDate: "renewal_date",
     leaseAlertDays: "lease_alert_days",
     escalationPct: "escalation_pct", escalationDate: "escalation_date",

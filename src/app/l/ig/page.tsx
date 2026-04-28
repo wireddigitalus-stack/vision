@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import AIChatWidget from "@/components/AIChatWidget";
 
@@ -29,11 +30,16 @@ export default function InstagramLandingPage() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-4 py-12 text-center">
 
-        {/* Logo mark */}
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center shadow-[0_0_40px_rgba(74,222,128,0.3)] mb-8">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-          </svg>
+        {/* Vision logo */}
+        <div className="mb-8">
+          <Image
+            src="/vision-logo.png"
+            alt="Vision LLC"
+            width={160}
+            height={60}
+            className="h-10 w-auto object-contain"
+            priority
+          />
         </div>
 
         {/* Source tag */}

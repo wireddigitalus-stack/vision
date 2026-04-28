@@ -165,9 +165,11 @@ export default function LeaseBotWidget() {
     setUtmSource(params.get("utm_source") || "");
     setUtmMedium(params.get("utm_medium") || "");
     setUtmCampaign(params.get("utm_campaign") || "");
-    // Auto-open on social landing pages
+    // Auto-open on social landing pages — longer delay on mobile so content is visible first
     if (params.get("utm_source") === "facebook" || params.get("utm_source") === "instagram") {
-      setTimeout(() => { setIsOpen(true); setNudgeDismissed(true); setHasNotif(false); }, 1500);
+      const isMobile = window.innerWidth < 768;
+      const delay = isMobile ? 4000 : 1500;
+      setTimeout(() => { setIsOpen(true); setNudgeDismissed(true); setHasNotif(false); }, delay);
     }
   }, []);
 
@@ -474,7 +476,7 @@ export default function LeaseBotWidget() {
       >
         <div
           className="glass-strong rounded-2xl overflow-hidden shadow-2xl flex flex-col"
-          style={{ height: "min(580px, 80vh)" }}
+          style={{ height: "min(520px, 72vh)" }}
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-[#4ADE80]/20 to-[#22C55E]/10 px-4 py-3.5 flex items-center justify-between border-b border-[rgba(74,222,128,0.2)] flex-shrink-0">

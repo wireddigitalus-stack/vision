@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Black background with rounded corners -->
+  <rect width="512" height="512" rx="96" fill="#000000"/>
+  <!-- Bold green V -->
+  <text
+    x="256"
+    y="380"
+    font-family="Arial Black, Arial, sans-serif"
+    font-weight="900"
+    font-size="340"
+    fill="#4ADE80"
+    text-anchor="middle"
+    dominant-baseline="auto"
+  >V</text>
+</svg>

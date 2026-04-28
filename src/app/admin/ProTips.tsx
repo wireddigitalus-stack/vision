@@ -236,24 +236,34 @@ const TIPS: Record<TabKey, Tip[]> = {
   ],
   "marketing-social": [
     {
-      emoji: "✍️",
-      title: "AI Copy Generator",
-      body: "Select a property, pick a tone (Professional / Friendly / Exciting), choose your platform, then click Generate. The AI writes platform-optimized copy with Tri-Cities keywords built in.",
+      emoji: "⚡",
+      title: "Full Content Package in 10 Seconds",
+      body: "Pick your property, set a tone, then type a quick hook in the 'What's the hook?' field — e.g. \"First month free\" or \"Just renovated the lobby\" — and click Generate. You get Facebook, Instagram, LinkedIn, a Story caption, and 20 hashtags all at once.",
     },
     {
-      emoji: "📋",
-      title: "Ready to Paste",
-      body: "Generated copy works directly in Meta Business Suite, Buffer, or any scheduling tool. Feel free to customize the CTA or add a local hook before posting.",
+      emoji: "✏️",
+      title: "The Hook Field is Your Secret Weapon",
+      body: "The hook field tells the AI what's special right now. Try: \"Move-in ready\", \"Limited availability — only 2 suites left\", \"New signage and parking just added\", or \"Book a tour this week and get first month free\". The more specific you are, the better the copy.",
+    },
+    {
+      emoji: "#️⃣",
+      title: "Hashtag Bank — Use the First Comment",
+      body: "Click 'Copy all' next to the Hashtag Bank, then on Instagram paste them as the FIRST COMMENT on your post — not in the caption. This keeps captions clean and readable while still getting full hashtag reach.",
+    },
+    {
+      emoji: "📖",
+      title: "Story Caption = Overlay Text",
+      body: "The Story Caption is ultra-short (under 12 words) and designed to be typed or pasted as a text overlay on your Instagram or Facebook Story photo or video. Pair it with a bold font and a CTA sticker.",
+    },
+    {
+      emoji: "💼",
+      title: "Don't Skip LinkedIn",
+      body: "LinkedIn is where business owners and investors look for commercial space. Post the LinkedIn copy on Tuesday, Wednesday, or Thursday between 8–10am ET — those 3 days get 3× the reach of Fridays or weekends.",
     },
     {
       emoji: "📅",
-      title: "Best Posting Times",
-      body: "Facebook performs best Tuesday–Thursday between 9am–2pm. Instagram peaks at 11am–1pm or 7–9pm. Use Meta Business Suite to schedule posts in advance.",
-    },
-    {
-      emoji: "🎯",
-      title: "Vary Your Content",
-      body: "Don't only post new listings. Mix in market updates, tenant success stories, behind-the-scenes, and team highlights to build genuine community engagement.",
+      title: "Schedule Everything at Once",
+      body: "After generating, copy the Facebook and Instagram posts into Meta Business Suite (business.facebook.com) to schedule both platforms at the same time. Best times: Tuesday–Thursday 9am–1pm for FB, 11am–1pm for IG.",
     },
   ],
   "one-sheet": [

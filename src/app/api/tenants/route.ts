@@ -13,14 +13,16 @@ const HEADERS = {
 export async function GET() {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/tenants?order=created_at.desc`,
-    { headers: HEADERS }
+    { headers: HEADERS, cache: "no-store" }  // always fresh — never serve stale after a save
   );
   if (!res.ok) {
     console.error("tenants GET error:", await res.text());
     return NextResponse.json({ tenants: [] });
   }
   const tenants = await res.json();
-  return NextResponse.json({ tenants });
+  return NextResponse.json({ tenants }, {
+    headers: { "Cache-Control": "no-store, no-cache" },
+  });
 }
 
 // POST /api/tenants — create
@@ -37,6 +39,7 @@ export async function POST(req: NextRequest) {
       unit: body.unit?.trim() || "",
       rep: body.rep?.trim() || "",
       monthly_rent: Number(body.monthlyRent) || 0,
+      utilities_fee: Number(body.utilitiesFee) || 0,
       lease_start: body.leaseStart || null,
       lease_end: body.leaseEnd || null,
       renewal_date: body.renewalDate || null,
@@ -75,7 +78,8 @@ export async function PATCH(req: NextRequest) {
   const patch: Record<string, unknown> = {};
   const map: Record<string, string> = {
     name: "name", contactName: "contact_name", email: "email", phone: "phone",
-    building: "building", unit: "unit", rep: "rep", monthlyRent: "monthly_rent",
+    building: "building", unit: "unit", rep: "rep",
+    monthlyRent: "monthly_rent", utilitiesFee: "utilities_fee",
     leaseStart: "lease_start", leaseEnd: "lease_end", renewalDate: "renewal_date",
     leaseAlertDays: "lease_alert_days",
     escalationPct: "escalation_pct", escalationDate: "escalation_date",
@@ -91,10 +95,25 @@ export async function PATCH(req: NextRequest) {
     body: JSON.stringify(patch),
   });
 
+  // Supabase returns 204 (No Content) when no rows matched the filter.
+  // That means the id doesn't exist — treat as an error so the UI shows feedback.
+  if (res.status === 204) {
+    console.error("tenants PATCH: no row matched id:", id);
+    return NextResponse.json({ error: "Tenant not found — save failed" }, { status: 404 });
+  }
+
   if (!res.ok) {
     console.error("tenants PATCH error:", await res.text());
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
+
+  // Extra safety: with return=representation, an empty array means nothing was updated
+  const updated = await res.json().catch(() => []);
+  if (Array.isArray(updated) && updated.length === 0) {
+    console.error("tenants PATCH: empty result for id:", id);
+    return NextResponse.json({ error: "Tenant not found — save failed" }, { status: 404 });
+  }
+
   return NextResponse.json({ success: true });
 }
 

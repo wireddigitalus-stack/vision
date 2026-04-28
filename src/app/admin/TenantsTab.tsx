@@ -21,6 +21,7 @@ export interface Tenant {
   unit: string;
   rep: string;
   monthlyRent: number;
+  utilitiesFee: number;
   leaseStart: string | null;
   leaseEnd: string | null;
   renewalDate: string | null;
@@ -46,6 +47,7 @@ function rowToTenant(r: Record<string, unknown>): Tenant {
     unit: (r.unit as string) || "",
     rep: (r.rep as string) || "",
     monthlyRent: Number(r.monthly_rent) || 0,
+    utilitiesFee: Number(r.utilities_fee) || 0,
     leaseStart: (r.lease_start as string) || null,
     leaseEnd: (r.lease_end as string) || null,
     renewalDate: (r.renewal_date as string) || null,
@@ -88,7 +90,7 @@ function renewalUrgency(days: number | null): { color: string; bg: string; borde
 const BLANK = (): Partial<Tenant> => ({
   name: "", contactName: "", email: "", phone: "",
   building: "", unit: "", rep: "",
-  monthlyRent: 0,
+  monthlyRent: 0, utilitiesFee: 0,
   leaseStart: "", leaseEnd: "", renewalDate: "", leaseAlertDays: 60,
   escalationPct: 0, escalationDate: "",
   status: "active", notes: "",
@@ -152,9 +154,13 @@ function TenantForm({
       </div>
 
       {/* Financials */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div><label className={LABEL}>Monthly Rent ($)</label>
           <input type="number" value={form.monthlyRent || ""} onChange={e => set("monthlyRent", Number(e.target.value))} placeholder="4200" className={FIELD} /></div>
+        <div><label className={LABEL}>Monthly Utilities Fee ($)</label>
+          <input type="number" value={form.utilitiesFee || ""} onChange={e => set("utilitiesFee", Number(e.target.value))} placeholder="0" className={FIELD} /></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div><label className={LABEL}>Annual Escalation (%)</label>
           <input type="number" step="0.1" value={form.escalationPct || ""} onChange={e => set("escalationPct", Number(e.target.value))} placeholder="3" className={FIELD} /></div>
         <div><label className={LABEL}>Next Escalation Date</label>
@@ -477,6 +483,12 @@ function TenantCard({
           <p className="text-[10px] text-gray-600 mb-0.5">Annual Value</p>
           <p className="text-sm font-black text-[#4ADE80]">{fmtMoney(annualRent)}</p>
         </div>
+        {tenant.utilitiesFee > 0 && (
+          <div className="bg-[rgba(96,165,250,0.05)] rounded-xl p-2.5 border border-[rgba(96,165,250,0.12)]">
+            <p className="text-[10px] text-gray-600 mb-0.5">Utilities Fee</p>
+            <p className="text-sm font-black text-[#60A5FA]">{fmtMoney(tenant.utilitiesFee)}</p>
+          </div>
+        )}
         <div className="bg-[rgba(255,255,255,0.02)] rounded-xl p-2.5 border border-[rgba(255,255,255,0.06)]">
           <p className="text-[10px] text-gray-600 mb-0.5">Lease End</p>
           <p className="text-xs font-bold text-white">{fmtDate(tenant.leaseEnd)}</p>
@@ -600,7 +612,8 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
       body: JSON.stringify({
         name: form.name, contactName: form.contactName, email: form.email, phone: form.phone,
         building: form.building, unit: form.unit, rep: form.rep,
-        monthlyRent: form.monthlyRent,
+        monthlyRent: Number(form.monthlyRent) || 0,
+        utilitiesFee: Number(form.utilitiesFee) || 0,
         leaseStart: form.leaseStart || null, leaseEnd: form.leaseEnd || null,
         renewalDate: form.renewalDate || null,
         leaseAlertDays: form.leaseAlertDays ?? null,
@@ -621,7 +634,8 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
       body: JSON.stringify({
         name: form.name, contactName: form.contactName, email: form.email, phone: form.phone,
         building: form.building, unit: form.unit, rep: form.rep,
-        monthlyRent: form.monthlyRent,
+        monthlyRent: Number(form.monthlyRent) || 0,
+        utilitiesFee: Number(form.utilitiesFee) || 0,
         leaseStart: form.leaseStart || null, leaseEnd: form.leaseEnd || null,
         renewalDate: form.renewalDate || null,
         leaseAlertDays: form.leaseAlertDays ?? null,
@@ -647,7 +661,8 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
         body: JSON.stringify({
           name: form.name, contactName: form.contactName, email: form.email, phone: form.phone,
           building: form.building, unit: form.unit, rep: "",
-          monthlyRent: form.monthlyRent ?? 0,
+          monthlyRent: Number(form.monthlyRent) || 0,
+          utilitiesFee: 0,
           leaseStart: form.leaseStart || null, leaseEnd: form.leaseEnd || null,
           renewalDate: null, leaseAlertDays: 60,
           escalationPct: 0, escalationDate: null,
@@ -692,7 +707,8 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
         <div className="mb-6 p-4 rounded-xl border border-[rgba(250,204,21,0.3)] bg-[rgba(250,204,21,0.05)]">
           <p className="text-xs font-bold text-[#FACC15] mb-2 flex items-center gap-1.5"><AlertTriangle size={12} />Database table not found — one-time setup required</p>
           <p className="text-xs text-gray-400 mb-2">Run this SQL in your <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-[#4ADE80] underline">Supabase SQL Editor</a>, then click Refresh:</p>
-          <pre className="text-[10px] text-gray-300 bg-[rgba(0,0,0,0.4)] rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">{`CREATE TABLE IF NOT EXISTS tenants (
+          <pre className="text-[10px] text-gray-300 bg-[rgba(0,0,0,0.4)] rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">{`-- ① Create table (new install)
+CREATE TABLE IF NOT EXISTS tenants (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   contact_name TEXT DEFAULT '',
@@ -702,9 +718,11 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
   unit TEXT DEFAULT '',
   rep TEXT DEFAULT '',
   monthly_rent NUMERIC DEFAULT 0,
+  utilities_fee NUMERIC DEFAULT 0,
   lease_start DATE,
   lease_end DATE,
   renewal_date DATE,
+  lease_alert_days INTEGER DEFAULT 60,
   escalation_pct NUMERIC DEFAULT 0,
   escalation_date DATE,
   status TEXT DEFAULT 'active',
@@ -714,7 +732,11 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
 );
 ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "anon_all_tenants" ON tenants
-  FOR ALL TO anon USING (true) WITH CHECK (true);`}</pre>
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+
+-- ② Already have the table? Run ONLY these lines instead:
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS utilities_fee NUMERIC DEFAULT 0;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS lease_alert_days INTEGER DEFAULT 60;`}</pre>
         </div>
       )}
 

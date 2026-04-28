@@ -125,12 +125,11 @@ const stage_questions: Record<Stage, string> = {
   result: "",
 };
 
-// ─── Score color helpers ──────────────────────────────────────────────────────
-
+// Score helpers — used internally only (leads dashboard); not shown to users
 function scoreColor(score: number) {
-  if (score >= 70) return "#4ADE80"; // green
-  if (score >= 40) return "#FACC15"; // yellow
-  return "#94A3B8"; // slate
+  if (score >= 70) return "#4ADE80";
+  if (score >= 40) return "#FACC15";
+  return "#94A3B8";
 }
 
 function scoreLabelColor(label: string) {

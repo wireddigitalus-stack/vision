@@ -6,7 +6,9 @@ import PropertyImageManager from "./PropertyImageManager";
 import BlogGenerator from "./BlogGenerator";
 import BannerManager from "./BannerManager";
 import PropertyCreator from "./PropertyCreator";
+import PropertyOneSheet from "./PropertyOneSheet";
 import { PROPERTIES } from "@/lib/data";
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -50,12 +52,13 @@ function saveQueue(q: PressRelease[]) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub: string) => void }) {
-  const [subTab, setSubTab] = useState<"press" | "blog" | "photos" | "banner" | "properties" | "social">("properties");
+  const [subTab, setSubTab] = useState<"press" | "blog" | "photos" | "banner" | "properties" | "social" | "one-sheet">("properties");
 
-  const switchSubTab = (key: "press" | "blog" | "photos" | "banner" | "properties" | "social") => {
+  const switchSubTab = (key: "press" | "blog" | "photos" | "banner" | "properties" | "social" | "one-sheet") => {
     setSubTab(key);
     onSubTabChange?.(key);
   };
+
 
   // ── Social Copy state ─────────────────────────────────────────────────────
   const [socialPropId,        setSocialPropId]        = useState<string>(PROPERTIES[0]?.id ?? "");
@@ -251,17 +254,27 @@ export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub
           {
             key:   "social",
             label: "Social Copy",
-            desc:  "FB & Instagram AI posts",
+            desc:  "FB, IG & LinkedIn AI posts",
             icon:  Instagram,
             grad:  "from-[#E1306C] to-[#833AB4]",
             glow:  "rgba(225,48,108,0.2)",
             border:"rgba(225,48,108,0.4)",
             tag:   "AI",
           },
+          {
+            key:   "one-sheet",
+            label: "One-Sheet PDF",
+            desc:  "Magazine-quality brochures",
+            icon:  FileText,
+            grad:  "from-[#F97316] to-[#EA580C]",
+            glow:  "rgba(249,115,22,0.2)",
+            border:"rgba(249,115,22,0.4)",
+            tag:   "PDF",
+          },
         ] as const).map(({ key, label, desc, icon: Icon, grad, glow, border, tag }) => (
           <button
             key={key}
-            onClick={() => switchSubTab(key as "press"|"blog"|"photos"|"banner"|"properties"|"social")}
+            onClick={() => switchSubTab(key as "press"|"blog"|"photos"|"banner"|"properties"|"social"|"one-sheet")}
             className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group overflow-hidden w-full ${
               subTab === key
                 ? "bg-[rgba(255,255,255,0.04)]"
@@ -301,6 +314,9 @@ export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub
 
       {/* ── Homepage Banner ── */}
       {subTab === "banner" && <BannerManager />}
+
+      {/* ── One-Sheet PDF ── */}
+      {subTab === "one-sheet" && <PropertyOneSheet />}
 
       {/* ── Press Releases ── */}
       {subTab === "press" && (<div className="space-y-8">

@@ -8,7 +8,6 @@ import AnalyticsTab, { type AnalyticsLead } from "./AnalyticsTab";
 import MaintenanceTab from "./MaintenanceTab";
 import CleaningTab from "./CleaningTab";
 import MarketingTab from "./MarketingTab";
-import PropertyOneSheet from "./PropertyOneSheet";
 import ProTips from "./ProTips";
 import CallLogModal, { type CallLog, outcomeColor, outcomeLabel } from "./CallLogModal";
 import PrintButton from "./PrintButton";
@@ -1470,43 +1469,6 @@ function AddLeadPanel({ onLeadAdded }: { onLeadAdded: (lead: Lead) => void }) {
   );
 }
 
-// ─── One-Sheet Collapsible (lives inside Marketing tab) ──────────────────────
-
-function OneSheetCollapsible() {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="mt-8 rounded-2xl border border-[rgba(255,255,255,0.08)] overflow-hidden">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-xl bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.25)] flex items-center justify-center">
-            <FileText size={13} className="text-[#4ADE80]" />
-          </div>
-          <div>
-            <p className="text-sm font-black text-white">Property One-Sheet Generator</p>
-            <p className="text-[11px] text-gray-500">Branded PDF brochure — perfect for showings &amp; email</p>
-          </div>
-          <span className="text-[9px] font-black bg-[rgba(74,222,128,0.12)] text-[#4ADE80] border border-[rgba(74,222,128,0.25)] px-2 py-0.5 rounded-md uppercase tracking-widest ml-1">
-            PDF Ready
-          </span>
-        </div>
-        <ChevronDown
-          size={18}
-          className="text-gray-500 flex-shrink-0 transition-transform duration-200"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-        />
-      </button>
-      {open && (
-        <div className="px-5 pb-6 pt-2 border-t border-[rgba(255,255,255,0.06)]">
-          <PropertyOneSheet />
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Main Admin Page ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -2561,9 +2523,9 @@ export default function AdminPage() {
         {activeTab === "marketing" && (
           <div className="glass rounded-2xl border border-[rgba(255,255,255,0.06)] p-6 sm:p-8">
             <MarketingTab onSubTabChange={setMarketingSubTab} />
-            <OneSheetCollapsible />
           </div>
         )}
+
 
         {activeTab === "settings" && <SettingsPanel leads={activeLeads} />}
 

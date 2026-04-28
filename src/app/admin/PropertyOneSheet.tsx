@@ -285,6 +285,103 @@ function buildOneSheetHTML(
       gap: 0 12px;
     }
 
+    /* ── Image strip (2nd look, alternate crop) ── */
+    .image-strip {
+      position: relative;
+      height: 88px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .image-strip img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 80%;
+      display: block;
+    }
+    .image-strip-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(5,10,18,0.65) 0%, rgba(5,10,18,0.1) 60%);
+    }
+    .image-strip-caption {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 7.5pt;
+      font-weight: 800;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: .8px;
+      text-transform: uppercase;
+    }
+    .image-strip-caption span {
+      color: #4ade80;
+    }
+
+    /* ── Trust block ── */
+    .trust-block {
+      background: linear-gradient(135deg, #0a1628 0%, #060e1d 100%);
+      border: 1px solid rgba(74,222,128,0.15);
+      border-radius: 10px;
+      padding: 12px 14px;
+      flex-shrink: 0;
+    }
+    .trust-label {
+      font-size: 6pt;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #4ade80;
+      margin-bottom: 9px;
+    }
+    .trust-pillars {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 9px;
+    }
+    .trust-pillar {
+      text-align: center;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 8px 6px;
+    }
+    .trust-pillar-icon {
+      font-size: 14px;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .trust-pillar-title {
+      font-size: 8pt;
+      font-weight: 900;
+      color: #f1f5f9;
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+    .trust-pillar-sub {
+      font-size: 6.5pt;
+      color: #475569;
+      line-height: 1.3;
+    }
+    .trust-tagline {
+      font-size: 8pt;
+      color: #475569;
+      font-style: italic;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 8px;
+    }
+    .trust-tagline strong {
+      color: #4ade80;
+      font-style: normal;
+    }
+
+    /* ── Spacer pushes filler to the bottom ── */
+    .left-spacer { flex: 1; min-height: 0; }
+
     /* ── CTA box ── */
     .cta-box {
       background: linear-gradient(135deg, #0d1f3a 0%, #071222 100%);
@@ -419,6 +516,43 @@ function buildOneSheetHTML(
                </div>`
             : ""
         }
+
+        <!-- Spacer: pushes image strip + trust block to the bottom -->
+        <div class="left-spacer"></div>
+
+        <!-- Image strip: same photo, alternate crop (bottom of building) -->
+        ${
+          imageUrl
+            ? `<div class="image-strip">
+                 <img src="${imageUrl}" alt="${property.imageAlt ?? property.name} — detail view" />
+                 <div class="image-strip-overlay"></div>
+                 <div class="image-strip-caption">Property Detail · <span>${property.city}</span></div>
+               </div>`
+            : ""
+        }
+
+        <!-- Vision LLC Brand Trust Block -->
+        <div class="trust-block">
+          <div class="trust-label">Why Vision LLC</div>
+          <div class="trust-pillars">
+            <div class="trust-pillar">
+              <span class="trust-pillar-icon">🏆</span>
+              <div class="trust-pillar-title">20+ Years</div>
+              <div class="trust-pillar-sub">Serving Bristol's commercial market</div>
+            </div>
+            <div class="trust-pillar">
+              <span class="trust-pillar-icon">🤝</span>
+              <div class="trust-pillar-title">Personal Service</div>
+              <div class="trust-pillar-sub">Every prospect gets a personal walk-through</div>
+            </div>
+            <div class="trust-pillar">
+              <span class="trust-pillar-icon">📍</span>
+              <div class="trust-pillar-title">Downtown's #1</div>
+              <div class="trust-pillar-sub">Largest commercial portfolio in Bristol, TN/VA</div>
+            </div>
+          </div>
+          <div class="trust-tagline"><strong>Vision LLC</strong> — where every deal is personal.</div>
+        </div>
 
       </div>
 

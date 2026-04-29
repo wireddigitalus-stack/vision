@@ -115,14 +115,33 @@ export default function PropertyImageManager() {
 
   async function removeImage(propertyId: string, url: string) {
     setDeleting(url);
+    // Optimistic UI update
     const existing = propImages[propertyId];
-    if (!existing) { setDeleting(null); return; }
-    const next = existing.all_urls.filter(u => u !== url);
-    const newHero = existing.hero_url === url ? (next[0] || null) : existing.hero_url;
-    const updated = { ...existing, all_urls: next, hero_url: newHero, updated_at: new Date().toISOString() };
-    setPropImages(prev => ({ ...prev, [propertyId]: updated }));
-    await patchRecord(propertyId, newHero, next);
-    markSaved(propertyId);
+    if (existing) {
+      const next = existing.all_urls.filter((u) => u !== url);
+      const newHero = existing.hero_url === url ? (next[0] || null) : existing.hero_url;
+      setPropImages((prev) => ({
+        ...prev,
+        [propertyId]: { ...existing, all_urls: next, hero_url: newHero, updated_at: new Date().toISOString() },
+      }));
+    }
+
+    const res = await fetch("/api/property-images", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ propertyId, url }),
+    });
+
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setError(d.error || "Delete failed — please try again.");
+      // Roll back optimistic state
+      await fetchAll();
+    } else {
+      markSaved(propertyId);
+      // Re-fetch to ensure UI matches server truth
+      await fetchAll();
+    }
     setDeleting(null);
   }
 

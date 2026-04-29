@@ -121,3 +121,63 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json({ success: true });
 }
+
+/**
+ * DELETE — remove a single image file from Supabase Storage AND update the DB.
+ * Body: { propertyId: string, url: string }
+ */
+export async function DELETE(req: NextRequest) {
+  const { propertyId, url } = await req.json();
+
+  if (!propertyId || !url)
+    return NextResponse.json({ error: "propertyId and url required" }, { status: 400 });
+
+  // ── 1. Extract the storage filename from the public URL ─────────────────
+  // URL format: <SUPABASE_URL>/storage/v1/object/public/property-images/<filename>
+  const filename = url.split(`/storage/v1/object/public/${BUCKET}/`)[1];
+
+  if (filename) {
+    const deleteRes = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${encodeURIComponent(filename)}`,
+      {
+        method: "DELETE",
+        headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
+      }
+    );
+    if (!deleteRes.ok) {
+      const err = await deleteRes.text();
+      console.error("Storage delete error:", err);
+      // Don't hard-fail — still update the DB record so the UI stays consistent
+    }
+  }
+
+  // ── 2. Fetch the current DB record ──────────────────────────────────────
+  const existingRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/property_image_overrides?property_id=eq.${encodeURIComponent(propertyId)}`,
+    { headers: H }
+  );
+  const existing = await existingRes.json();
+  const row = Array.isArray(existing) ? existing[0] : null;
+
+  if (!row) return NextResponse.json({ success: true }); // nothing to update
+
+  // ── 3. Remove the URL from all_urls, promote a new hero if needed ───────
+  const prevAll: string[] = Array.isArray(row.all_urls) ? row.all_urls : [];
+  const newAll = prevAll.filter((u: string) => u !== url);
+  const currentHero: string | null = row.hero_url || row.image_url || null;
+  const newHero = currentHero === url ? (newAll[0] ?? null) : currentHero;
+
+  await fetch(`${SUPABASE_URL}/rest/v1/property_image_overrides`, {
+    method: "POST",
+    headers: { ...H, Prefer: "resolution=merge-duplicates" },
+    body: JSON.stringify({
+      property_id: propertyId,
+      hero_url:    newHero,
+      image_url:   newHero, // legacy compat
+      all_urls:    newAll,
+      updated_at:  new Date().toISOString(),
+    }),
+  });
+
+  return NextResponse.json({ success: true, remaining: newAll.length });
+}

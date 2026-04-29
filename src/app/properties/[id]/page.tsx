@@ -9,6 +9,7 @@ import Navigation from "@/components/Navigation";
 import LeaseBotTrigger from "@/components/LeaseBotTrigger";
 import CustomSearchCTA from "@/components/CustomSearchCTA";
 import PropertyGallery from "@/components/PropertyGallery";
+import { fetchImageOverrides, resolveHeroImage, resolveAllImages } from "@/lib/property-image-overrides";
 
 
 type Props = { params: Promise<{ id: string }> };
@@ -81,13 +82,15 @@ export default async function PropertyDetailPage({ params }: Props) {
   const property = PROPERTIES.find((p) => p.id === id) || await getDynamicProperty(id);
   if (!property) notFound();
 
-
-  const images: string[] = (property as any).images?.length
-    ? (property as any).images
-    : (property as any).image
-    ? [(property as any).image]
-    : [];
-  const heroImage: string = (property as any).image || images[0] || "";
+  // ── Resolve images: override table wins over static data ─────────────────
+  const overrides = await fetchImageOverrides();
+  const images: string[] = resolveAllImages(
+    property.id,
+    (property as any).images,
+    (property as any).image,
+    overrides
+  );
+  const heroImage: string = resolveHeroImage(property.id, (property as any).image, overrides) || images[0] || "";
 
   const badgeColors: Record<string, string> = {
     green: "bg-[rgba(74,222,128,0.12)] text-[#4ADE80] border-[rgba(74,222,128,0.3)]",

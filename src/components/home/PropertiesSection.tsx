@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Building2, Users, Warehouse, Briefcase, ArrowRight, MapPin } from "lucide-react";
 import { PROPERTIES } from "@/lib/data";
 import LeaseBotTrigger from "@/components/LeaseBotTrigger";
+import { fetchImageOverrides, resolveHeroImage } from "@/lib/property-image-overrides";
 
 
 const typeIcons: Record<string, React.ReactNode> = {
@@ -23,7 +24,8 @@ const badgeColors: Record<string, string> = {
   gray: "bg-[rgba(156,163,175,0.12)] text-[#9CA3AF] border-[rgba(156,163,175,0.3)]",
 };
 
-export default function PropertiesSection() {
+export default async function PropertiesSection() {
+  const overrides = await fetchImageOverrides();
   return (
     <section id="properties" className="py-20 lg:py-28 px-4 sm:px-6 lg:px-8 bg-[#0D1117]/50">
       <div className="max-w-7xl mx-auto">
@@ -59,19 +61,22 @@ export default function PropertiesSection() {
             >
               {/* Property Image */}
               <div className="relative h-56 bg-gradient-to-br from-[#111827] to-[#0D1117] overflow-hidden">
-                {(property as any).image ? (
-                  <Image
-                    src={(property as any).image}
-                    alt={property.imageAlt || property.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Building2 size={48} className="text-[rgba(74,222,128,0.1)]" />
-                  </div>
-                )}
+                {(() => {
+                  const displayImage = resolveHeroImage(property.id, (property as any).image, overrides);
+                  return displayImage ? (
+                    <Image
+                      src={displayImage}
+                      alt={property.imageAlt || property.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Building2 size={48} className="text-[rgba(74,222,128,0.1)]" />
+                    </div>
+                  );
+                })()}
 
                 {/* Overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0D1117]/80 via-transparent to-transparent" />

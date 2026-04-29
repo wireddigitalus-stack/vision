@@ -124,7 +124,7 @@ function TenantForm({
     if (!form.name?.trim()) { setError("Tenant name is required."); return; }
     setSaving(true);
     setError("");
-    try { await onSave(form); } catch { setError("Failed to save. Try again."); }
+    try { await onSave(form); } catch (e: unknown) { setError(e instanceof Error ? e.message : "Failed to save. Try again."); }
     finally { setSaving(false); }
   };
 
@@ -669,7 +669,8 @@ export default function TenantsTab({ currentUserName }: { currentUserName?: stri
         status: form.status, notes: form.notes,
       }),
     });
-    if (!res.ok) throw new Error("Save failed");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     setEditingTenant(null);
     await fetchTenants();
   };

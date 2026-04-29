@@ -46,52 +46,34 @@ DESCRIPTION: ${property.description ?? ""}
 FEATURES: ${(property.features ?? []).join(", ") || "N/A"}
 TONE: ${toneGuide[tone] ?? toneGuide.professional}${contextNote}${goalNote}
 
-Generate ALL sections below. Use EXACTLY these section headers on their own line, nothing else before or after:
+Generate ALL sections below. IMPORTANT: Use EXACTLY these section headers on their own line. Write the content on the very next line — no blank lines between header and content. Do NOT truncate or cut off any section.
 
-FACEBOOK:
-[2-3 sentences. Warm, informative. Mention Bristol TN/VA. End with CTA to call 423-573-1022 or teamvisionllc.com. Max 2 emojis.]
+POST:
+Write a single universal social media post (3-5 sentences). This will be used across Facebook, Instagram, and LinkedIn. Include a strong hook first sentence, 2-3 key property details, and end with a CTA including phone 423-573-1022 or teamvisionllc.com. Max 2 emojis. Do not include hashtags here.
 
-INSTAGRAM:
-[1-2 punchy sentences. Strong hook. NO hashtags here. Max 150 chars.]
-
-INSTAGRAM_ALT_1:
-[Alternative IG caption — different angle, same property. Max 150 chars. No hashtags.]
-
-INSTAGRAM_ALT_2:
-[Second alternative IG caption — playful or bold approach. Max 150 chars. No hashtags.]
-
-LINKEDIN:
-[Professional B2B. 2-3 sentences on investment/opportunity angle. Mention Vision LLC 20+ years. Include CTA.]
+POST_ALT:
+An alternative version of the post with a different angle or hook. Same length and format rules as POST.
 
 STORY:
-[Max 10 words. Ultra-punchy overlay text for Stories. Example: "Prime downtown office — available now 🏢"]
-
-TIKTOK:
-[Conversational, energetic script. Max 150 chars. Start with a hook question or bold statement. TikTok-native voice.]
+Max 10 words. Ultra-punchy overlay text for Instagram/Facebook Stories. Example: "Prime downtown office — available now 🏢"
 
 EMAIL_SUBJECT:
-[One punchy email subject line. Max 60 chars. No emojis. High open-rate style.]
+One punchy email subject line. Max 60 chars. No emojis. High open-rate style.
 
 GOOGLE_POST:
-[Google Business profile post. 1-2 sentences. Local focus. Include phone 423-573-1022.]
+Google Business profile post. 1-2 sentences. Local focus. Include phone 423-573-1022. Max 1500 chars.
 
 HASHTAGS_LOCATION:
-[Exactly 8 hashtags for Bristol TN/VA location and Tri-Cities area. Space separated.]
+Exactly 8 hashtags for Bristol TN/VA location and Tri-Cities area. All on one line, space separated. No line breaks.
 
 HASHTAGS_INDUSTRY:
-[Exactly 8 hashtags for commercial real estate industry. Space separated. Must include #CommercialRealEstate #CRE #VisionLLC.]
+Exactly 8 hashtags for commercial real estate industry. All on one line, space separated. Must include #CommercialRealEstate #CRE #VisionLLC. No line breaks.
 
 HASHTAGS_PROPERTY:
-[Exactly 8 hashtags specific to this property type, features, and local market. Space separated.]
+Exactly 8 hashtags specific to this property type, features, and local market. All on one line, space separated. No line breaks.
 
-SCHEDULE_FACEBOOK:
-[One sentence: best day + time to post on Facebook for CRE in Eastern US, with brief reason.]
-
-SCHEDULE_INSTAGRAM:
-[One sentence: best day + time for Instagram.]
-
-SCHEDULE_LINKEDIN:
-[One sentence: best day + time for LinkedIn.]`;
+BEST_TIME:
+One sentence: best day + time to post for CRE content in Eastern US, with brief reason. Apply to all platforms.`;
 
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -120,16 +102,13 @@ SCHEDULE_LINKEDIN:
     }
 
     const LABELS = [
-      "FACEBOOK", "INSTAGRAM", "INSTAGRAM_ALT_1", "INSTAGRAM_ALT_2",
-      "LINKEDIN", "STORY", "TIKTOK", "EMAIL_SUBJECT", "GOOGLE_POST",
-      "HASHTAGS_LOCATION", "HASHTAGS_INDUSTRY", "HASHTAGS_PROPERTY",
-      "SCHEDULE_FACEBOOK", "SCHEDULE_INSTAGRAM", "SCHEDULE_LINKEDIN",
+      "POST", "POST_ALT", "STORY", "EMAIL_SUBJECT", "GOOGLE_POST",
+      "HASHTAGS_LOCATION", "HASHTAGS_INDUSTRY", "HASHTAGS_PROPERTY", "BEST_TIME",
     ];
 
     const extract = (label: string) => {
-      const escapedLabel = label.replace(/_/g, "_");
       const pattern = new RegExp(
-        `${escapedLabel}:\\s*([\\s\\S]*?)(?=${LABELS.filter(l => l !== label).join("|")}:|$)`,
+        `${label}:\\s*([\\s\\S]*?)(?=${LABELS.filter(l => l !== label).map(l => `${l}:`).join("|")}|$)`,
         "i"
       );
       return text.match(pattern)?.[1]?.trim() ?? "";
@@ -139,31 +118,24 @@ SCHEDULE_LINKEDIN:
     const hashtagsIndustry = extract("HASHTAGS_INDUSTRY");
     const hashtagsProperty = extract("HASHTAGS_PROPERTY");
 
-    // Full combined hashtag bank
     const allHashtags = [hashtagsLocation, hashtagsIndustry, hashtagsProperty]
       .join(" ")
       .split(/\s+/)
       .filter(h => h.startsWith("#"))
-      .filter((h, i, arr) => arr.indexOf(h) === i) // dedupe
+      .filter((h, i, arr) => arr.indexOf(h) === i)
       .join(" ");
 
     return NextResponse.json({
-      facebook:         extract("FACEBOOK"),
-      instagram:        extract("INSTAGRAM"),
-      instagramAlt1:    extract("INSTAGRAM_ALT_1"),
-      instagramAlt2:    extract("INSTAGRAM_ALT_2"),
-      linkedin:         extract("LINKEDIN"),
+      post:             extract("POST"),
+      postAlt:          extract("POST_ALT"),
       storyCaption:     extract("STORY"),
-      tiktok:           extract("TIKTOK"),
       emailSubject:     extract("EMAIL_SUBJECT"),
       googlePost:       extract("GOOGLE_POST"),
       hashtagsLocation,
       hashtagsIndustry,
       hashtagsProperty,
       hashtags:         allHashtags,
-      scheduleFacebook: extract("SCHEDULE_FACEBOOK"),
-      scheduleInstagram:extract("SCHEDULE_INSTAGRAM"),
-      scheduleLinkedIn: extract("SCHEDULE_LINKEDIN"),
+      bestTime:         extract("BEST_TIME"),
     });
   } catch (err) {
     console.error("Social copy generation error:", err);

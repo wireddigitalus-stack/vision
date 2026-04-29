@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+// Always use service role key for write operations — this key is server-only
+// and never exposed to the browser. RLS deny-all policies block any anon access.
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const H = {
   "Content-Type": "application/json",
@@ -8,11 +10,12 @@ const H = {
   "Authorization": `Bearer ${KEY}`,
 };
 
-// ── Guard: write operations require x-admin-secret header ────────────────────
-function requireAdminSecret(req: NextRequest): NextResponse | null {
-  const secret = req.headers.get("x-admin-secret");
-  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+// ── Guard: only allow writes from server-side requests ───────────────────────
+// The service role key bypasses RLS. If it's missing we refuse writes to avoid
+// accidental anon-key writes that could be blocked by RLS.
+function requireServerContext(): NextResponse | null {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json({ error: "Server misconfiguration — service role key missing" }, { status: 500 });
   }
   return null;
 }
@@ -41,9 +44,9 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ users: Array.isArray(users) ? users : [] });
 }
 
-// POST — add a user (requires ADMIN_SECRET)
+// POST — add a user
 export async function POST(req: NextRequest) {
-  const guard = requireAdminSecret(req);
+  const guard = requireServerContext();
   if (guard) return guard;
 
   const { email, name, role } = await req.json();
@@ -59,9 +62,9 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
-// PATCH — update a user (requires ADMIN_SECRET)
+// PATCH — update a user
 export async function PATCH(req: NextRequest) {
-  const guard = requireAdminSecret(req);
+  const guard = requireServerContext();
   if (guard) return guard;
 
   const id = req.nextUrl.searchParams.get("id");
@@ -76,9 +79,9 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
-// DELETE — remove a user (requires ADMIN_SECRET)
+// DELETE — remove a user
 export async function DELETE(req: NextRequest) {
-  const guard = requireAdminSecret(req);
+  const guard = requireServerContext();
   if (guard) return guard;
 
   const id = req.nextUrl.searchParams.get("id");

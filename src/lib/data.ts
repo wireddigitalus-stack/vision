@@ -365,18 +365,27 @@ export const PROPERTIES = [
   {
     id: "628-state-street",
     name: "628 State Street",
-    type: "Retail / Office",
+    type: "Restaurant / Retail / Event",
     city: "Bristol, TN",
     address: "628 State Street, Bristol, TN",
-    sqft: "TBD",
-    status: "Available",
+    sqft: "8,500",
+    status: "For Lease",
     badge: "State Street",
     badgeColor: "green",
     image: "/property-images/commercial-centerpoint-mall.jpg",
     description:
-      "628 State Street places your business directly on Bristol's most iconic commercial corridor — State Street, the spine of Downtown Bristol running along the Tennessee-Virginia state line. This retail and office property offers prime street-level visibility, high daily foot traffic, and proximity to restaurants, entertainment, and the heart of the city's urban revival. An exceptional opportunity for retail, hospitality, or professional services tenants.",
-    features: ["State Street Frontage", "High Foot Traffic", "Downtown Bristol", "Street-Level Visibility", "Historic District"],
-    imageAlt: "628 State Street retail and office space Downtown Bristol TN",
+      "628 State Street is a rare 8,500 sqft opportunity in the heart of Downtown Bristol, Tennessee — The Birthplace of Country Music. Featuring a dramatic open floor plan, a full bar, commercial kitchen, mezzanine level, and dedicated office space, this property is turnkey for a restaurant, entertainment venue, flagship retail concept, or a fully custom build-out. Positioned on Bristol's most iconic commercial corridor at the Tennessee-Virginia state line, 628 State Street delivers unmatched foot traffic, cultural cachet, and the energy of a downtown district on the rise.",
+    features: [
+      "8,500 sqft Open Floor Plan",
+      "Full Bar",
+      "Commercial Kitchen",
+      "Mezzanine Level",
+      "Office Space",
+      "State Street Frontage",
+      "Restaurant / Venue Ready",
+      "Custom Build-Out Available",
+    ],
+    imageAlt: "628 State Street restaurant and event space Downtown Bristol TN — Birthplace of Country Music",
   },
 ];
 

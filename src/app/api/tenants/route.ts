@@ -80,7 +80,6 @@ export async function PATCH(req: NextRequest) {
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const patch: Record<string, unknown> = {};
   const map: Record<string, string> = {
     name: "name", contactName: "contact_name", email: "email", phone: "phone",
     building: "building", unit: "unit", rep: "rep",
@@ -91,6 +90,8 @@ export async function PATCH(req: NextRequest) {
     escalationPct: "escalation_pct", escalationDate: "escalation_date",
     status: "status", notes: "notes",
   };
+
+  const patch: Record<string, unknown> = {};
   Object.entries(map).forEach(([js, db]) => {
     if (body[js] !== undefined) patch[db] = body[js];
   });
@@ -102,44 +103,48 @@ export async function PATCH(req: NextRequest) {
   const authKey = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_SERVICE_KEY;
   const url = `${SUPABASE_URL}/rest/v1/tenants?id=eq.${encodeURIComponent(id)}`;
 
-  console.log("[tenants PATCH] id:", id);
-  console.log("[tenants PATCH] patch keys:", Object.keys(patch));
-  console.log("[tenants PATCH] url:", url);
-  console.log("[tenants PATCH] using service key:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+  // Attempt PATCH — if Supabase returns 400 "column not found", strip that column and retry
+  async function attemptPatch(fields: Record<string, unknown>): Promise<NextResponse> {
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "apikey": authKey,
+        "Authorization": `Bearer ${authKey}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal",
+      },
+      body: JSON.stringify(fields),
+    });
 
-  const res = await fetch(url, {
-    method: "PATCH",
-    headers: {
-      "apikey": authKey,
-      "Authorization": `Bearer ${authKey}`,
-      "Content-Type": "application/json",
-      "Prefer": "return=minimal",
-    },
-    body: JSON.stringify(patch),
-  });
+    const responseText = await res.text();
 
-  const responseText = await res.text();
-  console.log("[tenants PATCH] Supabase status:", res.status);
-  console.log("[tenants PATCH] Supabase body:", responseText || "(empty)");
+    if (res.status === 204 || res.status === 200) {
+      return NextResponse.json({ success: true });
+    }
 
-  if (res.status === 204 || res.status === 200) {
-    return NextResponse.json({ success: true });
+    // If Supabase complains about a missing column, strip it and retry once
+    if (res.status === 400 && responseText.includes("column")) {
+      const match = responseText.match(/Could not find the '(\w+)' column/);
+      if (match) {
+        const badCol = match[1];
+        console.warn(`[tenants PATCH] Column '${badCol}' missing — skipping and retrying. Run: ALTER TABLE tenants ADD COLUMN IF NOT EXISTS ${badCol} ...`);
+        const reduced = { ...fields };
+        delete reduced[badCol];
+        if (Object.keys(reduced).length === 0) {
+          return NextResponse.json({ error: `Column '${badCol}' missing in Supabase. Run migration SQL.` }, { status: 500 });
+        }
+        return attemptPatch(reduced);
+      }
+    }
+
+    let sbError = responseText;
+    try { sbError = JSON.parse(responseText)?.message || responseText; } catch { /* ignore */ }
+    console.error("[tenants PATCH] error:", res.status, sbError);
+    return NextResponse.json({ error: `Save failed (${res.status}): ${sbError}` }, { status: 500 });
   }
 
-  // Parse error for client
-  let sbError = responseText;
-  try { sbError = JSON.parse(responseText)?.message || responseText; } catch { /* ignore */ }
-
-  return NextResponse.json(
-    { error: `Supabase error ${res.status}: ${sbError}` },
-    { status: 500 }
-  );
+  return attemptPatch(patch);
 }
-
-
-
-
-
 // DELETE /api/tenants?id=xxx
 export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");

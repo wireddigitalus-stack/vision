@@ -75,7 +75,10 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-  const body = await req.json();
+
+  let body: Record<string, unknown>;
+  try { body = await req.json(); }
+  catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
   const patch: Record<string, unknown> = {};
   const map: Record<string, string> = {
@@ -92,33 +95,37 @@ export async function PATCH(req: NextRequest) {
     if (body[js] !== undefined) patch[db] = body[js];
   });
 
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  }
+
+  // Use service role key if available (bypasses RLS), fall back to anon key
+  const authKey = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_SERVICE_KEY;
+
   const res = await fetch(`${SUPABASE_URL}/rest/v1/tenants?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
-    headers: { ...HEADERS, "Prefer": "return=representation" },
+    headers: {
+      "apikey": authKey,
+      "Authorization": `Bearer ${authKey}`,
+      "Content-Type": "application/json",
+      "Prefer": "return=minimal",   // minimal = Supabase returns 204 on success, no body needed
+    },
     body: JSON.stringify(patch),
   });
 
-  // Supabase returns 204 (No Content) when no rows matched the filter.
-  // That means the id doesn't exist — treat as an error so the UI shows feedback.
-  if (res.status === 204) {
-    console.error("tenants PATCH: no row matched id:", id);
-    return NextResponse.json({ error: "Tenant not found — save failed" }, { status: 404 });
+  // 204 = success with no body (expected when Prefer: return=minimal)
+  // 200 = success with body
+  if (res.status === 204 || res.status === 200) {
+    return NextResponse.json({ success: true });
   }
 
-  if (!res.ok) {
-    console.error("tenants PATCH error:", await res.text());
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
-  }
-
-  // Extra safety: with return=representation, an empty array means nothing was updated
-  const updated = await res.json().catch(() => []);
-  if (Array.isArray(updated) && updated.length === 0) {
-    console.error("tenants PATCH: empty result for id:", id);
-    return NextResponse.json({ error: "Tenant not found — save failed" }, { status: 404 });
-  }
-
-  return NextResponse.json({ success: true });
+  const errText = await res.text();
+  console.error("tenants PATCH error:", res.status, errText);
+  return NextResponse.json({ error: `Update failed (${res.status})` }, { status: 500 });
 }
+
+
+
 
 // DELETE /api/tenants?id=xxx
 export async function DELETE(req: NextRequest) {

@@ -82,7 +82,7 @@ One sentence: best day + time to post for CRE content in Eastern US, with brief 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.8, maxOutputTokens: 2000 },
+          generationConfig: { temperature: 0.8, maxOutputTokens: 8192 },
         }),
       }
     );

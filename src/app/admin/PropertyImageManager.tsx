@@ -1,70 +1,142 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { Upload, ImageIcon, CheckCircle2, Loader2, X, RefreshCw } from "lucide-react";
+import {
+  Upload, ImageIcon, CheckCircle2, Loader2, X, RefreshCw,
+  Star, Trash2, Plus, ChevronDown, ChevronUp,
+} from "lucide-react";
 import { PROPERTIES } from "@/lib/data";
 
-interface Override { property_id: string; image_url: string; updated_at: string }
+interface ImageRecord {
+  url: string;
+  isHero: boolean;
+  uploadedAt: string;
+}
+
+interface PropertyImages {
+  property_id: string;
+  hero_url: string | null;
+  all_urls: string[];
+  updated_at: string;
+}
 
 export default function PropertyImageManager() {
-  const [overrides, setOverrides]   = useState<Override[]>([]);
-  const [uploading, setUploading]   = useState<string | null>(null);
-  const [success, setSuccess]       = useState<string | null>(null);
-  const [error, setError]           = useState<string | null>(null);
-  const [preview, setPreview]       = useState<{ id: string; url: string } | null>(null);
+  const [propImages, setPropImages] = useState<Record<string, PropertyImages>>({});
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const fileRefs = useRef<Record<string, HTMLInputElement>>({});
 
-  useEffect(() => { fetchOverrides(); }, []);
+  useEffect(() => { fetchAll(); }, []);
 
-  async function fetchOverrides() {
+  async function fetchAll() {
     const res = await fetch("/api/property-images");
-    const d   = await res.json();
-    if (Array.isArray(d.overrides)) setOverrides(d.overrides);
+    const d = await res.json();
+    // Build a map: property_id → { hero_url, all_urls }
+    const map: Record<string, PropertyImages> = {};
+    if (Array.isArray(d.overrides)) {
+      for (const row of d.overrides) {
+        map[row.property_id] = {
+          property_id: row.property_id,
+          hero_url: row.hero_url || row.image_url || null,
+          all_urls: Array.isArray(row.all_urls) ? row.all_urls : (row.image_url ? [row.image_url] : []),
+          updated_at: row.updated_at,
+        };
+      }
+    }
+    setPropImages(map);
   }
 
-  function getImage(prop: typeof PROPERTIES[0]) {
-    const ov = overrides.find(o => o.property_id === prop.id);
-    return ov?.image_url || prop.image;
-  }
+  const getHero = useCallback((propId: string, fallback?: string) => {
+    return propImages[propId]?.hero_url || fallback || null;
+  }, [propImages]);
 
-  async function handleFileChange(propertyId: string, file: File) {
-    if (!file) return;
-    // Local preview
-    const localUrl = URL.createObjectURL(file);
-    setPreview({ id: propertyId, url: localUrl });
+  const getAllUrls = useCallback((propId: string, fallbackImages?: string[]) => {
+    const record = propImages[propId];
+    if (record?.all_urls?.length) return record.all_urls;
+    return fallbackImages || [];
+  }, [propImages]);
+
+  async function handleUpload(propertyId: string, files: FileList) {
+    if (!files.length) return;
     setUploading(propertyId);
     setError(null);
+    const newUrls: string[] = [];
 
-    try {
+    for (const file of Array.from(files)) {
       const form = new FormData();
       form.append("file", file);
       form.append("propertyId", propertyId);
       const res = await fetch("/api/property-images", { method: "POST", body: form });
-      const d   = await res.json();
-      if (!res.ok) throw new Error(d.error || "Upload failed");
-      setOverrides(prev => {
-        const next = prev.filter(o => o.property_id !== propertyId);
-        return [...next, { property_id: propertyId, image_url: d.url, updated_at: new Date().toISOString() }];
-      });
+      const d = await res.json();
+      if (!res.ok) { setError(d.error || "Upload failed"); continue; }
+      if (d.url) newUrls.push(d.url);
+    }
+
+    if (newUrls.length) {
+      // Merge with existing
+      const existing = propImages[propertyId] || { property_id: propertyId, hero_url: null, all_urls: [], updated_at: "" };
+      const merged = [...existing.all_urls, ...newUrls];
+      const hero = existing.hero_url || newUrls[0];
+      const updated: PropertyImages = {
+        ...existing,
+        all_urls: merged,
+        hero_url: hero,
+        updated_at: new Date().toISOString(),
+      };
+      setPropImages(prev => ({ ...prev, [propertyId]: updated }));
+      // Persist hero + all_urls to Supabase
+      await patchRecord(propertyId, hero, merged);
       setSuccess(propertyId);
       setTimeout(() => setSuccess(null), 3000);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setUploading(null);
-      setPreview(null);
-      URL.revokeObjectURL(localUrl);
+      setExpanded(propertyId);
     }
+    setUploading(null);
+  }
+
+  async function setHero(propertyId: string, url: string) {
+    const existing = propImages[propertyId];
+    if (!existing) return;
+    const updated = { ...existing, hero_url: url, updated_at: new Date().toISOString() };
+    setPropImages(prev => ({ ...prev, [propertyId]: updated }));
+    await patchRecord(propertyId, url, existing.all_urls);
+    setSuccess(propertyId + "-hero");
+    setTimeout(() => setSuccess(null), 2000);
+  }
+
+  async function removeImage(propertyId: string, url: string) {
+    setDeleting(url);
+    const existing = propImages[propertyId];
+    if (!existing) { setDeleting(null); return; }
+    const next = existing.all_urls.filter(u => u !== url);
+    const newHero = existing.hero_url === url ? (next[0] || null) : existing.hero_url;
+    const updated = { ...existing, all_urls: next, hero_url: newHero, updated_at: new Date().toISOString() };
+    setPropImages(prev => ({ ...prev, [propertyId]: updated }));
+    await patchRecord(propertyId, newHero, next);
+    setDeleting(null);
+  }
+
+  async function patchRecord(propertyId: string, heroUrl: string | null, allUrls: string[]) {
+    await fetch("/api/property-images", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ propertyId, heroUrl, allUrls }),
+    });
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
         <div>
           <p className="text-xs font-black text-[#60A5FA] uppercase tracking-widest">Property Gallery Manager</p>
-          <p className="text-[11px] text-gray-600 mt-0.5">Upload new photos for any property. Changes go live on the site immediately.</p>
+          <p className="text-[11px] text-gray-600 mt-0.5">
+            Upload multiple photos per property. Star one as the hero image. Changes go live immediately.
+          </p>
         </div>
-        <button onClick={fetchOverrides} className="p-2 rounded-lg border border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-white transition-colors">
+        <button onClick={fetchAll} className="p-2 rounded-lg border border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-white transition-colors">
           <RefreshCw size={13} />
         </button>
       </div>
@@ -76,86 +148,159 @@ export default function PropertyImageManager() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-3">
         {PROPERTIES.map(prop => {
           const isUploading = uploading === prop.id;
-          const isSuccess   = success   === prop.id;
-          const previewUrl  = preview?.id === prop.id ? preview.url : null;
-          const imgSrc      = previewUrl || getImage(prop);
-          const hasOverride = overrides.some(o => o.property_id === prop.id);
+          const isSuccessCard = success === prop.id;
+          const isOpen = expanded === prop.id;
+          const allUrls = getAllUrls(prop.id, (prop as any).images || ((prop as any).image ? [(prop as any).image] : []));
+          const hero = getHero(prop.id, (prop as any).image);
+          const hasCustom = Boolean(propImages[prop.id]?.all_urls?.length);
+          const imgCount = allUrls.length;
 
           return (
-            <div key={prop.id} className="rounded-2xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)] overflow-hidden group">
-              {/* Image */}
-              <div className="relative h-40 bg-[rgba(255,255,255,0.03)]">
-                {imgSrc ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={imgSrc}
-                    alt={prop.name}
-                    className={`w-full h-full object-cover transition-opacity duration-300 ${isUploading ? "opacity-50" : "opacity-100"}`}
+            <div
+              key={prop.id}
+              className="rounded-2xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)] overflow-hidden"
+            >
+              {/* ── Card Header ────────────────────────────────────── */}
+              <div className="flex items-center gap-3 px-4 py-3">
+                {/* Thumb */}
+                <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-[rgba(255,255,255,0.04)] flex-shrink-0">
+                  {hero ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={hero} alt={prop.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageIcon size={20} className="text-gray-700" />
+                    </div>
+                  )}
+                  {hasCustom && (
+                    <span className="absolute top-0.5 right-0.5 text-[7px] font-black px-1 py-0.5 rounded-full bg-[rgba(96,165,250,0.9)] text-black leading-none">
+                      {imgCount}
+                    </span>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-white truncate">{prop.name}</p>
+                  <p className="text-[10px] text-gray-600 mt-0.5">{prop.type} · {prop.city}</p>
+                  <p className="text-[10px] text-gray-700 mt-0.5">
+                    {imgCount > 0 ? `${imgCount} photo${imgCount !== 1 ? "s" : ""}` : "No photos uploaded"}
+                    {isSuccessCard && <span className="ml-2 text-[#4ADE80]">✓ Uploaded!</span>}
+                    {success === prop.id + "-hero" && <span className="ml-2 text-[#FACC15]">⭐ Hero set!</span>}
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Upload button */}
+                  <input
+                    ref={el => { if (el) fileRefs.current[prop.id] = el; }}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/heic"
+                    multiple
+                    className="hidden"
+                    onChange={e => { if (e.target.files?.length) { handleUpload(prop.id, e.target.files); e.target.value = ""; } }}
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon size={28} className="text-gray-700" />
-                  </div>
-                )}
+                  <button
+                    onClick={() => fileRefs.current[prop.id]?.click()}
+                    disabled={isUploading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[rgba(96,165,250,0.3)] text-[#60A5FA] text-[10px] font-bold hover:bg-[rgba(96,165,250,0.1)] transition-all disabled:opacity-40"
+                  >
+                    {isUploading ? <Loader2 size={10} className="animate-spin" /> : <Plus size={10} />}
+                    {isUploading ? "…" : "Add"}
+                  </button>
 
-                {/* Uploading overlay */}
-                {isUploading && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60">
-                    <Loader2 size={22} className="animate-spin text-[#60A5FA] mb-2" />
-                    <p className="text-xs text-gray-300 font-bold">Uploading…</p>
-                  </div>
-                )}
-
-                {/* Success overlay */}
-                {isSuccess && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60">
-                    <CheckCircle2 size={24} className="text-[#4ADE80] mb-1" />
-                    <p className="text-xs text-[#4ADE80] font-bold">Photo Updated!</p>
-                  </div>
-                )}
-
-                {/* Custom photo badge */}
-                {hasOverride && !isUploading && !isSuccess && (
-                  <span className="absolute top-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full bg-[rgba(96,165,250,0.9)] text-black">
-                    CUSTOM
-                  </span>
-                )}
+                  {/* Expand toggle */}
+                  {imgCount > 0 && (
+                    <button
+                      onClick={() => setExpanded(isOpen ? null : prop.id)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[rgba(255,255,255,0.08)] text-gray-500 text-[10px] hover:text-white transition-colors"
+                    >
+                      {isOpen ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Info + upload button */}
-              <div className="p-3">
-                <p className="text-xs font-bold text-white truncate mb-0.5">{prop.name}</p>
-                <p className="text-[10px] text-gray-600 mb-3">{prop.type} · {prop.city}</p>
+              {/* ── Expanded Gallery Grid ───────────────────────── */}
+              {isOpen && imgCount > 0 && (
+                <div className="px-4 pb-4">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                    {allUrls.map((url, i) => {
+                      const isHero = url === hero;
+                      const isDeleting = deleting === url;
+                      return (
+                        <div
+                          key={url + i}
+                          className={`relative group rounded-xl overflow-hidden border-2 transition-all ${
+                            isHero
+                              ? "border-[#FACC15] shadow-lg shadow-[rgba(250,204,21,0.2)]"
+                              : "border-transparent hover:border-[rgba(255,255,255,0.2)]"
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={url}
+                            alt={`${prop.name} ${i + 1}`}
+                            className={`w-full h-16 object-cover transition-opacity ${isDeleting ? "opacity-30" : "opacity-100"}`}
+                          />
 
-                <input
-                  ref={el => { if (el) fileRefs.current[prop.id] = el; }}
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/webp,image/heic"
-                  className="hidden"
-                  onChange={e => {
-                    const f = e.target.files?.[0];
-                    if (f) handleFileChange(prop.id, f);
-                    e.target.value = "";
-                  }}
-                />
+                          {/* Hero badge */}
+                          {isHero && (
+                            <div className="absolute top-1 left-1 text-[8px] bg-[#FACC15] text-black font-black px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                              <Star size={6} fill="currentColor" /> HERO
+                            </div>
+                          )}
 
-                <button
-                  onClick={() => fileRefs.current[prop.id]?.click()}
-                  disabled={isUploading}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-[rgba(96,165,250,0.3)] text-[#60A5FA] text-xs font-bold hover:bg-[rgba(96,165,250,0.1)] transition-all disabled:opacity-40"
-                >
-                  {isUploading ? <Loader2 size={11} className="animate-spin" /> : <Upload size={11} />}
-                  {isUploading ? "Uploading…" : hasOverride ? "Change Photo" : "Upload Photo"}
-                </button>
-              </div>
+                          {/* Hover overlay */}
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            {!isHero && (
+                              <button
+                                onClick={() => setHero(prop.id, url)}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-[rgba(250,204,21,0.9)] text-black hover:scale-110 transition-transform"
+                                title="Set as hero"
+                              >
+                                <Star size={11} fill="currentColor" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => removeImage(prop.id, url)}
+                              disabled={isDeleting}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-[rgba(239,68,68,0.9)] text-white hover:scale-110 transition-transform disabled:opacity-50"
+                              title="Remove"
+                            >
+                              {isDeleting ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={11} />}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Add more button inside grid */}
+                    <button
+                      onClick={() => fileRefs.current[prop.id]?.click()}
+                      disabled={isUploading}
+                      className="h-16 rounded-xl border-2 border-dashed border-[rgba(96,165,250,0.3)] text-[#60A5FA] hover:border-[rgba(96,165,250,0.6)] hover:bg-[rgba(96,165,250,0.05)] transition-all flex items-center justify-center disabled:opacity-40"
+                    >
+                      {isUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-gray-700 mt-2">
+                    ⭐ Star = hero image (used on listing cards & one-sheets). Hover a photo to manage it.
+                  </p>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
-      <p className="text-[10px] text-gray-700 mt-3">Supports JPG, PNG, WEBP, HEIC. Photos go live on the website immediately after upload.</p>
+
+      <p className="text-[10px] text-gray-700 mt-4">
+        Supports JPG, PNG, WEBP, HEIC. Multiple photos per property supported. Photos go live immediately after upload.
+      </p>
     </div>
   );
 }

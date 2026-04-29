@@ -3,11 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { MapPin, Phone, ArrowRight, Check, ArrowLeft, Building2 } from "lucide-react";
+import { MapPin, Phone, ArrowRight, Check, ArrowLeft } from "lucide-react";
 import { PROPERTIES, COMPANY } from "@/lib/data";
 import Navigation from "@/components/Navigation";
 import LeaseBotTrigger from "@/components/LeaseBotTrigger";
 import CustomSearchCTA from "@/components/CustomSearchCTA";
+import PropertyGallery from "@/components/PropertyGallery";
 
 
 type Props = { params: Promise<{ id: string }> };
@@ -81,9 +82,12 @@ export default async function PropertyDetailPage({ params }: Props) {
   if (!property) notFound();
 
 
-  const images = (property as any).images || ((property as any).image ? [(property as any).image] : []);
-  const mainImage = (property as any).image || images[0];
-  const otherImages = images.slice(1);
+  const images: string[] = (property as any).images?.length
+    ? (property as any).images
+    : (property as any).image
+    ? [(property as any).image]
+    : [];
+  const heroImage: string = (property as any).image || images[0] || "";
 
   const badgeColors: Record<string, string> = {
     green: "bg-[rgba(74,222,128,0.12)] text-[#4ADE80] border-[rgba(74,222,128,0.3)]",
@@ -99,7 +103,7 @@ export default async function PropertyDetailPage({ params }: Props) {
     name: property.name,
     description: property.description,
     url: `https://teamvisionllc.com/properties/${property.id}`,
-    image: (property as any).image ? [`https://teamvisionllc.com${(property as any).image}`] : [],
+    image: heroImage ? [`https://teamvisionllc.com${heroImage}`] : [],
     address: {
       "@type": "PostalAddress",
       streetAddress: (property as any).address || "Downtown Bristol",
@@ -177,42 +181,20 @@ export default async function PropertyDetailPage({ params }: Props) {
           </Link>
         </div>
 
-        {/* Hero Image Gallery */}
-        <section className="px-4 sm:px-6 lg:px-8 pb-12">
+        {/* ── Hero Gallery ─────────────────────────────────────────────── */}
+        <section className="px-4 sm:px-6 lg:px-8 pb-10">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 h-auto lg:h-[480px]">
-              {/* Main image */}
-              <div className="relative lg:col-span-2 h-72 lg:h-full rounded-2xl overflow-hidden bg-[#111827]">
-                {mainImage ? (
-                  <Image src={mainImage} alt={property.imageAlt || property.name} fill className="object-cover" priority />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Building2 size={64} className="text-[rgba(74,222,128,0.1)]" />
-                  </div>
-                )}
-                <div className="absolute top-4 left-4 flex gap-2">
-                  <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border ${badgeColors[property.badgeColor]}`}>
-                    {property.badge}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-sm text-xs font-semibold text-white">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] pulse-green" />
-                    {property.status}
-                  </span>
-                </div>
-              </div>
-              {/* Thumbnail strip */}
-              {otherImages.length > 0 && (
-                <div className="hidden lg:grid grid-rows-3 gap-3 h-full">
-                  {otherImages.slice(0, 3).map((img: string, i: number) => (
-                    <div key={i} className="relative rounded-xl overflow-hidden bg-[#111827]">
-                      <Image src={img} alt={`${property.name} photo ${i + 2}`} fill className="object-cover hover:scale-105 transition-transform duration-300" />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <PropertyGallery
+              images={images}
+              heroImage={heroImage}
+              propertyName={property.name}
+              badge={property.badge}
+              badgeColorClass={badgeColors[property.badgeColor] || badgeColors.green}
+              status={property.status}
+            />
           </div>
         </section>
+
 
         {/* Content */}
         <section className="px-4 sm:px-6 lg:px-8 pb-20">

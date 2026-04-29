@@ -186,18 +186,33 @@ const TIPS: Record<TabKey, Tip[]> = {
   "marketing-photos": [
     {
       emoji: "📸",
-      title: "Shoot in Natural Light",
-      body: "The best property photos are taken midday with all blinds open. Turn on every light before shooting to eliminate dark corners and flat shadows.",
+      title: "Upload Multiple Photos at Once",
+      body: "In the Property Gallery Manager, click the green 'Add' button on any property card. You can select multiple images at the same time — hold Shift or Cmd/Ctrl to pick several files. They all upload together and are added to that property's gallery instantly.",
+    },
+    {
+      emoji: "⭐",
+      title: "Setting the Hero Image",
+      body: "The hero image is the one shown on listing cards, the homepage banner, and one-sheet PDFs. To set it: expand a property card with the arrow button, hover over any photo in the grid, then click the yellow ★ star icon. A 'HERO' badge will appear on that photo.",
+    },
+    {
+      emoji: "🗂️",
+      title: "Managing & Removing Photos",
+      body: "Expand any property by clicking the arrow button on its card. Hover over a photo to reveal the action buttons: ★ to make it the hero, or the red trash icon to remove it. Removed photos are taken down immediately — no refresh needed.",
+    },
+    {
+      emoji: "🔢",
+      title: "Photo Count Badge",
+      body: "The small blue number badge on each property thumbnail shows how many photos are currently uploaded for that property. A badge means you have custom gallery photos live. No badge means only the default site image is in use.",
+    },
+    {
+      emoji: "🌐",
+      title: "Changes Go Live Instantly",
+      body: "All photos are stored in Supabase cloud storage — not on the server. The moment you upload or change the hero, it updates on the live website for all visitors. No redeploy needed.",
     },
     {
       emoji: "🏢",
-      title: "Must-Have Shots",
-      body: "For each property, capture: street-level exterior, lobby/entry, main interior spaces, amenities (break room, conference room), and any standout features like exposed brick or high ceilings.",
-    },
-    {
-      emoji: "📐",
-      title: "Frame from Corners",
-      body: "Shoot from room corners to show maximum depth and size. Keep the camera level at chest height — slightly tilted photos look amateurish and make spaces look smaller.",
+      title: "What Photos to Capture",
+      body: "For each property aim for: exterior street view, lobby or entry, main workspace, any standout features (exposed brick, high ceilings, kitchen, bar), and amenity spaces. 4–6 strong photos per property is the sweet spot for the gallery carousel.",
     },
   ],
   "marketing-banner": [

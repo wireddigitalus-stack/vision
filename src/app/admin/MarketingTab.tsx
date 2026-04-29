@@ -7,7 +7,7 @@ import BlogGenerator from "./BlogGenerator";
 import BannerManager from "./BannerManager";
 import PropertyCreator from "./PropertyCreator";
 import PropertyOneSheet from "./PropertyOneSheet";
-import { PROPERTIES } from "@/lib/data";
+import SocialStudio from "./SocialStudio";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -60,65 +60,20 @@ export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub
   };
 
 
-  // ── Social Copy state ─────────────────────────────────────────────────────
-  const [socialPropId,        setSocialPropId]        = useState<string>(PROPERTIES[0]?.id ?? "");
-  const [socialTone,          setSocialTone]          = useState<"professional" | "friendly" | "exciting">("professional");
-  const [socialCustomContext, setSocialCustomContext] = useState("");
-  const [socialFB,            setSocialFB]            = useState("");
-  const [socialIG,            setSocialIG]            = useState("");
-  const [socialLinkedIn,      setSocialLinkedIn]      = useState("");
-  const [socialHashtags,      setSocialHashtags]      = useState("");
-  const [socialStory,         setSocialStory]         = useState("");
-  const [socialBestTime,      setSocialBestTime]      = useState("");
-  const [socialLoading,       setSocialLoading]       = useState(false);
-  const [socialError,         setSocialError]         = useState("");
-  const [copiedFB,            setCopiedFB]            = useState(false);
-  const [copiedIG,            setCopiedIG]            = useState(false);
-  const [copiedLinkedIn,      setCopiedLinkedIn]      = useState(false);
-  const [copiedHashtags,      setCopiedHashtags]      = useState(false);
-  const [copiedStory,         setCopiedStory]         = useState(false);
-  const [prType,    setPrType]    = useState("new_listing");
-  const [topic,     setTopic]     = useState("");
-  const [details,   setDetails]   = useState("");
-  const [draft,     setDraft]     = useState("");
-  const [title,     setTitle]     = useState("");
+  // ── Press Release state ──────────────────────────────────────────────────────
+  const [prType,     setPrType]     = useState("new_listing");
+  const [topic,      setTopic]      = useState("");
+  const [details,    setDetails]    = useState("");
+  const [draft,      setDraft]      = useState("");
+  const [title,      setTitle]      = useState("");
   const [generating, setGenerating] = useState(false);
-  const [error,     setError]     = useState("");
-  const [copied,    setCopied]    = useState(false);
-  const [queue,     setQueue]     = useState<PressRelease[]>([]);
-  const [saved,     setSaved]     = useState(false);
+  const [error,      setError]      = useState("");
+  const [copied,     setCopied]     = useState(false);
+  const [queue,      setQueue]      = useState<PressRelease[]>([]);
+  const [saved,      setSaved]      = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => { setQueue(loadQueue()); }, []);
-
-  // ── Generate Social Copy ────────────────────────────────────────────────
-
-  async function generateSocial() {
-    const property = PROPERTIES.find(p => p.id === socialPropId);
-    if (!property) { setSocialError("Please select a property."); return; }
-    setSocialLoading(true); setSocialError("");
-    setSocialFB(""); setSocialIG(""); setSocialLinkedIn("");
-    setSocialHashtags(""); setSocialStory(""); setSocialBestTime("");
-    try {
-      const res = await fetch("/api/generate-social-copy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ property, tone: socialTone, customContext: socialCustomContext }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Generation failed.");
-      setSocialFB(d.facebook || "");
-      setSocialIG(d.instagram || "");
-      setSocialLinkedIn(d.linkedin || "");
-      setSocialHashtags(d.hashtags || "");
-      setSocialStory(d.storyCaption || "");
-      setSocialBestTime(d.bestTime || "");
-    } catch (e: unknown) {
-      setSocialError(e instanceof Error ? e.message : "Something went wrong.");
-    } finally {
-      setSocialLoading(false);
-    }
-  }
 
   // ── Generate Press Release ──────────────────────────────────────────────────
 
@@ -552,208 +507,7 @@ export default function MarketingTab({ onSubTabChange }: { onSubTabChange?: (sub
       {/* ── Social Content Studio ── */}
       {subTab === "social" && (
         <div className="space-y-6">
-
-          {/* Header */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E1306C] to-[#833AB4] flex items-center justify-center shadow-[0_0_20px_rgba(225,48,108,0.3)]">
-              <Instagram size={16} className="text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-black text-white">Social Content Studio</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">Facebook · Instagram · LinkedIn · Story Captions · Hashtag Bank — all from one click</p>
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">1. Property</label>
-              <select
-                value={socialPropId}
-                onChange={e => setSocialPropId(e.target.value)}
-                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(225,48,108,0.5)] outline-none appearance-none"
-              >
-                {PROPERTIES.map(p => (
-                  <option key={p.id} value={p.id} className="bg-[#0a1628] text-white">{p.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">2. Tone</label>
-              <div className="flex gap-2">
-                {(["professional", "friendly", "exciting"] as const).map(t => (
-                  <button key={t} onClick={() => setSocialTone(t)}
-                    className={`flex-1 py-2.5 rounded-xl text-[11px] font-black border transition-all ${socialTone === t ? "border-[rgba(167,139,250,0.6)] bg-[rgba(167,139,250,0.12)] text-[#A78BFA]" : "border-[rgba(255,255,255,0.08)] text-gray-500 hover:text-white"}`}
-                  >{t === "professional" ? "💼 Pro" : t === "friendly" ? "😊 Warm" : "🔥 Hot"}</button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Custom context */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-              3. What&apos;s the hook? <span className="text-gray-600 normal-case font-normal">(optional — any promo, renovation, event, or angle to highlight)</span>
-            </label>
-            <input
-              type="text"
-              value={socialCustomContext}
-              onChange={e => setSocialCustomContext(e.target.value)}
-              placeholder='e.g. "First month free" · "Just renovated" · "Move-in ready" · "Limited availability"'
-              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2.5 text-sm text-white focus:border-[rgba(225,48,108,0.4)] outline-none placeholder:text-gray-700"
-            />
-          </div>
-
-          {/* Generate button */}
-          <button
-            onClick={generateSocial}
-            disabled={socialLoading}
-            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#E1306C] to-[#833AB4] text-white font-black text-sm hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_24px_rgba(225,48,108,0.3)] w-full sm:w-auto"
-          >
-            {socialLoading
-              ? <><Loader2 size={15} className="animate-spin" /> Generating full content package…</>
-              : <><Sparkles size={15} /> Generate All Platforms</>}
-          </button>
-
-          {socialError && (
-            <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] rounded-xl px-4 py-3">{socialError}</p>
-          )}
-
-          {/* ── Output ── */}
-          {(socialFB || socialIG || socialLinkedIn) && (
-            <div className="space-y-4">
-
-              {/* Best time banner */}
-              {socialBestTime && (
-                <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[rgba(250,204,21,0.07)] border border-[rgba(250,204,21,0.2)]">
-                  <Clock size={14} className="text-[#FACC15] mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-[#FACC15]"><span className="font-black">Best time to post:</span> {socialBestTime}</p>
-                </div>
-              )}
-
-              {/* FB + IG + LinkedIn */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Facebook */}
-                {socialFB && (
-                  <div className="glass rounded-2xl border border-[rgba(24,119,242,0.25)] p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg bg-[#1877F2] flex items-center justify-center"><span className="text-white font-black text-xs">f</span></div>
-                        <p className="text-xs font-black text-white uppercase tracking-widest">Facebook</p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-gray-600">{socialFB.length}c</span>
-                        <button onClick={() => { navigator.clipboard.writeText(socialFB).catch(() => {}); setCopiedFB(true); setTimeout(() => setCopiedFB(false), 2000); }}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors">
-                          {copiedFB ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied!</> : <><Copy size={10} /> Copy</>}
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{socialFB}</p>
-                  </div>
-                )}
-
-                {/* Instagram */}
-                {socialIG && (
-                  <div className="glass rounded-2xl border border-[rgba(225,48,108,0.25)] p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#E1306C] to-[#833AB4] flex items-center justify-center"><Instagram size={11} className="text-white" /></div>
-                        <p className="text-xs font-black text-white uppercase tracking-widest">Instagram</p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-gray-600">{socialIG.length}c</span>
-                        <button onClick={() => { navigator.clipboard.writeText(socialIG).catch(() => {}); setCopiedIG(true); setTimeout(() => setCopiedIG(false), 2000); }}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors">
-                          {copiedIG ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied!</> : <><Copy size={10} /> Copy</>}
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{socialIG}</p>
-                  </div>
-                )}
-
-                {/* LinkedIn */}
-                {socialLinkedIn && (
-                  <div className="glass rounded-2xl border border-[rgba(10,102,194,0.3)] p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg bg-[#0A66C2] flex items-center justify-center"><span className="text-white font-black text-[9px]">in</span></div>
-                        <p className="text-xs font-black text-white uppercase tracking-widest">LinkedIn</p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-gray-600">{socialLinkedIn.length}c</span>
-                        <button onClick={() => { navigator.clipboard.writeText(socialLinkedIn).catch(() => {}); setCopiedLinkedIn(true); setTimeout(() => setCopiedLinkedIn(false), 2000); }}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors">
-                          {copiedLinkedIn ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied!</> : <><Copy size={10} /> Copy</>}
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{socialLinkedIn}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Story + Hashtags */}
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-                {socialStory && (
-                  <div className="sm:col-span-2 glass rounded-2xl border border-[rgba(250,204,21,0.2)] p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#FACC15] to-[#F97316] flex items-center justify-center"><span className="text-black font-black text-[9px]">▶</span></div>
-                        <p className="text-xs font-black text-white uppercase tracking-widest">Story Caption</p>
-                      </div>
-                      <button onClick={() => { navigator.clipboard.writeText(socialStory).catch(() => {}); setCopiedStory(true); setTimeout(() => setCopiedStory(false), 2000); }}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors">
-                        {copiedStory ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied!</> : <><Copy size={10} /> Copy</>}
-                      </button>
-                    </div>
-                    <p className="text-xl font-black text-[#FACC15] leading-snug">{socialStory}</p>
-                    <p className="text-[10px] text-gray-600">Paste as overlay text on your Story image or video</p>
-                  </div>
-                )}
-
-                {socialHashtags && (
-                  <div className="sm:col-span-3 glass rounded-2xl border border-[rgba(167,139,250,0.2)] p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#A78BFA] to-[#7C3AED] flex items-center justify-center"><span className="text-white font-black text-[11px]">#</span></div>
-                        <p className="text-xs font-black text-white uppercase tracking-widest">Hashtag Bank</p>
-                      </div>
-                      <button onClick={() => { navigator.clipboard.writeText(socialHashtags).catch(() => {}); setCopiedHashtags(true); setTimeout(() => setCopiedHashtags(false), 2000); }}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-[rgba(255,255,255,0.08)] text-gray-400 hover:text-white transition-colors">
-                        {copiedHashtags ? <><CheckCircle2 size={10} className="text-[#4ADE80]" /> Copied all!</> : <><Copy size={10} /> Copy all</>}
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {socialHashtags.split(/\s+/).filter(h => h.startsWith("#")).map(tag => (
-                        <button key={tag} title="Click to copy"
-                          onClick={() => navigator.clipboard.writeText(tag).catch(() => {})}
-                          className="px-2 py-1 rounded-lg text-[10px] font-bold text-[#A78BFA] bg-[rgba(167,139,250,0.08)] border border-[rgba(167,139,250,0.2)] hover:bg-[rgba(167,139,250,0.18)] transition-colors cursor-pointer">
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-[10px] text-gray-600">Click any tag to copy · Post hashtags as first IG comment for max reach</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Pro tips */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { icon: "📅", tip: "Schedule FB + IG together in Meta Business Suite to save time." },
-                  { icon: "#️⃣", tip: "Post hashtags as the first comment on IG — keeps caption clean." },
-                  { icon: "💼", tip: "LinkedIn posts get 3× more reach Tue–Thu between 8–10am ET." },
-                ].map(({ icon, tip }) => (
-                  <div key={tip} className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)]">
-                    <span className="text-sm flex-shrink-0">{icon}</span>
-                    <p className="text-[11px] text-gray-500 leading-relaxed">{tip}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <SocialStudio />
         </div>
       )}{/* end social tab */}
 

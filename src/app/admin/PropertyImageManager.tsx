@@ -25,6 +25,7 @@ export default function PropertyImageManager() {
   const [uploading, setUploading] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<Record<string, string>>({}); // propId → timestamp
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const fileRefs = useRef<Record<string, HTMLInputElement>>({});
@@ -91,9 +92,16 @@ export default function PropertyImageManager() {
       await patchRecord(propertyId, hero, merged);
       setSuccess(propertyId);
       setTimeout(() => setSuccess(null), 3000);
+      markSaved(propertyId);
       setExpanded(propertyId);
     }
     setUploading(null);
+  }
+
+  function markSaved(propertyId: string) {
+    const now = new Date();
+    const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    setSavedAt(prev => ({ ...prev, [propertyId]: time }));
   }
 
   async function setHero(propertyId: string, url: string) {
@@ -102,8 +110,7 @@ export default function PropertyImageManager() {
     const updated = { ...existing, hero_url: url, updated_at: new Date().toISOString() };
     setPropImages(prev => ({ ...prev, [propertyId]: updated }));
     await patchRecord(propertyId, url, existing.all_urls);
-    setSuccess(propertyId + "-hero");
-    setTimeout(() => setSuccess(null), 2000);
+    markSaved(propertyId);
   }
 
   async function removeImage(propertyId: string, url: string) {
@@ -115,6 +122,7 @@ export default function PropertyImageManager() {
     const updated = { ...existing, all_urls: next, hero_url: newHero, updated_at: new Date().toISOString() };
     setPropImages(prev => ({ ...prev, [propertyId]: updated }));
     await patchRecord(propertyId, newHero, next);
+    markSaved(propertyId);
     setDeleting(null);
   }
 
@@ -281,7 +289,7 @@ export default function PropertyImageManager() {
 
                     {/* Add more button inside grid */}
                     <button
-                      onClick={() => fileRefs.current[prop.id]?.click()}
+                      onClick={() => fileRefs.current![prop.id]?.click()}
                       disabled={isUploading}
                       className="h-16 rounded-xl border-2 border-dashed border-[rgba(96,165,250,0.3)] text-[#60A5FA] hover:border-[rgba(96,165,250,0.6)] hover:bg-[rgba(96,165,250,0.05)] transition-all flex items-center justify-center disabled:opacity-40"
                     >
@@ -289,8 +297,28 @@ export default function PropertyImageManager() {
                     </button>
                   </div>
                   <p className="text-[10px] text-gray-700 mt-2">
-                    ⭐ Star = hero image (used on listing cards & one-sheets). Hover a photo to manage it.
+                    ⭐ Star = hero image (used on listing cards &amp; one-sheets). Hover a photo to manage it.
                   </p>
+
+                  {/* ── Gallery Saved Banner ─────────────────────── */}
+                  {savedAt[prop.id] && (
+                    <div className="mt-3 flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.25)]">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={14} className="text-[#4ADE80] flex-shrink-0" />
+                        <div>
+                          <p className="text-xs font-black text-[#4ADE80] leading-none">Gallery Saved</p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">Live on site · saved at {savedAt[prop.id]}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setSavedAt(prev => { const n = { ...prev }; delete n[prop.id]; return n; })}
+                        className="text-gray-600 hover:text-gray-400 transition-colors flex-shrink-0"
+                        aria-label="Dismiss"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

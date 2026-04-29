@@ -99,30 +99,43 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
-  // Use service role key if available (bypasses RLS), fall back to anon key
   const authKey = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_SERVICE_KEY;
+  const url = `${SUPABASE_URL}/rest/v1/tenants?id=eq.${encodeURIComponent(id)}`;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/tenants?id=eq.${encodeURIComponent(id)}`, {
+  console.log("[tenants PATCH] id:", id);
+  console.log("[tenants PATCH] patch keys:", Object.keys(patch));
+  console.log("[tenants PATCH] url:", url);
+  console.log("[tenants PATCH] using service key:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+  const res = await fetch(url, {
     method: "PATCH",
     headers: {
       "apikey": authKey,
       "Authorization": `Bearer ${authKey}`,
       "Content-Type": "application/json",
-      "Prefer": "return=minimal",   // minimal = Supabase returns 204 on success, no body needed
+      "Prefer": "return=minimal",
     },
     body: JSON.stringify(patch),
   });
 
-  // 204 = success with no body (expected when Prefer: return=minimal)
-  // 200 = success with body
+  const responseText = await res.text();
+  console.log("[tenants PATCH] Supabase status:", res.status);
+  console.log("[tenants PATCH] Supabase body:", responseText || "(empty)");
+
   if (res.status === 204 || res.status === 200) {
     return NextResponse.json({ success: true });
   }
 
-  const errText = await res.text();
-  console.error("tenants PATCH error:", res.status, errText);
-  return NextResponse.json({ error: `Update failed (${res.status})` }, { status: 500 });
+  // Parse error for client
+  let sbError = responseText;
+  try { sbError = JSON.parse(responseText)?.message || responseText; } catch { /* ignore */ }
+
+  return NextResponse.json(
+    { error: `Supabase error ${res.status}: ${sbError}` },
+    { status: 500 }
+  );
 }
+
 
 
 

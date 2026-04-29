@@ -13,6 +13,7 @@ type Status = "idle" | "submitting" | "success" | "error";
 export default function ContactPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [submittedEmail, setSubmittedEmail] = useState("");
   const formOpenedAt = useRef<number>(Date.now());
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -39,6 +40,8 @@ export default function ContactPage() {
       website:      fd.get("website"),        // honeypot
       formOpenedAt: formOpenedAt.current,     // timing check
     };
+    // Capture email before the form unmounts so we can show it on the success screen
+    setSubmittedEmail((fd.get("email") as string) || "");
 
     try {
       const res = await fetch("/api/contact", {
@@ -84,7 +87,10 @@ export default function ContactPage() {
             <p className="text-gray-400 text-sm leading-relaxed mb-2">
               Thanks for reaching out. A member of the Vision team will review your inquiry and
               follow up at{" "}
-              <span className="text-white font-semibold">{(document.querySelector("[name=email]") as HTMLInputElement)?.value || "your email"}</span>{" "}
+              {submittedEmail && (
+                <span className="text-white font-semibold">{submittedEmail}</span>
+              )}
+              {!submittedEmail && "your email"}{" "}
               within 24 hours.
             </p>
             <p className="text-gray-500 text-xs mb-8">

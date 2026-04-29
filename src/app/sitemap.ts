@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { GEO_PAGES, PROPERTIES } from "@/lib/data";
+import { GEO_PAGES, PROPERTIES, SPACE_TYPE_PAGES } from "@/lib/data";
 import { BLOG_POSTS } from "@/lib/blog-data";
 
 const BASE_URL = "https://teamvisionllc.com";
@@ -82,5 +82,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...geoRoutes, ...propertyRoutes, ...blogRoutes];
+  // Space-type landing pages — high-value local SEO keyword targets
+  const spaceTypeRoutes: MetadataRoute.Sitemap = SPACE_TYPE_PAGES.map((page) => ({
+    url: `${BASE_URL}/spaces/${page.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  }));
+
+  return [...staticRoutes, ...geoRoutes, ...propertyRoutes, ...blogRoutes, ...spaceTypeRoutes];
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import NavigationConditional from "@/components/NavigationConditional";
 import FooterConditional from "@/components/FooterConditional";
 import AIChatWidgetConditional from "@/components/AIChatWidgetConditional";
+import MobileStickyBar from "@/components/MobileStickyBar";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -184,9 +185,10 @@ export default function RootLayout({
       </head>
       <body className="bg-mesh antialiased">
         <NavigationConditional />
-        <main>{children}</main>
+        <main className="pb-20 lg:pb-0">{children}</main>
         <FooterConditional />
         <AIChatWidgetConditional />
+        <MobileStickyBar />
       </body>
     </html>
   );

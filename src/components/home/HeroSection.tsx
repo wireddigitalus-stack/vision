@@ -76,7 +76,7 @@ export default function HeroSection() {
 
   const advanceSlide = () => {
     setIsTransitioning(true);
-    setNextSlide((prev) => (currentSlide + 1) % slides.length);
+    setNextSlide(() => (currentSlide + 1) % slides.length);
     setTimeout(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
       setIsTransitioning(false);

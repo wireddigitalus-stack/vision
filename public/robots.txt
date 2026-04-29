@@ -11,8 +11,4 @@ Disallow: /auth/
 Disallow: /l/
 
 # ── Sitemaps ───────────────────────────────────────────────────────────────────
-# Primary (permanent domain — activate when DNS is live)
 Sitemap: https://teamvisionllc.com/sitemap.xml
-
-# Current live deployment
-Sitemap: https://vision-llc.vercel.app/sitemap.xml

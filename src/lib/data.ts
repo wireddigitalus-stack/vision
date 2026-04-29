@@ -234,7 +234,12 @@ export const PROPERTIES = [
     status: "Available",
     badge: "Featured",
     badgeColor: "green",
-    image: "/property-images/commercial-city-centre-exterior.jpg",
+    image: "/property-images/city-centre-1.jpg",
+    images: [
+      "/property-images/city-centre-1.jpg",
+      "/property-images/city-centre-2.jpg",
+      "/property-images/city-centre-3.jpg",
+    ],
     description:
       "City Centre Professional Suites is the Preservation Award-winning office address in the heart of Downtown Bristol — The Birthplace of Country Music. We offer premier office suites from 120 to 6,000 sqft with a professional environment that makes a great first impression on clients and business associates. All-inclusive pricing covers power, water, common area cleaning, security cameras, property taxes, fitness access, and maintenance. No hidden costs. Single offices also available. It's the best deal in the Tri-Cities.",
     features: [
@@ -281,7 +286,12 @@ export const PROPERTIES = [
     status: "Available",
     badge: "Premium",
     badgeColor: "green",
-    image: "/property-images/commercial-executive-entry.jpg",
+    image: "/property-images/the-executive-1.jpg",
+    images: [
+      "/property-images/the-executive-1.jpg",
+      "/property-images/the-executive-2.jpg",
+      "/property-images/the-executive-3.jpg",
+    ],
     description:
       "Discover premier office suites within a meticulously restored historic building — prime Downtown Bristol commercial space ideal for professional services and law firms. The Executive features full-service amenities including a professional address and on-demand meeting rooms, with flexible lease terms from 500–12,000 sqft for businesses that demand a distinguished Tri-Cities presence.",
     features: ["Historic Building", "Full-Service Amenities", "Professional Address", "Flexible Leasing"],
@@ -297,10 +307,11 @@ export const PROPERTIES = [
     status: "Units Available",
     badge: "Casino Adjacent",
     badgeColor: "green",
-    image: "/property-images/commercial-centerpoint-mall.jpg",
+    image: "/property-images/centre-point-1.jpg",
     images: [
-      "/property-images/commercial-centerpoint-mall.jpg",
-      "/property-images/commercial-centerpoint-2.jpg",
+      "/property-images/centre-point-1.jpg",
+      "/property-images/centre-point-2.jpg",
+      "/property-images/centre-point-3.jpg",
     ],
     description:
       "Position your business for unparalleled success at Centre Point — a premier commercial property development directly across from the Hard Rock Hotel & Casino in Bristol, VA. This is the epicenter of the region's most significant economic transformation. With the casino as your neighbor, you'll benefit from a constant flow of high-traffic, high-value clientele. Whether you are looking to build a restaurant, retail space, beauty services, or any other venture, Centre Point provides the perfect blank canvas with commercial zoning and a front-row seat to Bristol's explosive growth.",
@@ -326,7 +337,12 @@ export const PROPERTIES = [
     status: "Available",
     badge: "Unique",
     badgeColor: "gold",
-    image: "/property-images/development-event-space-after.jpg",
+    image: "/property-images/foundation-event-1.jpg",
+    images: [
+      "/property-images/foundation-event-1.jpg",
+      "/property-images/foundation-event-2.jpg",
+      "/property-images/foundation-event-3.jpg",
+    ],
     description:
       "Make your next event truly unforgettable at The Foundation Event Facility — the premier event venue in the Tri-Cities. Located at 620 State Street in Downtown Bristol, we offer 3 distinct rooms accommodating anywhere from 15 to 100 guests at an affordable price. Perfect for baby showers, wedding showers, seminars, live music, fundraisers, business functions, class reunions, company holiday parties, private parties, and galas. Vision LLC manages the food, the venue, and every detail.",
     features: [
@@ -351,7 +367,12 @@ export const PROPERTIES = [
     status: "Available",
     badge: "Industrial",
     badgeColor: "gold",
-    image: "/property-images/development-construction.jpg",
+    image: "/property-images/west-state-commons-1.jpg",
+    images: [
+      "/property-images/west-state-commons-1.jpg",
+      "/property-images/west-state-commons-2.jpg",
+      "/property-images/west-state-commons-3.jpg",
+    ],
     description:
       "Formerly owned by Coca-Cola, West State Commons is a landmark opportunity property at 1916 West State Street in Bristol, VA. The building features 8,000 sqft of commercial office space alongside over 45,500 sqft of tractor-trailer accessible warehouse space with 26-foot ceilings. Loading docks are situated along the rear, and Vision LLC is open to sub-dividing to suit your footprint needs. A truly unique property located in the heart of Bristol, VA.",
     features: [
@@ -376,7 +397,12 @@ export const PROPERTIES = [
     status: "Limited Availability",
     badge: "Office",
     badgeColor: "green",
-    image: "/property-images/commercial-executive-entry.jpg",
+    image: "/property-images/jamestown-shelby-1.jpg",
+    images: [
+      "/property-images/jamestown-shelby-1.jpg",
+      "/property-images/jamestown-shelby-2.jpg",
+      "/property-images/jamestown-shelby-3.jpg",
+    ],
     description:
       "Jamestown at Shelby has breathed a new vitality into a part of Bristol's history. With meticulous attention to detail, this property offers an unheard level of professionalism within a unique environment in Bristol. From the ease of off-street parking to convenient access to the heart of downtown, a statement is made to clients and employees alike — from the moment they enter the building, they will know your company is the right choice. Suites range from 1,200 to 4,500 sqft with no extra CAM fees; all common areas are managed by Vision LLC at no additional cost.",
     features: [
@@ -401,7 +427,12 @@ export const PROPERTIES = [
     status: "Available",
     badge: "Virginia Side",
     badgeColor: "gold",
-    image: "/property-images/commercial-city-centre-exterior.jpg",
+    image: "/property-images/250-commonwealth-1.jpg",
+    images: [
+      "/property-images/250-commonwealth-1.jpg",
+      "/property-images/250-commonwealth-2.jpg",
+      "/property-images/250-commonwealth-3.jpg",
+    ],
     description:
       "250 Commonwealth Ave is a prominent commercial property on the Virginia side of Bristol — offering flexible office and commercial space at a highly accessible address with excellent visibility. This property presents a rare opportunity for businesses seeking a dual-state presence in the Bristol TN/VA market, with Vision LLC's full leasing and property management support. Contact us for availability and current pricing.",
     features: ["Virginia Address", "High Visibility", "Dual-State Market Access", "Professional Space"],
@@ -417,7 +448,12 @@ export const PROPERTIES = [
     status: "For Lease",
     badge: "State Street",
     badgeColor: "green",
-    image: "/property-images/commercial-centerpoint-mall.jpg",
+    image: "/property-images/628-state-street-1.jpg",
+    images: [
+      "/property-images/628-state-street-1.jpg",
+      "/property-images/628-state-street-2.jpg",
+      "/property-images/628-state-street-3.jpg",
+    ],
     description:
       "628 State Street is a rare 8,500 sqft opportunity in the heart of Downtown Bristol, Tennessee — The Birthplace of Country Music. Featuring a dramatic open floor plan, a full bar, commercial kitchen, mezzanine level, and dedicated office space, this property is turnkey for a restaurant, entertainment venue, flagship retail concept, or a fully custom build-out. Positioned on Bristol's most iconic commercial corridor at the Tennessee-Virginia state line, 628 State Street delivers unmatched foot traffic, cultural cachet, and the energy of a downtown district on the rise.",
     features: [

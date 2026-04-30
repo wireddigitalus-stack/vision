@@ -39,15 +39,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ...geo.neighborhoods,
     ],
     alternates: {
-      canonical: `https://teamvisionllc.com/markets/${geo.slug}`,
+      canonical: `https://www.teamvisionllc.com/markets/${geo.slug}`,
     },
     openGraph: {
       title: geo.metaTitle,
       description: geo.metaDescription,
-      url: `https://teamvisionllc.com/markets/${geo.slug}`,
+      url: `https://www.teamvisionllc.com/markets/${geo.slug}`,
       images: [
         {
-          url: `https://teamvisionllc.com/api/og?title=${encodeURIComponent(`Commercial Real Estate ${geo.city}, ${geo.state}`)}&subtitle=${encodeURIComponent(`${geo.countyName} · Vision LLC serves ${geo.region}`)}&tag=${encodeURIComponent(geo.city)}&type=geo`,
+          url: `https://www.teamvisionllc.com/api/og?title=${encodeURIComponent(`Commercial Real Estate ${geo.city}, ${geo.state}`)}&subtitle=${encodeURIComponent(`${geo.countyName} · Vision LLC serves ${geo.region}`)}&tag=${encodeURIComponent(geo.city)}&type=geo`,
           width: 1200,
           height: 630,
           alt: `Commercial Real Estate ${geo.city}, ${geo.state} | Vision LLC`,
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: geo.metaTitle,
       description: geo.metaDescription,
       images: [
-        `https://teamvisionllc.com/api/og?title=${encodeURIComponent(`Commercial Real Estate ${geo.city}, ${geo.state}`)}&subtitle=${encodeURIComponent(`${geo.countyName} · Vision LLC serves ${geo.region}`)}&tag=${encodeURIComponent(geo.city)}&type=geo`,
+        `https://www.teamvisionllc.com/api/og?title=${encodeURIComponent(`Commercial Real Estate ${geo.city}, ${geo.state}`)}&subtitle=${encodeURIComponent(`${geo.countyName} · Vision LLC serves ${geo.region}`)}&tag=${encodeURIComponent(geo.city)}&type=geo`,
       ],
     },
     other: {
@@ -104,7 +104,7 @@ export default async function GeoPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
     name: `Vision LLC — ${geo.city}, ${geo.state} Commercial Real Estate`,
-    url: `https://teamvisionllc.com/markets/${geo.slug}`,
+    url: `https://www.teamvisionllc.com/markets/${geo.slug}`,
     telephone: "+14235731022",
     email: "leasing@teamvisionllc.com",
     address: {
@@ -151,19 +151,19 @@ export default async function GeoPage({ params }: Props) {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://teamvisionllc.com",
+        item: "https://www.teamvisionllc.com",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Markets",
-        item: "https://teamvisionllc.com/markets",
+        item: "https://www.teamvisionllc.com/markets",
       },
       {
         "@type": "ListItem",
         position: 3,
         name: `${geo.city}, ${geo.state}`,
-        item: `https://teamvisionllc.com/markets/${geo.slug}`,
+        item: `https://www.teamvisionllc.com/markets/${geo.slug}`,
       },
     ],
   };

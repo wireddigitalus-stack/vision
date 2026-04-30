@@ -654,7 +654,7 @@ export default function PropertyOneSheet() {
     const baseUrl =
       typeof window !== "undefined"
         ? `${window.location.protocol}//${window.location.host}`
-        : "https://teamvisionllc.com";
+        : "https://www.teamvisionllc.com";
 
     const imgPath = (selected as Property & { image?: string }).image;
     const [imageDataUri, logoDataUri] = await Promise.all([

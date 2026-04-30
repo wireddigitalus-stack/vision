@@ -25,19 +25,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     keywords: [post.targetKeyword, ...post.tags, "Vision LLC", "Bristol TN", "Tri-Cities commercial real estate"],
     authors: [{ name: post.author }],
     alternates: {
-      canonical: `https://teamvisionllc.com/blog/${post.slug}`,
+      canonical: `https://www.teamvisionllc.com/blog/${post.slug}`,
     },
     openGraph: {
       title: post.metaTitle,
       description: post.metaDescription,
-      url: `https://teamvisionllc.com/blog/${post.slug}`,
+      url: `https://www.teamvisionllc.com/blog/${post.slug}`,
       type: "article",
       publishedTime: post.publishedAt,
       authors: [post.author],
       tags: post.tags,
       images: [
         {
-          url: `https://teamvisionllc.com/api/og?title=${encodeURIComponent(post.title)}&subtitle=${encodeURIComponent(`${post.category} · By ${post.author}`)}&tag=${encodeURIComponent("Vision LLC Blog")}&type=blog`,
+          url: `https://www.teamvisionllc.com/api/og?title=${encodeURIComponent(post.title)}&subtitle=${encodeURIComponent(`${post.category} · By ${post.author}`)}&tag=${encodeURIComponent("Vision LLC Blog")}&type=blog`,
           width: 1200,
           height: 630,
           alt: post.metaTitle,
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.metaTitle,
       description: post.metaDescription,
       images: [
-        `https://teamvisionllc.com/api/og?title=${encodeURIComponent(post.title)}&subtitle=${encodeURIComponent(`${post.category} · By ${post.author}`)}&tag=${encodeURIComponent("Vision LLC Blog")}&type=blog`,
+        `https://www.teamvisionllc.com/api/og?title=${encodeURIComponent(post.title)}&subtitle=${encodeURIComponent(`${post.category} · By ${post.author}`)}&tag=${encodeURIComponent("Vision LLC Blog")}&type=blog`,
       ],
     },
   };
@@ -128,12 +128,12 @@ export default async function BlogPostPage({ params }: Props) {
     author: {
       "@type": "Organization",
       name: "Vision LLC",
-      url: "https://teamvisionllc.com",
+      url: "https://www.teamvisionllc.com",
     },
     publisher: {
       "@type": "Organization",
       name: "Vision LLC",
-      url: "https://teamvisionllc.com",
+      url: "https://www.teamvisionllc.com",
       logo: {
         "@type": "ImageObject",
         url: "https://lirp.cdn-website.com/49369e6c/dms3rep/multi/opt/WHITE+VISION-+LLC.+LOGO+NO+TAGLINE-1920w.png",
@@ -141,8 +141,8 @@ export default async function BlogPostPage({ params }: Props) {
     },
     datePublished: post.publishedAt,
     dateModified: post.publishedAt,
-    url: `https://teamvisionllc.com/blog/${post.slug}`,
-    mainEntityOfPage: `https://teamvisionllc.com/blog/${post.slug}`,
+    url: `https://www.teamvisionllc.com/blog/${post.slug}`,
+    mainEntityOfPage: `https://www.teamvisionllc.com/blog/${post.slug}`,
     articleSection: post.category,
     wordCount: post.content.split(/\s+/).length,
     inLanguage: "en-US",
@@ -152,9 +152,9 @@ export default async function BlogPostPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://teamvisionllc.com" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://teamvisionllc.com/blog" },
-      { "@type": "ListItem", position: 3, name: post.title, item: `https://teamvisionllc.com/blog/${post.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.teamvisionllc.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.teamvisionllc.com/blog" },
+      { "@type": "ListItem", position: 3, name: post.title, item: `https://www.teamvisionllc.com/blog/${post.slug}` },
     ],
   };
 

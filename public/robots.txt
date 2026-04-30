@@ -11,4 +11,4 @@ Disallow: /auth/
 Disallow: /l/
 
 # ── Sitemaps ───────────────────────────────────────────────────────────────────
-Sitemap: https://teamvisionllc.com/sitemap.xml
+Sitemap: https://www.teamvisionllc.com/sitemap.xml

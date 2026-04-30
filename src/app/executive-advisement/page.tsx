@@ -22,16 +22,16 @@ export const metadata: Metadata = {
   description:
     "Vision LLC delivers C-suite consulting, strategic planning, and government advisement grounded in 30+ years of real-world executive leadership by J. Allen Hurley II. Bristol, TN. Call 423-573-1022.",
   alternates: {
-    canonical: "https://teamvisionllc.com/executive-advisement",
+    canonical: "https://www.teamvisionllc.com/executive-advisement",
   },
   openGraph: {
     title: "Executive Advisement & C-Suite Consulting | J. Allen Hurley II | Vision LLC",
     description:
       "C-suite consulting, strategic planning & government advisement from J. Allen Hurley II — 30+ years of real-world executive leadership in the Tri-Cities.",
-    url: "https://teamvisionllc.com/executive-advisement",
+    url: "https://www.teamvisionllc.com/executive-advisement",
     images: [
       {
-        url: "https://teamvisionllc.com/api/og?title=Executive+Advisement&subtitle=C-Suite+Consulting+%C2%B7+Strategic+Planning+%E2%80%94+Vision+LLC&tag=Tri-Cities&type=default",
+        url: "https://www.teamvisionllc.com/api/og?title=Executive+Advisement&subtitle=C-Suite+Consulting+%C2%B7+Strategic+Planning+%E2%80%94+Vision+LLC&tag=Tri-Cities&type=default",
         width: 1200,
         height: 630,
         alt: "Vision LLC Executive Advisement — Bristol, TN",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     description:
       "Strategic planning, government advisement & executive leadership coaching from Vision LLC. 30+ years of real-world leadership. Bristol, TN.",
     images: [
-      "https://teamvisionllc.com/api/og?title=Executive+Advisement&subtitle=C-Suite+Consulting+%C2%B7+Strategic+Planning+%E2%80%94+Vision+LLC&tag=Tri-Cities&type=default",
+      "https://www.teamvisionllc.com/api/og?title=Executive+Advisement&subtitle=C-Suite+Consulting+%C2%B7+Strategic+Planning+%E2%80%94+Vision+LLC&tag=Tri-Cities&type=default",
     ],
   },
 };

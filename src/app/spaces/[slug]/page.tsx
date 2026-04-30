@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const page = SPACE_TYPE_PAGES.find((p) => p.slug === slug);
   if (!page) return {};
-  const ogUrl = `https://teamvisionllc.com/api/og?title=${encodeURIComponent(page.h1)}&subtitle=${encodeURIComponent(page.tagline)}&tag=${encodeURIComponent(page.badge)}&type=property`;
+  const ogUrl = `https://www.teamvisionllc.com/api/og?title=${encodeURIComponent(page.h1)}&subtitle=${encodeURIComponent(page.tagline)}&tag=${encodeURIComponent(page.badge)}&type=property`;
   return {
     title: page.metaTitle,
     description: page.metaDescription,
@@ -98,8 +98,8 @@ export default async function SpaceTypePage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://teamvisionllc.com" },
-      { "@type": "ListItem", position: 2, name: "Properties", item: "https://teamvisionllc.com/commercial-real-estate" },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.teamvisionllc.com" },
+      { "@type": "ListItem", position: 2, name: "Properties", item: "https://www.teamvisionllc.com/commercial-real-estate" },
       { "@type": "ListItem", position: 3, name: page.h1, item: page.canonicalUrl },
     ],
   };

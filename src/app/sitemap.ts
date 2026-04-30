@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { GEO_PAGES, PROPERTIES, SPACE_TYPE_PAGES } from "@/lib/data";
 import { BLOG_POSTS } from "@/lib/blog-data";
 
-const BASE_URL = "https://teamvisionllc.com";
+const BASE_URL = "https://www.teamvisionllc.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

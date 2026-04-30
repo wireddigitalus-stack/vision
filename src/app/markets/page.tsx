@@ -8,16 +8,16 @@ export const metadata: Metadata = {
   description:
     "Vision LLC serves commercial real estate clients across the Tri-Cities region including Bristol TN/VA, Kingsport TN, Johnson City TN, Abingdon VA, and more. Find your city.",
   alternates: {
-    canonical: "https://teamvisionllc.com/markets",
+    canonical: "https://www.teamvisionllc.com/markets",
   },
   openGraph: {
     title: "Tri-Cities CRE Markets | Bristol · Kingsport · Johnson City | Vision LLC",
     description:
       "Vision LLC is based in Downtown Bristol, TN — serving commercial real estate clients across the full Tri-Cities metro. Bristol · Kingsport · Johnson City · Abingdon & more.",
-    url: "https://teamvisionllc.com/markets",
+    url: "https://www.teamvisionllc.com/markets",
     images: [
       {
-        url: "https://teamvisionllc.com/api/og?title=Markets+We+Serve&subtitle=Bristol+%C2%B7+Kingsport+%C2%B7+Johnson+City+%C2%B7+Abingdon+%E2%80%94+Vision+LLC&tag=Tri-Cities&type=default",
+        url: "https://www.teamvisionllc.com/api/og?title=Markets+We+Serve&subtitle=Bristol+%C2%B7+Kingsport+%C2%B7+Johnson+City+%C2%B7+Abingdon+%E2%80%94+Vision+LLC&tag=Tri-Cities&type=default",
         width: 1200,
         height: 630,
         alt: "Vision LLC Markets — Tri-Cities Commercial Real Estate",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     description:
       "Commercial real estate services across Bristol TN/VA, Kingsport, Johnson City, Abingdon VA & surrounding Tri-Cities cities. Vision LLC's portfolio is in Downtown Bristol, TN.",
     images: [
-      "https://teamvisionllc.com/api/og?title=Markets+We+Serve&subtitle=Bristol+%C2%B7+Kingsport+%C2%B7+Johnson+City+%C2%B7+Abingdon+%E2%80%94+Vision+LLC&tag=Tri-Cities&type=default",
+      "https://www.teamvisionllc.com/api/og?title=Markets+We+Serve&subtitle=Bristol+%C2%B7+Kingsport+%C2%B7+Johnson+City+%C2%B7+Abingdon+%E2%80%94+Vision+LLC&tag=Tri-Cities&type=default",
     ],
   },
 };

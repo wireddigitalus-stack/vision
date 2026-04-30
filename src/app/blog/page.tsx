@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   title: "Commercial Real Estate Blog | Tri-Cities Market Insights | Vision LLC",
   description:
     "Expert insights on commercial real estate in Bristol TN, the Tri-Cities market, coworking, historic adaptive reuse, and executive business consulting from Vision LLC.",
-  alternates: { canonical: "https://teamvisionllc.com/blog" },
+  alternates: { canonical: "https://www.teamvisionllc.com/blog" },
   openGraph: {
     title: "Tri-Cities CRE Blog | Market Insights & News | Vision LLC",
     description: "Expert market analysis, business insights, and development news from the Tri-Cities region — written by the team that owns and operates it.",
-    url: "https://teamvisionllc.com/blog",
+    url: "https://www.teamvisionllc.com/blog",
   },
 };
 

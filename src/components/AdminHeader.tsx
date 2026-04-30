@@ -33,7 +33,7 @@ export default function AdminHeader() {
 
       {/* ── Right: View Live Site CTA ── */}
       <a
-        href="https://teamvisionllc.com"
+        href="https://www.teamvisionllc.com"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold

@@ -11,16 +11,16 @@ export const metadata: Metadata = {
   description:
     "Bristol CoWork at 620 State Street offers private offices, dedicated desks & conference rooms in the heart of Bristol, TN. All-inclusive memberships. Move in tomorrow. Call 423-573-1022.",
   alternates: {
-    canonical: "https://teamvisionllc.com/cowork",
+    canonical: "https://www.teamvisionllc.com/cowork",
   },
   openGraph: {
     title: "Bristol CoWork | Downtown Bristol's Coworking & Private Offices",
     description:
       "Private offices, dedicated desks & conference rooms at 620 State Street, Bristol, TN. All-inclusive memberships. Move in tomorrow. Call 423-573-1022.",
-    url: "https://teamvisionllc.com/cowork",
+    url: "https://www.teamvisionllc.com/cowork",
     images: [
       {
-        url: "https://teamvisionllc.com/api/og?title=Bristol+CoWork&subtitle=620+State+Street+%C2%B7+Bristol%2C+TN+%E2%80%94+Premium+Coworking&tag=Now+Open&type=default",
+        url: "https://www.teamvisionllc.com/api/og?title=Bristol+CoWork&subtitle=620+State+Street+%C2%B7+Bristol%2C+TN+%E2%80%94+Premium+Coworking&tag=Now+Open&type=default",
         width: 1200,
         height: 630,
         alt: "Bristol CoWork — 620 State Street, Bristol TN",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     description:
       "Private offices, dedicated desks & conference rooms. 620 State Street, Bristol TN. All-inclusive memberships from Vision LLC.",
     images: [
-      "https://teamvisionllc.com/api/og?title=Bristol+CoWork&subtitle=620+State+Street+%C2%B7+Bristol%2C+TN+%E2%80%94+Premium+Coworking&tag=Now+Open&type=default",
+      "https://www.teamvisionllc.com/api/og?title=Bristol+CoWork&subtitle=620+State+Street+%C2%B7+Bristol%2C+TN+%E2%80%94+Premium+Coworking&tag=Now+Open&type=default",
     ],
   },
 };

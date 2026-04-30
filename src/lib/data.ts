@@ -562,7 +562,7 @@ export const SPACE_TYPE_PAGES = [
       { q: "Is coworking a good option for remote workers in the Tri-Cities?", a: "It's ideal. Remote workers get structure, reliable internet, a professional environment, and networking opportunities — without the cost or commitment of a private lease." },
       { q: "Do you offer day passes or trial memberships?", a: "Yes — reach out to our team at 423-573-1022 or leasing@teamvisionllc.com to arrange a tour and trial day." },
     ],
-    canonicalUrl: "https://teamvisionllc.com/spaces/coworking-space-bristol-tn",
+    canonicalUrl: "https://www.teamvisionllc.com/spaces/coworking-space-bristol-tn",
     geoLinks: ["bristol-tn", "kingsport-tn", "johnson-city-tn"],
   },
   {
@@ -589,7 +589,7 @@ export const SPACE_TYPE_PAGES = [
       { q: "Are Vision LLC office spaces pet-friendly?", a: "Policies vary by building. Contact our leasing team at 423-573-1022 to discuss specific requirements." },
       { q: "Can I get a professional office address in Bristol TN without a full lease?", a: "Yes — Bristol CoWork memberships at 620 State Street include a professional business address without requiring a traditional office lease." },
     ],
-    canonicalUrl: "https://teamvisionllc.com/spaces/office-space-tri-cities-tn",
+    canonicalUrl: "https://www.teamvisionllc.com/spaces/office-space-tri-cities-tn",
     geoLinks: ["bristol-tn", "kingsport-tn", "johnson-city-tn"],
   },
   {
@@ -616,7 +616,7 @@ export const SPACE_TYPE_PAGES = [
       { q: "What retail spaces are available near State Street Bristol?", a: "Vision LLC currently has street-level retail units available at City Centre Professional Suites and Centre Point Suites. Contact us to arrange a tour." },
       { q: "Can Vision LLC help me with a retail build-out in Bristol TN?", a: "Absolutely. Our vertically integrated model includes construction and tenant improvement services — making Vision LLC your single point of contact from lease to launch." },
     ],
-    canonicalUrl: "https://teamvisionllc.com/spaces/retail-space-bristol-tn",
+    canonicalUrl: "https://www.teamvisionllc.com/spaces/retail-space-bristol-tn",
     geoLinks: ["bristol-tn", "johnson-city-tn"],
   },
   {
@@ -643,7 +643,7 @@ export const SPACE_TYPE_PAGES = [
       { q: "How close are you to I-81 and I-26?", a: "Our Bristol TN industrial properties have direct access to I-81 and the I-26 interchange — the primary logistics corridor for the entire Tri-Cities region." },
       { q: "Can I lease warehouse space month-to-month in the Tri-Cities?", a: "Lease terms are negotiable. Short-term and flexible warehouse leases may be available depending on inventory. Contact our team for current options." },
     ],
-    canonicalUrl: "https://teamvisionllc.com/spaces/industrial-space-tri-cities-tn",
+    canonicalUrl: "https://www.teamvisionllc.com/spaces/industrial-space-tri-cities-tn",
     geoLinks: ["bristol-tn", "kingsport-tn"],
   },
 ];

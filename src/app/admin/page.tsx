@@ -682,7 +682,7 @@ ON CONFLICT (email) DO NOTHING;`}</pre>
             if (isHidden && !showHidden) return null;
 
             const slug = nameToSlug(admin.name || admin.email);
-            const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://teamvisionllc.com";
+            const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://www.teamvisionllc.com";
             const captureUrl = `${baseUrl}/meet/${slug}`;
             const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&bgcolor=080C14&color=4ADE80&margin=10&data=${encodeURIComponent(captureUrl)}`;
             const qrLeadCount = leads.filter(l => l.source === "qr" && l.campaign === slug).length;
@@ -1502,7 +1502,7 @@ export default function AdminPage() {
   const [newLeadToast, setNewLeadToast] = useState<Lead | null>(null);
   const [recentLiveIds, setRecentLiveIds] = useState<Set<string>>(new Set());
   const [showAskVision, setShowAskVision] = useState(false);
-  const [callListOpen, setCallListOpen] = useState(true);
+  const [callListOpen, setCallListOpen] = useState(false);
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [activeCallLog, setActiveCallLog] = useState<{ leadId: string; leadName: string; phone: string } | null>(null);
   const [coldPipelineOpen, setColdPipelineOpen] = useState(false);

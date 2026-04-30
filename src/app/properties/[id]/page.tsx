@@ -53,17 +53,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogTitle = encodeURIComponent(property.name);
   const ogSubtitle = encodeURIComponent(`${property.type} · ${property.city} · ${property.sqft} sqft`);
   const ogTag = encodeURIComponent("Available Now");
-  const ogUrl = `https://teamvisionllc.com/api/og?title=${ogTitle}&subtitle=${ogSubtitle}&tag=${ogTag}&type=property`;
+  const ogUrl = `https://www.teamvisionllc.com/api/og?title=${ogTitle}&subtitle=${ogSubtitle}&tag=${ogTag}&type=property`;
   return {
     title: `${property.name} | Commercial Real Estate Bristol TN | Vision LLC`,
     description: desc,
     alternates: {
-      canonical: `https://teamvisionllc.com/properties/${id}`,
+      canonical: `https://www.teamvisionllc.com/properties/${id}`,
     },
     openGraph: {
       title: `${property.name} | Vision LLC`,
       description: desc,
-      url: `https://teamvisionllc.com/properties/${id}`,
+      url: `https://www.teamvisionllc.com/properties/${id}`,
       type: "website",
       images: [{ url: ogUrl, width: 1200, height: 630, alt: property.name }],
     },
@@ -105,8 +105,8 @@ export default async function PropertyDetailPage({ params }: Props) {
     "@type": "RealEstateListing",
     name: property.name,
     description: property.description,
-    url: `https://teamvisionllc.com/properties/${property.id}`,
-    image: heroImage ? [`https://teamvisionllc.com${heroImage}`] : [],
+    url: `https://www.teamvisionllc.com/properties/${property.id}`,
+    image: heroImage ? [`https://www.teamvisionllc.com${heroImage}`] : [],
     address: {
       "@type": "PostalAddress",
       streetAddress: (property as any).address || "Downtown Bristol",
@@ -134,7 +134,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         "@type": "Organization",
         name: "Vision LLC",
         telephone: "+14235731022",
-        url: "https://teamvisionllc.com",
+        url: "https://www.teamvisionllc.com",
       },
     },
   };
@@ -144,7 +144,7 @@ export default async function PropertyDetailPage({ params }: Props) {
     "@type": "LocalBusiness",
     name: `Vision LLC — ${property.name}`,
     description: property.description.substring(0, 200),
-    url: `https://teamvisionllc.com/properties/${property.id}`,
+    url: `https://www.teamvisionllc.com/properties/${property.id}`,
     telephone: "+14235731022",
     address: {
       "@type": "PostalAddress",
@@ -161,9 +161,9 @@ export default async function PropertyDetailPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://teamvisionllc.com" },
-      { "@type": "ListItem", position: 2, name: "Properties", item: "https://teamvisionllc.com/commercial-real-estate" },
-      { "@type": "ListItem", position: 3, name: property.name, item: `https://teamvisionllc.com/properties/${property.id}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.teamvisionllc.com" },
+      { "@type": "ListItem", position: 2, name: "Properties", item: "https://www.teamvisionllc.com/commercial-real-estate" },
+      { "@type": "ListItem", position: 3, name: property.name, item: `https://www.teamvisionllc.com/properties/${property.id}` },
     ],
   };
 

@@ -17,13 +17,13 @@ export const metadata: Metadata = {
     "423-573-1022 Vision LLC",
   ],
   alternates: {
-    canonical: "https://teamvisionllc.com/contact",
+    canonical: "https://www.teamvisionllc.com/contact",
   },
   openGraph: {
     title: "Contact Vision LLC | Commercial Real Estate Experts — Bristol, TN",
     description:
       "Reach out to schedule a tour of office suites, retail space, or coworking memberships in Downtown Bristol. Vision LLC — the Tri-Cities' leading commercial property firm.",
-    url: "https://teamvisionllc.com/contact",
+    url: "https://www.teamvisionllc.com/contact",
     siteName: "Vision LLC",
     type: "website",
   },

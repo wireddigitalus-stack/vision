@@ -19,7 +19,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://teamvisionllc.com"),
+  metadataBase: new URL("https://www.teamvisionllc.com"),
   title: {
     default: "Vision LLC | Downtown Bristol's #1 Commercial Real Estate Company",
     template: "%s | Vision LLC",
@@ -54,14 +54,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://teamvisionllc.com",
+    url: "https://www.teamvisionllc.com",
     siteName: "Vision LLC",
     title: "Vision LLC | Tri-Cities Commercial Real Estate Leader",
     description:
       "The largest private commercial property owner in Downtown Bristol, TN/VA. Serving the entire Tri-Cities region.",
     images: [
       {
-        url: "https://teamvisionllc.com/api/og?title=Vision+LLC&subtitle=Commercial+Real+Estate+%C2%B7+Bristol%2C+TN+%E2%80%94+Tri-Cities+CRE+Leader&tag=Tri-Cities+CRE+Leader&type=default",
+        url: "https://www.teamvisionllc.com/api/og?title=Vision+LLC&subtitle=Commercial+Real+Estate+%C2%B7+Bristol%2C+TN+%E2%80%94+Tri-Cities+CRE+Leader&tag=Tri-Cities+CRE+Leader&type=default",
         width: 1200,
         height: 630,
         alt: "Vision LLC — Commercial Real Estate Bristol TN",
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     description:
       "Award-winning commercial real estate, development & executive consulting across Bristol, Kingsport, Johnson City & the Tri-Cities.",
     images: [
-      "https://teamvisionllc.com/api/og?title=Vision+LLC&subtitle=Commercial+Real+Estate+%C2%B7+Bristol%2C+TN+%E2%80%94+Tri-Cities+CRE+Leader&tag=Tri-Cities+CRE+Leader&type=default",
+      "https://www.teamvisionllc.com/api/og?title=Vision+LLC&subtitle=Commercial+Real+Estate+%C2%B7+Bristol%2C+TN+%E2%80%94+Tri-Cities+CRE+Leader&tag=Tri-Cities+CRE+Leader&type=default",
     ],
   },
 
@@ -109,8 +109,8 @@ export default function RootLayout({
               "@type": "RealEstateAgent",
               name: "Vision LLC",
               alternateName: "Team Vision LLC",
-              url: "https://teamvisionllc.com",
-              logo: "https://teamvisionllc.com/logo.png",
+              url: "https://www.teamvisionllc.com",
+              logo: "https://www.teamvisionllc.com/logo.png",
               telephone: "+14235731022",
               email: "leasing@teamvisionllc.com",
               address: {
@@ -169,13 +169,13 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "Vision LLC",
-              url: "https://teamvisionllc.com",
+              url: "https://www.teamvisionllc.com",
               description: "Commercial real estate, development & executive advisement across the Tri-Cities TN/VA region.",
               potentialAction: {
                 "@type": "SearchAction",
                 target: {
                   "@type": "EntryPoint",
-                  urlTemplate: "https://teamvisionllc.com/commercial-real-estate?q={search_term_string}",
+                  urlTemplate: "https://www.teamvisionllc.com/commercial-real-estate?q={search_term_string}",
                 },
                 "query-input": "required name=search_term_string",
               },

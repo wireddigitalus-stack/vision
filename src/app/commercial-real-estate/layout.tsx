@@ -15,13 +15,13 @@ export const metadata: Metadata = {
     "Vision LLC properties",
   ],
   alternates: {
-    canonical: "https://teamvisionllc.com/commercial-real-estate",
+    canonical: "https://www.teamvisionllc.com/commercial-real-estate",
   },
   openGraph: {
     title: "Commercial Real Estate Portfolio | Vision LLC",
     description:
       "Executive offices, retail storefronts, coworking, mixed-use & industrial space in Downtown Bristol, TN. Tri-Cities #1 private commercial property owner.",
-    url: "https://teamvisionllc.com/commercial-real-estate",
+    url: "https://www.teamvisionllc.com/commercial-real-estate",
     type: "website",
   },
 };

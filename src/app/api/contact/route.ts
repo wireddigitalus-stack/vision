@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── 5. Store in Supabase (audit trail, never lose a lead) ───────────────
+    // ── 5. Store in Supabase audit table (optional — table may not exist) ───
     try {
       await supabaseAdmin.from("contact_submissions").insert({
         id: `contact_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -139,8 +139,66 @@ export async function POST(req: NextRequest) {
         ip_hash: ip.split(".").slice(0, 3).join(".") + ".x", // partially mask IP
       });
     } catch {
-      // Table may not exist yet — non-fatal, email still goes out
-      console.warn("[contact] Supabase insert skipped (table may not exist)");
+      console.warn("[contact] Supabase audit insert skipped (table may not exist)");
+    }
+
+    // ── 5b. INSERT INTO LEADS PIPELINE ─── so it shows in the admin dashboard ──
+    try {
+      const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+      // Build a message/notes field combining company, city, and the message
+      const notes = [
+        cleanCompany && `Company: ${cleanCompany}`,
+        cleanCity && `Preferred Market: ${cleanCity}`,
+        cleanMessage,
+      ].filter(Boolean).join("\n");
+
+      // Simple score heuristic based on what they told us
+      const hasPhone = !!cleanPhone;
+      const hasCompany = !!cleanCompany;
+      const urgentInterests = ["Office Space", "Retail Storefront", "Warehouse / Industrial"];
+      const isUrgentType = urgentInterests.includes(cleanInterest);
+      const baseScore = 50 + (hasPhone ? 15 : 0) + (hasCompany ? 10 : 0) + (isUrgentType ? 10 : 0);
+      const score = Math.min(baseScore, 95);
+      const scoreLabel = score >= 70 ? "Hot Lead" : score >= 40 ? "Warm Lead" : "Nurture";
+
+      const lead = {
+        id: `contact_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        timestamp: new Date().toISOString(),
+        name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone,
+        space_type: cleanInterest,
+        budget: 0,
+        timeline: "Exploring options",
+        team_size: "Unknown",
+        additional_info: notes,
+        score,
+        score_label: scoreLabel,
+        reasoning: `Submitted via contact form. Interest: ${cleanInterest}.${hasPhone ? " Phone provided — higher intent." : ""}${hasCompany ? ` Company: ${cleanCompany}.` : ""}`,
+        matched_properties: [],
+        is_whale: false,
+        whale_tier: null,
+        whale_keywords: [],
+        source: "contact-form",
+        medium: "web",
+        campaign: "",
+      };
+
+      await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SERVICE_KEY,
+          "Authorization": `Bearer ${SERVICE_KEY}`,
+          "Prefer": "return=minimal",
+        },
+        body: JSON.stringify(lead),
+      });
+    } catch (leadErr) {
+      // Non-fatal — email still goes out even if lead insert fails
+      console.warn("[contact] Lead pipeline insert failed:", leadErr);
     }
 
     // ── 6. Send email via Resend REST API ────────────────────────────────────

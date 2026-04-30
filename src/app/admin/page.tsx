@@ -2322,7 +2322,24 @@ export default function AdminPage() {
                             </span>
                           </Tooltip>
                         )}
-                        {lead.source && lead.source !== "organic" && lead.source !== "qr" && (
+                        {lead.source === "contact-form" && (
+                          <Tooltip text="Submitted via the Contact page form — this person actively sought you out." wide>
+                            <span className="text-xs px-2.5 py-1 rounded-lg font-bold border bg-[rgba(168,85,247,0.1)] border-[rgba(168,85,247,0.35)] text-[#C084FC] flex items-center gap-1 cursor-help">
+                              ✉️ Contact Form
+                            </span>
+                          </Tooltip>
+                        )}
+                        {lead.source === "import" && (
+                          <span className="text-xs px-2.5 py-1 rounded-lg font-semibold border bg-[rgba(96,165,250,0.08)] border-[rgba(96,165,250,0.25)] text-[#60A5FA]">
+                            📥 Imported
+                          </span>
+                        )}
+                        {lead.source === "manual" && (
+                          <span className="text-xs px-2.5 py-1 rounded-lg font-semibold border bg-[rgba(148,163,184,0.08)] border-[rgba(148,163,184,0.2)] text-[#94A3B8]">
+                            ✏️ Manual
+                          </span>
+                        )}
+                        {lead.source && lead.source !== "organic" && lead.source !== "qr" && lead.source !== "contact-form" && lead.source !== "import" && lead.source !== "manual" && (
                           <span className={`text-xs px-2.5 py-1 rounded-lg font-semibold border ${
                             lead.source === "facebook"
                               ? "bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.25)] text-[#60A5FA]"

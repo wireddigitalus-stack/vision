@@ -109,9 +109,9 @@ export async function POST(req: NextRequest) {
     const cleanCity     = sanitize(city);
     const cleanMessage  = sanitize(message);
 
-    if (!cleanName || !cleanEmail || !cleanInterest) {
+    if (!cleanName || !cleanEmail || !cleanInterest || !cleanPhone) {
       return NextResponse.json(
-        { error: "Name, email, and interest are required." },
+        { error: "Name, phone, email, and interest are required." },
         { status: 400 }
       );
     }

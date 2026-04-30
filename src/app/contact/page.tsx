@@ -68,8 +68,8 @@ export default function ContactPage() {
   // ── Thank-you screen ────────────────────────────────────────────────────────
   if (status === "success") {
     return (
-      <div className="pt-28 pb-20 min-h-screen px-4 sm:px-6 lg:px-8 flex items-start justify-center">
-        <div className="max-w-lg w-full mt-8">
+      <div className="pt-28 pb-20 min-h-screen px-4 sm:px-6 lg:px-8">
+        <div className="max-w-lg w-full mx-auto">
           <div className="glass rounded-2xl p-10 border border-[rgba(74,222,128,0.25)] text-center">
             {/* Animated check */}
             <div className="flex justify-center mb-6">
@@ -164,8 +164,8 @@ export default function ContactPage() {
                     className={inputClass} />
                 </div>
                 <div>
-                  <label htmlFor="contact-company" className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Company</label>
-                  <input id="contact-company" type="text" name="company" placeholder="Acme Corp."
+                  <label htmlFor="contact-phone" className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Phone *</label>
+                  <input id="contact-phone" type="tel" name="phone" required placeholder="(423) 000-0000"
                     className={inputClass} />
                 </div>
               </div>
@@ -177,8 +177,8 @@ export default function ContactPage() {
                     className={inputClass} />
                 </div>
                 <div>
-                  <label htmlFor="contact-phone" className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Phone</label>
-                  <input id="contact-phone" type="tel" name="phone" placeholder="(423) 000-0000"
+                  <label htmlFor="contact-company" className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Company</label>
+                  <input id="contact-company" type="text" name="company" placeholder="Acme Corp."
                     className={inputClass} />
                 </div>
               </div>
